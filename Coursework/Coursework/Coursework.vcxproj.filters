@@ -2,8 +2,6 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="shaders\fullscreen_vs.hlsl" />
-    <FxCompile Include="shaders\instance_ps.hlsl" />
-    <FxCompile Include="shaders\instance_vs.hlsl" />
     <FxCompile Include="shaders\lighting_ps.hlsl" />
     <FxCompile Include="shaders\lighting_vs.hlsl" />
     <FxCompile Include="shaders\ridgeNoise_cs.hlsl" />
@@ -13,8 +11,6 @@
     <FxCompile Include="shaders\terrain_ps.hlsl" />
     <FxCompile Include="shaders\terrain_vs.hlsl" />
     <FxCompile Include="shaders\terrainNoise_cs.hlsl" />
-    <FxCompile Include="shaders\unlit_ps.hlsl" />
-    <FxCompile Include="shaders\unlit_vs.hlsl" />
     <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl" />
     <FxCompile Include="shaders\water_ps.hlsl" />
     <FxCompile Include="shaders\water_vs.hlsl" />
