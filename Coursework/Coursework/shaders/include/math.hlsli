@@ -1,3 +1,8 @@
+
+
+#define PI 3.14159268535
+
+
 // Smooth minimum of two values, controlled by smoothing factor k
 // When k = 0, this behaves identically to min(a, b)
 float smoothMin(float a, float b, float k)

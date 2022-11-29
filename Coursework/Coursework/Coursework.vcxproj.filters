@@ -4,21 +4,22 @@
     <FxCompile Include="shaders\fullscreen_vs.hlsl" />
     <FxCompile Include="shaders\lighting_ps.hlsl" />
     <FxCompile Include="shaders\lighting_vs.hlsl" />
-    <FxCompile Include="shaders\ridgeNoise_cs.hlsl" />
-    <FxCompile Include="shaders\simpleNoise_cs.hlsl" />
-    <FxCompile Include="shaders\terrain_ds.hlsl" />
-    <FxCompile Include="shaders\terrain_hs.hlsl" />
-    <FxCompile Include="shaders\terrain_ps.hlsl" />
-    <FxCompile Include="shaders\terrain_vs.hlsl" />
-    <FxCompile Include="shaders\terrainNoise_cs.hlsl" />
-    <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl" />
+    <FxCompile Include="shaders\compute\ridgeNoise_cs.hlsl" />
+    <FxCompile Include="shaders\compute\simpleNoise_cs.hlsl" />
+    <FxCompile Include="shaders\terrain\terrain_ds.hlsl" />
+    <FxCompile Include="shaders\terrain\terrain_hs.hlsl" />
+    <FxCompile Include="shaders\terrain\terrain_ps.hlsl" />
+    <FxCompile Include="shaders\terrain\terrain_vs.hlsl" />
+    <FxCompile Include="shaders\compute\terrainNoise_cs.hlsl" />
+    <FxCompile Include="shaders\compute\warpedSimpleNoise_cs.hlsl" />
     <FxCompile Include="shaders\water_ps.hlsl" />
     <FxCompile Include="shaders\water_vs.hlsl" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\math.hlsli" />
-    <None Include="shaders\noiseFunctions.hlsli" />
-    <None Include="shaders\noiseSimplex.hlsli" />
+    <None Include="shaders\include\math.hlsli" />
+    <None Include="shaders\compute\noiseFunctions.hlsli" />
+    <None Include="shaders\include\noiseSimplex.hlsli" />
+    <None Include="shaders\lighting\lighting.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp" />
