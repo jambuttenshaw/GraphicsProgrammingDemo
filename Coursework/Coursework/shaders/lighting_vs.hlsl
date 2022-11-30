@@ -2,9 +2,15 @@
 // Standard issue vertex shader, apply matrices, pass info to pixel shader
 cbuffer MatrixBuffer : register(b0)
 {
-    matrix worldMatrix;
-    matrix viewMatrix;
-    matrix projectionMatrix;
+	matrix worldMatrix;
+	matrix viewMatrix;
+	matrix projectionMatrix;
+}
+
+cbuffer CameraBuffer : register(b1)
+{
+	float3 cameraPos;
+	float padding;
 };
 
 struct InputType
@@ -19,7 +25,7 @@ struct OutputType
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
     float3 normal : NORMAL;
-    float3 worldPosition : POSITION;
+    float3 viewDir : POSITION;
 };
 
 OutputType main(InputType input)
@@ -27,8 +33,8 @@ OutputType main(InputType input)
     OutputType output;
 	
 	// Calculate the position of the vertex against the world, view, and projection matrices.
-    output.position = mul(input.position, worldMatrix);
-    output.position = mul(output.position, viewMatrix);
+    float4 worldPosition = mul(input.position, worldMatrix);
+    output.position = mul(worldPosition, viewMatrix);
     output.position = mul(output.position, projectionMatrix);
 
 	// Store the texture coordinates for the pixel shader.
@@ -36,9 +42,11 @@ OutputType main(InputType input)
 
 	// Calculate the normal vector against the world matrix only and normalise.
     output.normal = mul(input.normal, (float3x3) worldMatrix);
-    output.normal = normalize(output.normal);
-
-    output.worldPosition = mul(input.position, worldMatrix).xyz;
+    // normal will be normalized in pixel shader post-interpolation
 	
+    // view dir is direction from camera to vertex
+    output.viewDir = worldPosition.xyz - cameraPos;
+    // view dir will be normalized in pixel shader post-interpolation
+
     return output;
 }

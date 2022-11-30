@@ -33,10 +33,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_Terrain = new TerrainMesh(renderer->getDevice());
 
-	m_Cube = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext(), 2);
+	m_Cube = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_CubeTransform.SetScale(0.5f);
 
-	camera->setPosition(-50.0f, 30.0f, -50.0f);
+	camera->setPosition(-3.0f, 0.0f, -3.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// Initialise light
@@ -106,17 +106,17 @@ bool App1::render()
 
 
 	// render world to render texture
-	m_RenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
-	if (!wireframeToggle) m_RenderTarget->Set(renderer->getDeviceContext());
+	//m_RenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
+	//if (!wireframeToggle) m_RenderTarget->Set(renderer->getDeviceContext());
 	worldPass();
 
-	if (!wireframeToggle)
-	{
-		// water is a post-processing effect and rendered afterwards
-		renderer->setBackBufferRenderTarget();
-		
-		waterPass();
-	}
+	//if (!wireframeToggle)
+	//{
+	//	// water is a post-processing effect and rendered afterwards
+	//	renderer->setBackBufferRenderTarget();
+	//	
+	//	waterPass();
+	//}
 
 	// GUI
 	
@@ -146,7 +146,7 @@ void App1::worldPass()
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
 
-	{
+	if (false) {
 		XMMATRIX w = worldMatrix * m_TerrainTransform.GetMatrix();
 
 		// Send geometry data, set shader parameters, render object with shader
@@ -155,12 +155,12 @@ void App1::worldPass()
 		m_TerrainShader->Render(renderer->getDeviceContext(), m_Terrain->GetIndexCount());
 	}
 
-	if (m_ShowCube)
+	if (true)
 	{
 		XMMATRIX w = worldMatrix * m_CubeTransform.GetMatrix();
 
 		m_Cube->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, light);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, light, camera);
 		m_LightShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
 	}
 }
@@ -221,12 +221,15 @@ void App1::gui()
 		{
 			if (ImGui::ColorEdit3("Light Diffuse", &lightDiffuse.x))
 				light->setDiffuseColour(lightDiffuse.x, lightDiffuse.y, lightDiffuse.z, 1.0f);
-			if (ImGui::ColorEdit3("Light Ambient", &lightAmbient.x))
-				light->setAmbientColour(lightAmbient.x, lightAmbient.y, lightAmbient.z, 1.0f);
-			if (ImGui::ColorEdit3("Light Specular", &lightSpecular.x))
-				light->setSpecularColour(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
+			//if (ImGui::ColorEdit3("Light Ambient", &lightAmbient.x))
+			//	light->setAmbientColour(lightAmbient.x, lightAmbient.y, lightAmbient.z, 1.0f);
+			//if (ImGui::ColorEdit3("Light Specular", &lightSpecular.x))
+			//	light->setSpecularColour(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
 			if (ImGui::SliderFloat3("Light Direction", &lightDir.x, -1.0f, 1.0f))
 				light->setDirection(lightDir.x, lightDir.y, lightDir.z);
+
+			ImGui::Text("Material");
+			m_LightShader->materialGUI();
 
 			ImGui::TreePop();
 		}

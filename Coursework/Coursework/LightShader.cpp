@@ -1,5 +1,8 @@
 #include "LightShader.h"
 
+#include "imGUI/imgui.h"
+
+
 LightShader::LightShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
 {
 	initShader(L"lighting_vs.cso", L"lighting_ps.cso");
@@ -33,7 +36,9 @@ LightShader::~LightShader()
 void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
 	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_BUFFER_DESC cameraBufferDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
+	D3D11_BUFFER_DESC materialBufferDesc;
 
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);
@@ -48,9 +53,14 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	matrixBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
-	// Setup light buffer
-	// Setup the description of the light dynamic constant buffer that is in the pixel shader.
-	// Note that ByteWidth always needs to be a multiple of 16 if using D3D11_BIND_CONSTANT_BUFFER or CreateBuffer will fail.
+	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
+	cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cameraBufferDesc.MiscFlags = 0;
+	cameraBufferDesc.StructureByteStride = 0;
+	renderer->CreateBuffer(&cameraBufferDesc, NULL, &cameraBuffer);
+
 	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
 	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -58,10 +68,18 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	lightBufferDesc.MiscFlags = 0;
 	lightBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
+
+	materialBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	materialBufferDesc.ByteWidth = sizeof(MaterialBufferType);
+	materialBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	materialBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	materialBufferDesc.MiscFlags = 0;
+	materialBufferDesc.StructureByteStride = 0;
+	renderer->CreateBuffer(&materialBufferDesc, NULL, &materialBuffer);
 }
 
 
-void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, Light* light)
+void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, Light* light, Camera* camera)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -80,17 +98,42 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	dataPtr->view = tview;
 	dataPtr->projection = tproj;
 	deviceContext->Unmap(matrixBuffer, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
 
-	//Additional
-	// Send light data to pixel shader
+	CameraBufferType* cameraPtr;
+	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	cameraPtr = (CameraBufferType*)mappedResource.pData;
+	cameraPtr->cameraPos = camera->getPosition();
+	cameraPtr->padding = 0.0f;
+	deviceContext->Unmap(cameraBuffer, 0);
+
 	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
-	lightPtr->diffuse = light->getDiffuseColour();
-	lightPtr->ambient = light->getAmbientColour();
+	XMFLOAT4 x = light->getDiffuseColour();
+	lightPtr->irradiance = { x.x * lightStrength, x.y * lightStrength, x.z * lightStrength, 1.0f };
 	lightPtr->direction = light->getDirection();
 	lightPtr->padding = 0.0f;
 	deviceContext->Unmap(lightBuffer, 0);
-	deviceContext->PSSetConstantBuffers(0, 1, &lightBuffer);
+
+	MaterialBufferType* matPtr;
+	deviceContext->Map(materialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	matPtr = (MaterialBufferType*)mappedResource.pData;
+	matPtr->albedo = albedo;
+	matPtr->metallic = metallic;
+	matPtr->roughness = roughness;
+	matPtr->padding = { 0.0f, 0.0f };
+	deviceContext->Unmap(materialBuffer, 0);
+
+	ID3D11Buffer* vsBuffers[2] = { matrixBuffer, cameraBuffer };
+	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
+	deviceContext->VSSetConstantBuffers(0, 2, vsBuffers);
+	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);
+}
+
+void LightShader::materialGUI()
+{
+	ImGui::ColorPicker3("Albedo", &albedo.x);
+	ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f);
+	ImGui::SliderFloat("Roughness", &roughness, 0.01f, 1.0f);
+	ImGui::DragFloat("Light Strength", &lightStrength, 0.1f);
 }

@@ -61,7 +61,7 @@ private:
 	TerrainMesh* m_Terrain;
 	
 	bool m_ShowCube = false;
-	CubeMesh* m_Cube;
+	SphereMesh* m_Cube;
 	Transform m_CubeTransform;
 
 	Light* light;
