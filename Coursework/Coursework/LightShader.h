@@ -5,8 +5,18 @@
 using namespace std;
 using namespace DirectX;
 
+#define MAX_LIGHTS 4
+
 class LightShader : public BaseShader
 {
+private:
+	enum class LightType
+	{
+		Directional = 0,
+		Point = 1,
+		Spot = 2
+	};
+
 private:
 	struct CameraBufferType
 	{
@@ -16,9 +26,10 @@ private:
 
 	struct LightBufferType
 	{
-		XMFLOAT4 irradiance;
-		XMFLOAT3 direction;
-		float padding;
+		XMFLOAT4 irradiance[MAX_LIGHTS];
+		XMFLOAT4 directionAndType[MAX_LIGHTS];
+		float lightCount;
+		XMFLOAT3 padding;
 	};
 
 	struct MaterialBufferType

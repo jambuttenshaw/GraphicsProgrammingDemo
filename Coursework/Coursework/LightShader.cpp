@@ -109,10 +109,15 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
+
 	XMFLOAT4 x = light->getDiffuseColour();
-	lightPtr->irradiance = { x.x * lightStrength, x.y * lightStrength, x.z * lightStrength, 1.0f };
-	lightPtr->direction = light->getDirection();
-	lightPtr->padding = 0.0f;
+	lightPtr->irradiance[0] = { x.x * lightStrength, x.y * lightStrength, x.z * lightStrength, 1.0f };
+
+	XMFLOAT3 d = light->getDirection();
+	lightPtr->directionAndType[0] = XMFLOAT4{ d.x, d.y, d.z, static_cast<float>(LightType::Directional) };
+
+	lightPtr->lightCount = 1;
+	lightPtr->padding = { 0.0f, 0.0f, 0.0f };
 	deviceContext->Unmap(lightBuffer, 0);
 
 	MaterialBufferType* matPtr;
