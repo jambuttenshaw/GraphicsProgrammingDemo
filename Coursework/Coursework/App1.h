@@ -11,6 +11,8 @@
 #include "WaterShader.h"
 
 #include "RenderTarget.h"
+#include "SceneLight.h"
+#include "Material.h"
 
 #include "TerrainMesh.h"
 
@@ -39,6 +41,7 @@ protected:
 	void worldPass();
 	void waterPass();
 
+	void terrainSettingsMenu();
 	bool addTerrainFilterMenu();
 
 	void applyFilterStack();
@@ -51,6 +54,7 @@ protected:
 private:
 	float m_Time = 0.0f;
 
+	// Shaders
 	LightShader* m_LightShader;
 	TerrainShader* m_TerrainShader;
 	WaterShader* m_WaterShader;
@@ -60,22 +64,19 @@ private:
 	Transform m_TerrainTransform;
 	TerrainMesh* m_Terrain;
 	
-	bool m_ShowCube = false;
-	SphereMesh* m_Cube;
-	Transform m_CubeTransform;
+	CubeMesh* m_Cube;
+	SphereMesh* m_Sphere;
 
-	Light* light;
-	XMFLOAT3 lightDiffuse{ 1.0f, 1.0f, 1.0f };
-	XMFLOAT3 lightAmbient{ 0.2f, 0.2f, 0.2f };
-	XMFLOAT3 lightSpecular{ 0.2f, 0.2f, 0.2f };
-	XMFLOAT3 lightDir{ 0.7f, -0.7f, 0.7f };
+	std::array<SceneLight, 4> m_Lights;
+
+	Material mat1, mat2;
 
 	std::vector<IHeightmapFilter*> m_HeightmapFilters;
 	int m_SelectedHeightmapFilter = -1;
-	
 	std::array<const char*, 4> m_AllFilterNames = {
 		"Simple Noise", "Ridge Noise", "Warped Simple Noise", "Terrain Noise"
 	};
+	bool m_TerrainSettingsOpen = false;
 
 	char m_SaveFilePath[128];
 	bool m_LoadOnOpen = true;

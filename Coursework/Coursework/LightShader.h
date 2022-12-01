@@ -2,6 +2,9 @@
 
 #include "DXF.h"
 
+#include "SceneLight.h"
+#include "Material.h"
+
 using namespace std;
 using namespace DirectX;
 
@@ -9,14 +12,6 @@ using namespace DirectX;
 
 class LightShader : public BaseShader
 {
-private:
-	enum class LightType
-	{
-		Directional = 0,
-		Point = 1,
-		Spot = 2
-	};
-
 private:
 	struct CameraBufferType
 	{
@@ -27,7 +22,9 @@ private:
 	struct LightBufferType
 	{
 		XMFLOAT4 irradiance[MAX_LIGHTS];
-		XMFLOAT4 directionAndType[MAX_LIGHTS];
+		XMFLOAT4 position[MAX_LIGHTS];
+		XMFLOAT4 direction[MAX_LIGHTS];
+		XMFLOAT4 typeAndSpotAngles[MAX_LIGHTS];
 		float lightCount;
 		XMFLOAT3 padding;
 	};
@@ -44,9 +41,7 @@ public:
 	LightShader(ID3D11Device* device, HWND hwnd);
 	~LightShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, Light* light, Camera* camera);
-
-	void materialGUI();
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, int lightCount, const SceneLight* lights, Camera* camera, const Material* mat);
 
 private:
 	void initShader(const wchar_t* vs, const wchar_t* ps);
@@ -56,10 +51,5 @@ private:
 	ID3D11Buffer* cameraBuffer = nullptr;
 	ID3D11Buffer* lightBuffer = nullptr;
 	ID3D11Buffer* materialBuffer = nullptr;
-
-	XMFLOAT4 albedo{ 1.0f, 1.0f, 1.0f, 1.0f };
-	float metallic = 0.0f;
-	float roughness = 1.0f;
-	float lightStrength = 1.0f;
 };
 

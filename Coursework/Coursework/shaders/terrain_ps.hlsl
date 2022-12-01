@@ -1,6 +1,6 @@
 // Terrain Pixel Shader
 
-#include "../include/math.hlsli"
+#include "math.hlsli"
 
 Texture2D heightmap : register(t0);
 SamplerState heightmapSampler : register(s0);

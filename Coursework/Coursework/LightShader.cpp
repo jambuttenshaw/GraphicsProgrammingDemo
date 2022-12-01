@@ -79,7 +79,8 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 }
 
 
-void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, Light* light, Camera* camera)
+void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
+									  int lightCount, const SceneLight* lights, Camera* camera, const Material* mat)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -109,23 +110,36 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
+	int count = 0;
+	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
+	{
+		const SceneLight* light = lights + i;
+		
+		if (!light->IsEnabled()) continue;
 
-	XMFLOAT4 x = light->getDiffuseColour();
-	lightPtr->irradiance[0] = { x.x * lightStrength, x.y * lightStrength, x.z * lightStrength, 1.0f };
+		XMFLOAT3 irradiance = light->GetIrradiance();
+		lightPtr->irradiance[count] = { irradiance.x, irradiance.y, irradiance.z, 1.0f };
 
-	XMFLOAT3 d = light->getDirection();
-	lightPtr->directionAndType[0] = XMFLOAT4{ d.x, d.y, d.z, static_cast<float>(LightType::Directional) };
+		XMFLOAT3 p = light->GetPosition();
+		lightPtr->position[count] = XMFLOAT4{ p.x, p.y, p.z, 0.0f };
 
-	lightPtr->lightCount = 1;
+		XMFLOAT3 d = light->GetDirection();
+		lightPtr->direction[count] = XMFLOAT4{ d.x, d.y, d.z, 0.0f };
+		
+		lightPtr->typeAndSpotAngles[count] = { static_cast<float>(light->GetType()), cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()), 0.0f };
+
+		count++;
+	}
+	lightPtr->lightCount = count;
 	lightPtr->padding = { 0.0f, 0.0f, 0.0f };
 	deviceContext->Unmap(lightBuffer, 0);
 
 	MaterialBufferType* matPtr;
 	deviceContext->Map(materialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	matPtr = (MaterialBufferType*)mappedResource.pData;
-	matPtr->albedo = albedo;
-	matPtr->metallic = metallic;
-	matPtr->roughness = roughness;
+	matPtr->albedo = mat->GetAlbedo();
+	matPtr->metallic = mat->GetMetalness();
+	matPtr->roughness = mat->GetRoughness();
 	matPtr->padding = { 0.0f, 0.0f };
 	deviceContext->Unmap(materialBuffer, 0);
 
@@ -133,12 +147,4 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
 	deviceContext->VSSetConstantBuffers(0, 2, vsBuffers);
 	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);
-}
-
-void LightShader::materialGUI()
-{
-	ImGui::ColorPicker3("Albedo", &albedo.x);
-	ImGui::SliderFloat("Metallic", &metallic, 0.0f, 1.0f);
-	ImGui::SliderFloat("Roughness", &roughness, 0.01f, 1.0f);
-	ImGui::DragFloat("Light Strength", &lightStrength, 0.1f);
 }

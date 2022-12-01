@@ -1,49 +1,152 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="shaders\fullscreen_vs.hlsl" />
-    <FxCompile Include="shaders\lighting_ps.hlsl" />
-    <FxCompile Include="shaders\lighting_vs.hlsl" />
-    <FxCompile Include="shaders\compute\ridgeNoise_cs.hlsl" />
-    <FxCompile Include="shaders\compute\simpleNoise_cs.hlsl" />
-    <FxCompile Include="shaders\terrain\terrain_ds.hlsl" />
-    <FxCompile Include="shaders\terrain\terrain_hs.hlsl" />
-    <FxCompile Include="shaders\terrain\terrain_ps.hlsl" />
-    <FxCompile Include="shaders\terrain\terrain_vs.hlsl" />
-    <FxCompile Include="shaders\compute\terrainNoise_cs.hlsl" />
-    <FxCompile Include="shaders\compute\warpedSimpleNoise_cs.hlsl" />
-    <FxCompile Include="shaders\water_ps.hlsl" />
-    <FxCompile Include="shaders\water_vs.hlsl" />
+    <FxCompile Include="shaders\fullscreen_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\lighting_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\lighting_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\ridgeNoise_cs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\simpleNoise_cs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_ds.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_hs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrainNoise_cs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\water_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\water_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\include\math.hlsli" />
-    <None Include="shaders\compute\noiseFunctions.hlsli" />
-    <None Include="shaders\include\noiseSimplex.hlsli" />
-    <None Include="shaders\lighting\lighting.hlsli" />
+    <None Include="shaders\lighting.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\math.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\noiseFunctions.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\noiseSimplex.hlsli">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="App1.cpp" />
-    <ClCompile Include="BaseFullScreenShader.cpp" />
-    <ClCompile Include="HeightmapFilters.cpp" />
-    <ClCompile Include="LightShader.cpp" />
     <ClCompile Include="Main.cpp" />
-    <ClCompile Include="RenderTarget.cpp" />
-    <ClCompile Include="SerializationHelper.cpp" />
-    <ClCompile Include="TerrainMesh.cpp" />
-    <ClCompile Include="TerrainShader.cpp" />
-    <ClCompile Include="WaterShader.cpp" />
+    <ClCompile Include="App1.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseFullScreenShader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="LightShader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderTarget.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainShader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterShader.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="SerializationHelper.cpp">
+      <Filter>Utility</Filter>
+    </ClCompile>
+    <ClCompile Include="HeightmapFilters.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainMesh.cpp">
+      <Filter>Geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneLight.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="Material.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="App1.h" />
-    <ClInclude Include="BaseFullScreenShader.h" />
-    <ClInclude Include="BaseHeightmapFilter.h" />
-    <ClInclude Include="HeightmapFilters.h" />
-    <ClInclude Include="LightShader.h" />
-    <ClInclude Include="RenderTarget.h" />
-    <ClInclude Include="SerializationHelper.h" />
-    <ClInclude Include="TerrainMesh.h" />
-    <ClInclude Include="TerrainShader.h" />
-    <ClInclude Include="Transform.h" />
-    <ClInclude Include="WaterShader.h" />
+    <ClInclude Include="App1.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseFullScreenShader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="LightShader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTarget.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainShader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterShader.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Transform.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="SerializationHelper.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseHeightmapFilter.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="HeightmapFilters.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainMesh.h">
+      <Filter>Geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneLight.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="Material.h">
+      <Filter>Rendering</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{9b6ba308-2575-49fa-b5bf-c7010d44972d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering">
+      <UniqueIdentifier>{89a098ad-f2cc-49e1-8ea3-084a334acbb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{c1e25276-80de-4e59-9398-851b6712ab91}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{d5d09959-82d5-44bb-865e-b9481d0358d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{023b089d-eab3-4fa6-ab6b-335a1dec2b87}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

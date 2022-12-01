@@ -1,4 +1,4 @@
-#include "../include/noiseSimplex.hlsli"
+#include "noiseSimplex.hlsli"
 
 // NOISE SETTINGS STRUCT DEFINITIONS
 

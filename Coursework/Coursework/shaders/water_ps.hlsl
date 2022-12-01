@@ -1,6 +1,6 @@
 // Water post processing effect
 
-#include "include/math.hlsli"
+#include "math.hlsli"
 
 
 Texture2D renderTextureColour : register(t0);

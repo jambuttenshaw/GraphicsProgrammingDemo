@@ -183,35 +183,35 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\compute\ridgeNoise_cs.hlsl">
+    <FxCompile Include="shaders\ridgeNoise_cs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\compute\simpleNoise_cs.hlsl">
+    <FxCompile Include="shaders\simpleNoise_cs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\compute\terrainNoise_cs.hlsl">
+    <FxCompile Include="shaders\terrainNoise_cs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\terrain\terrain_ds.hlsl">
+    <FxCompile Include="shaders\terrain_ds.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Domain</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Domain</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\terrain\terrain_hs.hlsl">
+    <FxCompile Include="shaders\terrain_hs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Hull</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Hull</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\terrain\terrain_ps.hlsl">
+    <FxCompile Include="shaders\terrain_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\terrain\terrain_vs.hlsl">
+    <FxCompile Include="shaders\terrain_vs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
-    <FxCompile Include="shaders\compute\warpedSimpleNoise_cs.hlsl">
+    <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
     </FxCompile>
@@ -225,10 +225,10 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\include\math.hlsli" />
-    <None Include="shaders\compute\noiseFunctions.hlsli" />
-    <None Include="shaders\include\noiseSimplex.hlsli" />
-    <None Include="shaders\lighting\lighting.hlsli" />
+    <None Include="shaders\math.hlsli" />
+    <None Include="shaders\noiseFunctions.hlsli" />
+    <None Include="shaders\noiseSimplex.hlsli" />
+    <None Include="shaders\lighting.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp" />
@@ -236,7 +236,9 @@
     <ClCompile Include="HeightmapFilters.cpp" />
     <ClCompile Include="LightShader.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="Material.cpp" />
     <ClCompile Include="RenderTarget.cpp" />
+    <ClCompile Include="SceneLight.cpp" />
     <ClCompile Include="SerializationHelper.cpp" />
     <ClCompile Include="TerrainMesh.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
@@ -248,7 +250,9 @@
     <ClInclude Include="BaseHeightmapFilter.h" />
     <ClInclude Include="HeightmapFilters.h" />
     <ClInclude Include="LightShader.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="RenderTarget.h" />
+    <ClInclude Include="SceneLight.h" />
     <ClInclude Include="SerializationHelper.h" />
     <ClInclude Include="TerrainMesh.h" />
     <ClInclude Include="TerrainShader.h" />

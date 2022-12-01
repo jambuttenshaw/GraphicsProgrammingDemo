@@ -1,5 +1,5 @@
 #include "noiseFunctions.hlsli"
-#include "../include/math.hlsli"
+#include "math.hlsli"
 
 RWTexture2D<float4> gHeightmap : register(u0);
 

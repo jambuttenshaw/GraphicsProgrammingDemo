@@ -33,18 +33,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_Terrain = new TerrainMesh(renderer->getDevice());
 
-	m_Cube = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
-	m_CubeTransform.SetScale(0.5f);
+	m_Cube = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
+	m_Sphere = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 
-	camera->setPosition(-3.0f, 0.0f, -3.0f);
+	camera->setPosition(0.0f, 0.0f, -3.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
-
-	// Initialise light
-	light = new Light();
-	light->setDiffuseColour(lightDiffuse.x, lightDiffuse.y, lightDiffuse.z, 1.0f);
-	light->setAmbientColour(lightAmbient.x, lightAmbient.y, lightAmbient.z, 1.0f);
-	light->setSpecularColour(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
-	light->setDirection(lightDir.x, lightDir.y, lightDir.z);
 
 	if (m_LoadOnOpen)
 	{
@@ -151,17 +144,24 @@ void App1::worldPass()
 
 		// Send geometry data, set shader parameters, render object with shader
 		m_Terrain->SendData(renderer->getDeviceContext());
-		m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Terrain->GetSRV(), light, camera);
+		m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Terrain->GetSRV(), nullptr, camera);
 		m_TerrainShader->Render(renderer->getDeviceContext(), m_Terrain->GetIndexCount());
 	}
 
 	if (true)
 	{
-		XMMATRIX w = worldMatrix * m_CubeTransform.GetMatrix();
+		XMMATRIX w = worldMatrix * XMMatrixTranslation(-2.0f, 0.0f, 0.0f);
 
 		m_Cube->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, light, camera);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat1);
 		m_LightShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
+
+
+		w = worldMatrix * XMMatrixTranslation(2.0f, 0.0f, 0.0f);
+
+		m_Sphere->sendData(renderer->getDeviceContext());
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat2);
+		m_LightShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
 	}
 }
 
@@ -175,7 +175,7 @@ void App1::waterPass()
 	{
 
 		renderer->setZBuffer(false);
-		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_RenderTarget->GetColourSRV(), m_RenderTarget->GetDepthSRV(), light, camera, m_Time);
+		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_RenderTarget->GetColourSRV(), m_RenderTarget->GetDepthSRV(), nullptr, camera, m_Time);
 		m_WaterShader->Render(renderer->getDeviceContext());
 		renderer->setZBuffer(true);
 	}
@@ -183,8 +183,6 @@ void App1::waterPass()
 
 void App1::gui()
 {
-	bool regenerateTerrain = false;
-
 	if (ImGui::CollapsingHeader("General"))
 	{
 		static bool showDemo = false;
@@ -199,43 +197,16 @@ void App1::gui()
 		ImGui::Checkbox("Wireframe mode", &wireframeToggle);
 		ImGui::Separator();
 
-		if (ImGui::TreeNode("Camera"))
-		{
-			XMFLOAT3 camPos = camera->getPosition();
-			if (ImGui::DragFloat3("Camera Pos", &camPos.x, 0.1f))
-				camera->setPosition(camPos.x, camPos.y, camPos.z);
-			XMFLOAT3 camRot = camera->getRotation();
-			if (ImGui::DragFloat3("Camera Rot", &camRot.x, 0.5f))
-				camera->setRotation(camRot.x, camRot.y, camRot.z);
-
-			ImGui::TreePop();
-		}
-		ImGui::Separator();
-
-		ImGui::Checkbox("Show Cube", &m_ShowCube);
-		if (ImGui::Button("Move Cube"))
-			m_CubeTransform.SetTranslation(camera->getPosition());
-		ImGui::Separator();
-		
-		if (ImGui::TreeNode("Lighting"))
-		{
-			if (ImGui::ColorEdit3("Light Diffuse", &lightDiffuse.x))
-				light->setDiffuseColour(lightDiffuse.x, lightDiffuse.y, lightDiffuse.z, 1.0f);
-			//if (ImGui::ColorEdit3("Light Ambient", &lightAmbient.x))
-			//	light->setAmbientColour(lightAmbient.x, lightAmbient.y, lightAmbient.z, 1.0f);
-			//if (ImGui::ColorEdit3("Light Specular", &lightSpecular.x))
-			//	light->setSpecularColour(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
-			if (ImGui::SliderFloat3("Light Direction", &lightDir.x, -1.0f, 1.0f))
-				light->setDirection(lightDir.x, lightDir.y, lightDir.z);
-
-			ImGui::Text("Material");
-			m_LightShader->materialGUI();
-
-			ImGui::TreePop();
-		}
+		XMFLOAT3 camPos = camera->getPosition();
+		if (ImGui::DragFloat3("Camera Pos", &camPos.x, 0.1f))
+			camera->setPosition(camPos.x, camPos.y, camPos.z);
+		XMFLOAT3 camRot = camera->getRotation();
+		if (ImGui::DragFloat3("Camera Rot", &camRot.x, 0.5f))
+			camera->setRotation(camRot.x, camRot.y, camRot.z);
 	}
 	ImGui::Separator();
 
+	/*
 	if (ImGui::CollapsingHeader("Save/Load Settings"))
 	{
 		ImGui::InputText("Save file", m_SaveFilePath, IM_ARRAYSIZE(m_SaveFilePath));
@@ -246,103 +217,141 @@ void App1::gui()
 		if (ImGui::Button("Open"))
 		{
 			loadSettings(std::string(m_SaveFilePath));
-			regenerateTerrain = true;
+			applyFilterStack();
 		}
 
 		ImGui::Checkbox("Load On Open", &m_LoadOnOpen);
 		ImGui::Checkbox("Save On Exit", &m_SaveOnExit);
 	}
 	ImGui::Separator();
+	*/
 
-	if (ImGui::CollapsingHeader("Graphics"))
+	if (ImGui::CollapsingHeader("Lighting"))
 	{
-		if (ImGui::TreeNode("Ocean"))
+		int index = 0;
+		for (auto& light : m_Lights)
 		{
-			m_WaterShader->SettingsGUI();
+			if (ImGui::TreeNode((void*)index, "Light %d", index))
+			{
+				ImGui::Separator();
 
+				light.SettingsGUI();
+
+				ImGui::TreePop();
+				ImGui::Separator();
+			}
+
+			index++;
+		}
+	}
+	ImGui::Separator();
+
+	if (ImGui::CollapsingHeader("Materials"))
+	{
+		if (ImGui::TreeNode("Material 1"))
+		{
+			mat1.SettingsGUI();
 			ImGui::TreePop();
 		}
+		if (ImGui::TreeNode("Material 2"))
+		{
+			mat2.SettingsGUI();
+			ImGui::TreePop();
+		}
+	}
+	ImGui::Separator();
+
+	if (ImGui::CollapsingHeader("Ocean"))
+	{
+		m_WaterShader->SettingsGUI();
+	}
+	ImGui::Separator();
+	
+	if (ImGui::CollapsingHeader("Terrain"))
+	{
+		m_TerrainShader->GUI();
+		ImGui::Separator();
+		ImGui::Checkbox("Open Generation Settings", &m_TerrainSettingsOpen);
+		if (m_TerrainSettingsOpen) terrainSettingsMenu();
+	}
+	ImGui::Separator();
+}
+
+void App1::terrainSettingsMenu()
+{
+	if (!ImGui::Begin("Terrain Settings", &m_TerrainSettingsOpen))
+	{
+		ImGui::End();
+		return;
+	}
+
+	bool regenerateTerrain = false;
+
+	struct FuncHolder { // to allow inline function declaration
+		static bool ItemGetter(void* data, int idx, const char** out_str)
+		{
+			*out_str = ((IHeightmapFilter**)data)[idx]->Label();
+			return true;
+		}
+	};
+
+	ImGui::Text("Filter Stack:");
+	ImGui::Combo("Filter", &m_SelectedHeightmapFilter, &FuncHolder::ItemGetter, m_HeightmapFilters.data(), m_HeightmapFilters.size());
+
+	if (ImGui::Button("+"))
+		ImGui::OpenPopup("addfilter_popup");
+	regenerateTerrain |= addTerrainFilterMenu();
+
+	ImGui::SameLine();
+	if (ImGui::Button("-"))
+	{
+		if (m_HeightmapFilters.size() > 0)
+		{
+			delete m_HeightmapFilters[m_SelectedHeightmapFilter];
+			m_HeightmapFilters.erase(m_HeightmapFilters.begin() + m_SelectedHeightmapFilter);
+
+			if (m_HeightmapFilters.empty()) m_SelectedHeightmapFilter = -1;
+			if (m_SelectedHeightmapFilter > 0) --m_SelectedHeightmapFilter;
+
+			regenerateTerrain = true;
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("^"))
+	{
+		if (m_SelectedHeightmapFilter > 0 && m_HeightmapFilters.size() > 1)
+		{
+			std::iter_swap(m_HeightmapFilters.begin() + m_SelectedHeightmapFilter - 1, m_HeightmapFilters.begin() + m_SelectedHeightmapFilter);
+			--m_SelectedHeightmapFilter;
+
+			regenerateTerrain = true;
+		}
+	}
+	ImGui::SameLine();
+	if (ImGui::Button("v"))
+	{
+		if (m_SelectedHeightmapFilter < m_HeightmapFilters.size() - 1 && m_HeightmapFilters.size() > 1)
+		{
+			std::iter_swap(m_HeightmapFilters.begin() + m_SelectedHeightmapFilter, m_HeightmapFilters.begin() + m_SelectedHeightmapFilter + 1);
+			++m_SelectedHeightmapFilter;
+
+			regenerateTerrain = true;
+		}
+	}
+
+	if (m_SelectedHeightmapFilter >= 0)
+	{
+		ImGui::Separator();
+		ImGui::Text("Filter Settings");
 		ImGui::Separator();
 
-		if (ImGui::TreeNode("Terrain"))
-		{
-			m_TerrainShader->GUI();
-
-			ImGui::TreePop();
-		}
+		regenerateTerrain |= m_HeightmapFilters[m_SelectedHeightmapFilter]->SettingsGUI();
 	}
-	ImGui::Separator();
-
-	if (ImGui::CollapsingHeader("Terrain Filters"))
-	{
-
-
-		struct FuncHolder { // to allow inline function declaration
-			static bool ItemGetter(void* data, int idx, const char** out_str)
-			{
-				*out_str = ((IHeightmapFilter**)data)[idx]->Label();
-				return true;
-			} 
-		};
-		
-		ImGui::Text("Filter Stack:");
-		ImGui::Combo("Filter", &m_SelectedHeightmapFilter, &FuncHolder::ItemGetter, m_HeightmapFilters.data(), m_HeightmapFilters.size());
-
-		if (ImGui::Button("+"))
-			ImGui::OpenPopup("addfilter_popup");
-		regenerateTerrain |= addTerrainFilterMenu();
-
-		ImGui::SameLine();
-		if (ImGui::Button("-"))
-		{
-			if (m_HeightmapFilters.size() > 0)
-			{
-				delete m_HeightmapFilters[m_SelectedHeightmapFilter];
-				m_HeightmapFilters.erase(m_HeightmapFilters.begin() + m_SelectedHeightmapFilter);
-
-				if (m_HeightmapFilters.empty()) m_SelectedHeightmapFilter = -1;
-				if (m_SelectedHeightmapFilter > 0) --m_SelectedHeightmapFilter;
-
-				regenerateTerrain = true;
-			}
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("^"))
-		{
-			if (m_SelectedHeightmapFilter > 0 && m_HeightmapFilters.size() > 1)
-			{
-				std::iter_swap(m_HeightmapFilters.begin() + m_SelectedHeightmapFilter - 1, m_HeightmapFilters.begin() + m_SelectedHeightmapFilter);
-				--m_SelectedHeightmapFilter;
-
-				regenerateTerrain = true;
-			}
-		}
-		ImGui::SameLine();
-		if (ImGui::Button("v"))
-		{
-			if (m_SelectedHeightmapFilter < m_HeightmapFilters.size() - 1 && m_HeightmapFilters.size() > 1)
-			{
-				std::iter_swap(m_HeightmapFilters.begin() + m_SelectedHeightmapFilter, m_HeightmapFilters.begin() + m_SelectedHeightmapFilter + 1);
-				++m_SelectedHeightmapFilter;
-				
-				regenerateTerrain = true;
-			}
-		}
-
-		
-		if (m_SelectedHeightmapFilter >= 0)
-		{
-			ImGui::Separator();
-			ImGui::Text("Filter Settings");
-			ImGui::Separator();
-
-			regenerateTerrain |= m_HeightmapFilters[m_SelectedHeightmapFilter]->SettingsGUI();
-		}
-	}
-	ImGui::Separator();
 
 	if (regenerateTerrain)
 		applyFilterStack();
+
+	ImGui::End();
 }
 
 bool App1::addTerrainFilterMenu()
@@ -407,12 +416,6 @@ void App1::saveSettings(const std::string& file)
 		serialized["filters"].push_back(filter->Serialize());
 	}
 
-	// serialize light settings
-	serialized["lightDir"] = SerializationHelper::SerializeFloat3(lightDir);
-	serialized["lightDiffuse"] = SerializationHelper::SerializeFloat3(lightDiffuse);
-	serialized["lightAmbient"] = SerializationHelper::SerializeFloat3(lightAmbient);
-	serialized["lightSpecular"] = SerializationHelper::SerializeFloat3(lightSpecular);
-
 	serialized["waterSettings"] = m_WaterShader->Serialize();
 	serialized["terrainSettings"] = m_TerrainShader->Serialize();
 
@@ -458,16 +461,6 @@ void App1::loadSettings(const std::string& file)
 			m_HeightmapFilters.push_back(newFilter);
 		}
 	}
-
-	if (data.contains("lightDir")) SerializationHelper::LoadFloat3FromJson(&lightDir, data["lightDir"]);
-	if (data.contains("lightDiffuse")) SerializationHelper::LoadFloat3FromJson(&lightDiffuse, data["lightDiffuse"]);
-	if (data.contains("lightAmbient")) SerializationHelper::LoadFloat3FromJson(&lightAmbient, data["lightAmbient"]);
-	if (data.contains("lightSpecular")) SerializationHelper::LoadFloat3FromJson(&lightSpecular, data["lightSpecular"]);
-	
-	light->setDiffuseColour(lightDiffuse.x, lightDiffuse.y, lightDiffuse.z, 1.0f);
-	light->setAmbientColour(lightAmbient.x, lightAmbient.y, lightAmbient.z, 1.0f);
-	light->setSpecularColour(lightSpecular.x, lightSpecular.y, lightSpecular.z, 1.0f);
-	light->setDirection(lightDir.x, lightDir.y, lightDir.z);
 
 	if (data.contains("waterSettings")) m_WaterShader->LoadFromJson(data["waterSettings"]);
 	if (data.contains("terrainSettings")) m_TerrainShader->LoadFromJson(data["terrainSettings"]);
