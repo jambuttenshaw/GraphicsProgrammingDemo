@@ -108,7 +108,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(solutiondir)\include;</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(solutiondir)\include;$(ProjectDir)vendor</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -239,6 +239,7 @@
   <ItemGroup>
     <ClCompile Include="App1.cpp" />
     <ClCompile Include="BaseFullScreenShader.cpp" />
+    <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="HeightmapFilters.cpp" />
     <ClCompile Include="LightShader.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -246,6 +247,7 @@
     <ClCompile Include="RenderTarget.cpp" />
     <ClCompile Include="SceneLight.cpp" />
     <ClCompile Include="SerializationHelper.cpp" />
+    <ClCompile Include="stb_image_build.cpp" />
     <ClCompile Include="TerrainMesh.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
     <ClCompile Include="UnlitShader.cpp" />
@@ -255,6 +257,7 @@
     <ClInclude Include="App1.h" />
     <ClInclude Include="BaseFullScreenShader.h" />
     <ClInclude Include="BaseHeightmapFilter.h" />
+    <ClInclude Include="Cubemap.h" />
     <ClInclude Include="HeightmapFilters.h" />
     <ClInclude Include="LightShader.h" />
     <ClInclude Include="Material.h" />

@@ -99,6 +99,12 @@
     <ClCompile Include="WaterShader.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="stb_image_build.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Cubemap.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -142,6 +148,9 @@
     </ClInclude>
     <ClInclude Include="WaterShader.h">
       <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="Cubemap.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
