@@ -43,7 +43,8 @@ void SceneLight::SettingsGUI()
 
 XMFLOAT3 SceneLight::GetIrradiance() const
 {
-	return XMFLOAT3{ m_Colour.x * m_Intensity, m_Colour.y * m_Intensity, m_Colour.z * m_Intensity };
+	float i = m_Intensity * XM_PI;
+	return XMFLOAT3{ m_Colour.x * i, m_Colour.y * i, m_Colour.z * i };
 }
 
 void SceneLight::CalculateDirectionFromEulerAngles()

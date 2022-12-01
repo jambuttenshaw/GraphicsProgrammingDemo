@@ -4,6 +4,7 @@
 
 cbuffer LightBuffer : register(b0)
 {
+    float4 globalAmbience;
     float4 lightIrradiance[MAX_LIGHTS];
     float4 lightPosition[MAX_LIGHTS];
     float4 lightDirection[MAX_LIGHTS];
@@ -32,7 +33,7 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
-	float3 l0 = float3(0.0f, 0.0f, 0.0f);
+    float3 l0 = globalAmbience.rgb;
 
 	float3 n = normalize(input.normal);
 	float3 v = -normalize(input.viewDir);

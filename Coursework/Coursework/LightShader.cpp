@@ -33,6 +33,11 @@ LightShader::~LightShader()
 	}
 }
 
+void LightShader::GlobalLightSettingsGUI()
+{
+	ImGui::ColorEdit3("Global Ambience", &m_GlobalAmbient.x);
+}
+
 void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
 	D3D11_BUFFER_DESC matrixBufferDesc;
@@ -110,6 +115,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
+	lightPtr->globalAmbient = m_GlobalAmbient;
 	int count = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
 	{

@@ -6,10 +6,6 @@
 #include "DXF.h"	// include dxframework
 #include <d3d11.h>
 
-#include "LightShader.h"
-#include "TerrainShader.h"
-#include "WaterShader.h"
-
 #include "RenderTarget.h"
 #include "SceneLight.h"
 #include "Material.h"
@@ -21,6 +17,11 @@
 #include <array>
 
 class IHeightmapFilter;
+
+class LightShader;
+class WaterShader;
+class TerrainShader;
+class UnlitShader;
 
 
 class App1 : public BaseApplication
@@ -41,6 +42,8 @@ protected:
 	void worldPass();
 	void waterPass();
 
+	void renderLightDebugSpheres();
+
 	void terrainSettingsMenu();
 	bool addTerrainFilterMenu();
 
@@ -58,6 +61,7 @@ private:
 	LightShader* m_LightShader;
 	TerrainShader* m_TerrainShader;
 	WaterShader* m_WaterShader;
+	UnlitShader* m_UnlitShader;
 
 	RenderTarget* m_RenderTarget;
 
@@ -68,6 +72,9 @@ private:
 	SphereMesh* m_Sphere;
 
 	std::array<SceneLight, 4> m_Lights;
+
+	bool m_LightDebugSpheres = true;
+	SphereMesh* m_LightDebugSphereMesh;
 
 	Material mat1, mat2;
 

@@ -2,6 +2,11 @@
 
 #include <nlohmann/json.hpp>
 
+#include "LightShader.h"
+#include "TerrainShader.h"
+#include "WaterShader.h"
+#include "UnlitShader.h"
+
 #include "HeightmapFilters.h"
 #include "SerializationHelper.h"
 
@@ -28,8 +33,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd);
 	m_TerrainShader = new TerrainShader(renderer->getDevice());
 	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
+	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 
 	m_RenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
+
+	m_LightDebugSphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 
 	m_Terrain = new TerrainMesh(renderer->getDevice());
 
@@ -38,6 +46,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	camera->setPosition(0.0f, 0.0f, -3.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
+
+	// setup default light settings
+	SceneLight& light = m_Lights[0];
+	light.SetEnbled(true);
+	light.SetYaw(XMConvertToRadians(30.0f));
+	light.SetPitch(XMConvertToRadians(-40.0f));
 
 	if (m_LoadOnOpen)
 	{
@@ -102,6 +116,8 @@ bool App1::render()
 	//m_RenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
 	//if (!wireframeToggle) m_RenderTarget->Set(renderer->getDeviceContext());
 	worldPass();
+
+	if (m_LightDebugSpheres) renderLightDebugSpheres();
 
 	//if (!wireframeToggle)
 	//{
@@ -181,6 +197,27 @@ void App1::waterPass()
 	}
 }
 
+void App1::renderLightDebugSpheres()
+{
+	XMMATRIX worldMatrix = renderer->getWorldMatrix() * XMMatrixScaling(0.1f, 0.1f, 0.1f);
+	XMMATRIX viewMatrix = camera->getViewMatrix();
+	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
+
+	m_LightDebugSphereMesh->sendData(renderer->getDeviceContext());
+
+	for (auto& light : m_Lights)
+	{
+		if (!light.IsEnabled()) continue;
+		if (light.GetType() == SceneLight::LightType::Directional) continue;
+
+		XMFLOAT3 p = light.GetPosition();
+		XMMATRIX w = worldMatrix * XMMatrixTranslation(p.x, p.y, p.z);
+
+		m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix);
+		m_UnlitShader->render(renderer->getDeviceContext(), m_LightDebugSphereMesh->getIndexCount());
+	}
+}
+
 void App1::gui()
 {
 	if (ImGui::CollapsingHeader("General"))
@@ -228,6 +265,11 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Lighting"))
 	{
+		ImGui::Text("Global");
+		ImGui::Checkbox("Debug Spheres", &m_LightDebugSpheres);
+		m_LightShader->GlobalLightSettingsGUI();
+		ImGui::Separator();
+
 		int index = 0;
 		for (auto& light : m_Lights)
 		{

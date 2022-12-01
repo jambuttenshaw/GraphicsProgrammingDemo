@@ -40,6 +40,12 @@
     <FxCompile Include="shaders\water_vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\unlit_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\unlit_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">
@@ -60,19 +66,7 @@
     <ClCompile Include="App1.cpp">
       <Filter>Core</Filter>
     </ClCompile>
-    <ClCompile Include="BaseFullScreenShader.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="LightShader.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
     <ClCompile Include="RenderTarget.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="TerrainShader.cpp">
-      <Filter>Rendering</Filter>
-    </ClCompile>
-    <ClCompile Include="WaterShader.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
     <ClCompile Include="SerializationHelper.cpp">
@@ -90,24 +84,27 @@
     <ClCompile Include="Material.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="BaseFullScreenShader.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="LightShader.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="TerrainShader.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="UnlitShader.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterShader.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="BaseFullScreenShader.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="LightShader.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
     <ClInclude Include="RenderTarget.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainShader.h">
-      <Filter>Rendering</Filter>
-    </ClInclude>
-    <ClInclude Include="WaterShader.h">
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
@@ -131,6 +128,21 @@
     <ClInclude Include="Material.h">
       <Filter>Rendering</Filter>
     </ClInclude>
+    <ClInclude Include="BaseFullScreenShader.h">
+      <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="LightShader.h">
+      <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainShader.h">
+      <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="UnlitShader.h">
+      <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterShader.h">
+      <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">
@@ -147,6 +159,9 @@
     </Filter>
     <Filter Include="Geometry">
       <UniqueIdentifier>{023b089d-eab3-4fa6-ab6b-335a1dec2b87}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders">
+      <UniqueIdentifier>{33dee0dc-1366-4544-bbcb-0cc9568792c6}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

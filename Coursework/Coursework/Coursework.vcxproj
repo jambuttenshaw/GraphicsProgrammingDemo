@@ -211,6 +211,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <FxCompile Include="shaders\unlit_ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\unlit_vs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
@@ -242,6 +248,7 @@
     <ClCompile Include="SerializationHelper.cpp" />
     <ClCompile Include="TerrainMesh.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
+    <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="WaterShader.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -257,6 +264,7 @@
     <ClInclude Include="TerrainMesh.h" />
     <ClInclude Include="TerrainShader.h" />
     <ClInclude Include="Transform.h" />
+    <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="WaterShader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

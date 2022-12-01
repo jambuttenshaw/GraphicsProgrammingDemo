@@ -21,6 +21,7 @@ private:
 
 	struct LightBufferType
 	{
+		XMFLOAT4 globalAmbient;
 		XMFLOAT4 irradiance[MAX_LIGHTS];
 		XMFLOAT4 position[MAX_LIGHTS];
 		XMFLOAT4 direction[MAX_LIGHTS];
@@ -41,6 +42,8 @@ public:
 	LightShader(ID3D11Device* device, HWND hwnd);
 	~LightShader();
 
+	void GlobalLightSettingsGUI();
+
 	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, int lightCount, const SceneLight* lights, Camera* camera, const Material* mat);
 
 private:
@@ -51,5 +54,7 @@ private:
 	ID3D11Buffer* cameraBuffer = nullptr;
 	ID3D11Buffer* lightBuffer = nullptr;
 	ID3D11Buffer* materialBuffer = nullptr;
+
+	XMFLOAT4 m_GlobalAmbient{ 0.2f, 0.2f, 0.2f, 1.0f };
 };
 
