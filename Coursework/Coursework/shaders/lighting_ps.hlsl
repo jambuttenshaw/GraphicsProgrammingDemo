@@ -9,7 +9,7 @@ cbuffer LightBuffer : register(b0)
     float4 lightPosition[MAX_LIGHTS];
     float4 lightDirection[MAX_LIGHTS];
     float4 lightTypeAndSpotAngles[MAX_LIGHTS];
-	float lightCount;
+	int lightCount;
     float3 padding0;
 };
 

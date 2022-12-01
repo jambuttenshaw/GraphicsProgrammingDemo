@@ -273,7 +273,7 @@ void App1::gui()
 		int index = 0;
 		for (auto& light : m_Lights)
 		{
-			if (ImGui::TreeNode((void*)index, "Light %d", index))
+			if (ImGui::TreeNode((void*)(intptr_t)index, "Light %d", index))
 			{
 				ImGui::Separator();
 
@@ -338,7 +338,7 @@ void App1::terrainSettingsMenu()
 	};
 
 	ImGui::Text("Filter Stack:");
-	ImGui::Combo("Filter", &m_SelectedHeightmapFilter, &FuncHolder::ItemGetter, m_HeightmapFilters.data(), m_HeightmapFilters.size());
+	ImGui::Combo("Filter", &m_SelectedHeightmapFilter, &FuncHolder::ItemGetter, m_HeightmapFilters.data(), static_cast<int>(m_HeightmapFilters.size()));
 
 	if (ImGui::Button("+"))
 		ImGui::OpenPopup("addfilter_popup");
@@ -415,7 +415,7 @@ bool App1::addTerrainFilterMenu()
 
 		IHeightmapFilter* newFilter = createFilterFromIndex(selected_filter);
 
-		m_SelectedHeightmapFilter = m_HeightmapFilters.size();
+		m_SelectedHeightmapFilter = static_cast<int>(m_HeightmapFilters.size());
 		m_HeightmapFilters.push_back(newFilter);
 
 		return true;

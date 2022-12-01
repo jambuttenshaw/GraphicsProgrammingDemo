@@ -26,7 +26,7 @@ private:
 		XMFLOAT4 position[MAX_LIGHTS];
 		XMFLOAT4 direction[MAX_LIGHTS];
 		XMFLOAT4 typeAndSpotAngles[MAX_LIGHTS];
-		float lightCount;
+		int lightCount;
 		XMFLOAT3 padding;
 	};
 
@@ -44,7 +44,7 @@ public:
 
 	void GlobalLightSettingsGUI();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, int lightCount, const SceneLight* lights, Camera* camera, const Material* mat);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, size_t lightCount, const SceneLight* lights, Camera* camera, const Material* mat);
 
 private:
 	void initShader(const wchar_t* vs, const wchar_t* ps);

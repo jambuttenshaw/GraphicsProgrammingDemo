@@ -58,23 +58,23 @@ private:
 	float m_Time = 0.0f;
 
 	// Shaders
-	LightShader* m_LightShader;
-	TerrainShader* m_TerrainShader;
-	WaterShader* m_WaterShader;
-	UnlitShader* m_UnlitShader;
+	LightShader* m_LightShader = nullptr;
+	TerrainShader* m_TerrainShader = nullptr;
+	WaterShader* m_WaterShader = nullptr;
+	UnlitShader* m_UnlitShader = nullptr;
 
-	RenderTarget* m_RenderTarget;
+	RenderTarget* m_RenderTarget = nullptr;
 
 	Transform m_TerrainTransform;
-	TerrainMesh* m_Terrain;
+	TerrainMesh* m_Terrain = nullptr;
 	
-	CubeMesh* m_Cube;
-	SphereMesh* m_Sphere;
+	CubeMesh* m_Cube = nullptr;
+	SphereMesh* m_Sphere = nullptr;
 
 	std::array<SceneLight, 4> m_Lights;
 
 	bool m_LightDebugSpheres = true;
-	SphereMesh* m_LightDebugSphereMesh;
+	SphereMesh* m_LightDebugSphereMesh = nullptr;
 
 	Material mat1, mat2;
 
