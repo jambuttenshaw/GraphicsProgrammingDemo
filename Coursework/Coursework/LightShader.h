@@ -4,6 +4,7 @@
 
 #include "SceneLight.h"
 #include "Material.h"
+#include "Cubemap.h"
 
 using namespace std;
 using namespace DirectX;
@@ -44,7 +45,7 @@ public:
 
 	void GlobalLightSettingsGUI();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, size_t lightCount, const SceneLight* lights, Camera* camera, const Material* mat);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, size_t lightCount, const SceneLight* lights, ID3D11ShaderResourceView* environmentMap, Camera* camera, const Material* mat);
 
 private:
 	void initShader(const wchar_t* vs, const wchar_t* ps);
@@ -54,6 +55,8 @@ private:
 	ID3D11Buffer* cameraBuffer = nullptr;
 	ID3D11Buffer* lightBuffer = nullptr;
 	ID3D11Buffer* materialBuffer = nullptr;
+
+	ID3D11SamplerState* environmentSampler = nullptr;
 
 	XMFLOAT4 m_GlobalAmbient{ 0.2f, 0.2f, 0.2f, 1.0f };
 };

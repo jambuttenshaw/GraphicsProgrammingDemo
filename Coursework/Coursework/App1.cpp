@@ -178,14 +178,14 @@ void App1::worldPass()
 		XMMATRIX w = worldMatrix * XMMatrixTranslation(-2.0f, 0.0f, 0.0f);
 
 		m_Cube->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat1);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat1);
 		m_LightShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
 
 
 		w = worldMatrix * XMMatrixTranslation(2.0f, 0.0f, 0.0f);
 
 		m_Sphere->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat2);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat2);
 		m_LightShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
 	}
 

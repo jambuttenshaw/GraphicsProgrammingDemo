@@ -43,7 +43,7 @@ void SceneLight::SettingsGUI()
 
 XMFLOAT3 SceneLight::GetIrradiance() const
 {
-	float i = m_Intensity * XM_PI;
+	float i = m_Intensity;
 	return XMFLOAT3{ m_Colour.x * i, m_Colour.y * i, m_Colour.z * i };
 }
 

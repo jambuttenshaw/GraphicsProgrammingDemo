@@ -2,6 +2,10 @@
 
 #define MAX_LIGHTS 4
 
+TextureCube environmentMap : register(t0);
+SamplerState environmentSampler : register(s0);
+
+
 cbuffer LightBuffer : register(b0)
 {
     float4 globalAmbience;
@@ -33,10 +37,14 @@ struct InputType
 
 float4 main(InputType input) : SV_TARGET
 {
-    float3 l0 = globalAmbience.rgb;
-
 	float3 n = normalize(input.normal);
 	float3 v = -normalize(input.viewDir);
+    float3 r = normalize(reflect(-v, n));
+
+    float3 f0 = float3(0.04f, 0.04f, 0.04f);
+    f0 = lerp(f0, albedo.rgb, metallic);
+    
+    float3 lo = float3(0.0f, 0.0f, 0.0f);
 	
 	for (int i = 0; i < lightCount; i++)
 	{
@@ -63,8 +71,29 @@ float4 main(InputType input) : SV_TARGET
         }
     
 		// evaluate shading equation
-		l0 += ggx_brdf(v, l, n, albedo.rgb, roughness, metallic) * el * saturate(dot(n, l));
-	}
+		lo += ggx_brdf(v, l, n, albedo.rgb, f0, roughness, metallic) * el * saturate(dot(n, l));
+    }
+    
+    // ues IBL for ambient lighting
+    float3 F = shlick_fresnel_roughness_reflectance(f0, v, n, roughness);
+    
+    float3 kS = F;
+    float3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;
+    
+    float3 irradiance = environmentMap.Sample(environmentSampler, n).rgb;
+    float3 diffuse = irradiance * albedo.rgb;
+    
+    /*
+    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+    const float MAX_REFLECTION_LOD = 4.0;
+    float3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+    vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+    float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+*/
+    float3 ambient = (kD * diffuse);
+    
+    float3 color = ambient + lo;
 
-	return float4(l0, 1.0f);
+    return float4(color, 1.0f);
 }

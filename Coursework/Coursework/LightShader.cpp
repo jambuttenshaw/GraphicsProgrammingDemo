@@ -81,11 +81,24 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	materialBufferDesc.MiscFlags = 0;
 	materialBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&materialBufferDesc, NULL, &materialBuffer);
+
+	// setup cubemap sampler state
+	D3D11_SAMPLER_DESC cubemapSamplerDesc;
+	cubemapSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	cubemapSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	cubemapSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	cubemapSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	cubemapSamplerDesc.MipLODBias = 0.0f;
+	cubemapSamplerDesc.MaxAnisotropy = 1;
+	cubemapSamplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	cubemapSamplerDesc.MinLOD = 0;
+	cubemapSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	renderer->CreateSamplerState(&cubemapSamplerDesc, &environmentSampler);
 }
 
 
 void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-									size_t lightCount, const SceneLight* lights, Camera* camera, const Material* mat)
+									size_t lightCount, const SceneLight* lights, ID3D11ShaderResourceView* environmentMap, Camera* camera, const Material* mat)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -153,4 +166,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
 	deviceContext->VSSetConstantBuffers(0, 2, vsBuffers);
 	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);
+
+	deviceContext->PSSetShaderResources(0, 1, &environmentMap);
+	deviceContext->PSSetSamplers(0, 1, &environmentSampler);
 }

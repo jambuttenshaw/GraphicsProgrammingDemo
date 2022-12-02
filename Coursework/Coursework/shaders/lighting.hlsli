@@ -34,6 +34,11 @@ float3 shlick_fresnel_reflectance(float3 f0, float3 v, float3 h)
 	return f0 + (1.0f - f0) * pow(1.0f - saturate(dot(h, v)), 5.0f);
 }
 
+float3 shlick_fresnel_roughness_reflectance(float3 f0, float3 v, float3 h, float roughness)
+{
+    return f0 + (max((1.0f - roughness).xxx, f0) - f0) * pow(1.0 - saturate(dot(h, v)), 5.0);
+}
+
 // GEOMETRY FUNCTIONS
 float schlichggx_geometry(float NdotV, float k)
 {
@@ -54,13 +59,12 @@ float smith_geometry(float3 n, float3 v, float3 l, float k)
 
 
 // BRDF's
-float3 blinn_phong_brdf(float3 v, float3 l, float3 n, float3 albedo, float roughness, float metallic)
+/*
+float3 blinn_phong_brdf(float3 v, float3 l, float3 n, float3 albedo, float3 f0, float roughness, float metallic)
 {
 	float3 h = normalize(l + v);
  
 	// specular
-	float3 f0 = float3(0.04f, 0.04f, 0.04f);
-	f0 = lerp(f0, albedo.rgb, metallic);
 	
 	// fresnel effect tells us how much light is reflected
 	float3 Rf = shlick_fresnel_reflectance(f0, v, h);
@@ -79,14 +83,13 @@ float3 blinn_phong_brdf(float3 v, float3 l, float3 n, float3 albedo, float rough
 	
 	return fdiff + fspec;
 }
+*/
 
-float3 ggx_brdf(float3 v, float3 l, float3 n, float3 albedo, float roughness, float metallic)
+float3 ggx_brdf(float3 v, float3 l, float3 n, float3 albedo, float3 f0, float roughness, float metallic)
 {
 	float3 h = normalize(l + v);
  
 	// specular
-	float3 f0 = float3(0.04f, 0.04f, 0.04f);
-	f0 = lerp(f0, albedo.rgb, metallic);
 	
 	// fresnel effect tells us how much light is reflected
 	float3 Rf = shlick_fresnel_reflectance(f0, v, h);
