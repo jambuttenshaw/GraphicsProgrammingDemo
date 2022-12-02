@@ -26,9 +26,6 @@ UnlitShader::~UnlitShader()
 void UnlitShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
 	D3D11_BUFFER_DESC matrixBufferDesc;
-	D3D11_BUFFER_DESC cameraBufferDesc;
-	D3D11_BUFFER_DESC lightBufferDesc;
-	D3D11_BUFFER_DESC materialBufferDesc;
 
 	// Load (+ compile) shader files
 	loadVertexShader(vsFilename);

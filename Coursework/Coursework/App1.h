@@ -23,6 +23,9 @@ class WaterShader;
 class TerrainShader;
 class UnlitShader;
 
+class Cubemap;
+class Skybox;
+
 
 class App1 : public BaseApplication
 {
@@ -64,6 +67,9 @@ private:
 	UnlitShader* m_UnlitShader = nullptr;
 
 	RenderTarget* m_RenderTarget = nullptr;
+
+	Cubemap* m_EnvironmentMap = nullptr;
+	Skybox* m_Skybox = nullptr;
 
 	Transform m_TerrainTransform;
 	TerrainMesh* m_Terrain = nullptr;

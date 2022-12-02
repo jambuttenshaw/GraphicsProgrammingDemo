@@ -7,6 +7,9 @@
 #include "WaterShader.h"
 #include "UnlitShader.h"
 
+#include "Cubemap.h"
+#include "Skybox.h"
+
 #include "HeightmapFilters.h"
 #include "SerializationHelper.h"
 
@@ -36,6 +39,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 
 	m_RenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
+
+	m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
+		"res/skybox/right.png", "res/skybox/left.png", 
+		"res/skybox/top.png", "res/skybox/bottom.png",
+		"res/skybox/front.png", "res/skybox/back.png");
+	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
 
 	m_LightDebugSphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 
@@ -178,6 +187,18 @@ void App1::worldPass()
 		m_Sphere->sendData(renderer->getDeviceContext());
 		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat2);
 		m_LightShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
+	}
+
+	// draw skybox
+	if (true)
+	{
+		XMFLOAT3 eye = camera->getPosition();
+		XMMATRIX w = worldMatrix * XMMatrixTranslation(eye.x, eye.y, eye.z);
+		m_Skybox->Render(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix);
+
+		// this resets the raster/om state to normal
+		renderer->setWireframeMode(false);
+		renderer->setZBuffer(true);
 	}
 }
 
