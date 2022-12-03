@@ -10,30 +10,6 @@
     <FxCompile Include="shaders\lighting_vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\ridgeNoise_cs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\simpleNoise_cs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\terrain_ds.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\terrain_hs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\terrain_ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\terrain_vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\terrainNoise_cs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\water_ps.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
@@ -58,19 +34,46 @@
     <FxCompile Include="shaders\texture_vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl">
+      <Filter>Shaders\compute</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrainNoise_cs.hlsl">
+      <Filter>Shaders\compute</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\simpleNoise_cs.hlsl">
+      <Filter>Shaders\compute</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\ridgeNoise_cs.hlsl">
+      <Filter>Shaders\compute</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_ds.hlsl">
+      <Filter>Shaders\terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_hs.hlsl">
+      <Filter>Shaders\terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_ps.hlsl">
+      <Filter>Shaders\terrain</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrain_vs.hlsl">
+      <Filter>Shaders\terrain</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\include</Filter>
     </None>
     <None Include="shaders\math.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\include</Filter>
     </None>
     <None Include="shaders\noiseFunctions.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\include</Filter>
     </None>
     <None Include="shaders\noiseSimplex.hlsli">
-      <Filter>Shaders</Filter>
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="shaders\defines.hlsli">
+      <Filter>Shaders\include</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -195,6 +198,15 @@
     </Filter>
     <Filter Include="Rendering\Shaders">
       <UniqueIdentifier>{33dee0dc-1366-4544-bbcb-0cc9568792c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\include">
+      <UniqueIdentifier>{96ffd91a-0cd6-474a-8ddd-aa14eb6baaa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\compute">
+      <UniqueIdentifier>{0b517563-d82a-4a37-88f1-596bd3a9da21}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\terrain">
+      <UniqueIdentifier>{f97ae902-7eba-4ca1-81a1-bb579c09cecb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

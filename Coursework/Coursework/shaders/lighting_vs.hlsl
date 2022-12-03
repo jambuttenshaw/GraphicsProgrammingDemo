@@ -1,3 +1,5 @@
+#include "defines.hlsli"
+
 cbuffer MatrixBuffer : register(b0)
 {
 	matrix worldMatrix;
@@ -7,8 +9,7 @@ cbuffer MatrixBuffer : register(b0)
 
 cbuffer CameraBuffer : register(b1)
 {
-    matrix lightView;
-    matrix lightProjection;
+    matrix lightViewProjection[MAX_LIGHTS];
 	float3 cameraPos;
 	float padding;
 };
@@ -27,7 +28,7 @@ struct OutputType
     float3 normal : NORMAL;
     float3 worldPos : POSITION0;
     float3 viewDir : POSITION1;
-    float4 lightViewPos : POSITION2;
+    float4 lightViewPos[MAX_LIGHTS] : POSITION2;
 };
 
 OutputType main(InputType input)
@@ -38,7 +39,11 @@ OutputType main(InputType input)
     float4 worldPos = mul(input.position, worldMatrix);
     output.worldPos = worldPos.xyz;
     output.position = mul(mul(worldPos, viewMatrix), projectionMatrix);
-    output.lightViewPos = mul(mul(worldPos, lightView), lightProjection);
+    
+    for (int i = 0; i < MAX_LIGHTS; i++)
+    {
+        output.lightViewPos[i] = mul(worldPos, lightViewProjection[i]);
+    }
     
 	// Store the texture coordinates for the pixel shader.
     output.tex = input.tex;

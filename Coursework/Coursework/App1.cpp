@@ -70,6 +70,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.GenerateOrthoMatrix(100, 100, 0.1f, 100.0f);
 	light.CreateShadowMap(renderer->getDevice());
 
+	SceneLight& light2 = m_Lights[1];
+	light2.SetEnbled(true);
+	light2.SetPosition({ 0.0f, 0.0f, -10.0f });
+	light2.SetType(SceneLight::LightType::Directional);
+	light2.SetYaw(XMConvertToRadians(45.0f));
+	light2.SetPitch(XMConvertToRadians(-45.0f));
+	light2.SetIntensity(1.5f);
+	light2.GenerateOrthoMatrix(100, 100, 0.1f, 100.0f);
+	light2.CreateShadowMap(renderer->getDevice());
+
 	//light = m_Lights[1];
 	//light.SetEnbled(true);
 	//light.SetType(SceneLight::LightType::Point);
@@ -133,7 +143,11 @@ bool App1::render()
 	// Generate the view matrix based on the camera's position.
 	camera->update();
 
-	depthPass(m_Lights[0]);
+	for (auto& light : m_Lights)
+	{
+		if (light.IsShadowsEnabled())
+			depthPass(light);
+	}
 
 	// render world to render texture
 	//m_RenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });

@@ -1,11 +1,13 @@
 #include "lighting.hlsli"
-
-#define MAX_LIGHTS 4
+#include "defines.hlsli"
 
 TextureCube environmentMap : register(t0);
 SamplerState environmentSampler : register(s0);
 
-Texture2D shadowMap : register(t1);
+Texture2D shadowMap0 : register(t1);
+Texture2D shadowMap1 : register(t2);
+Texture2D shadowMap2 : register(t3);
+Texture2D shadowMap3 : register(t4);
 SamplerState shadowSampler : register(s1);
 
 
@@ -15,7 +17,11 @@ cbuffer LightBuffer : register(b0)
     float4 lightIrradiance[MAX_LIGHTS];
     float4 lightPosition[MAX_LIGHTS];
     float4 lightDirection[MAX_LIGHTS];
-    float4 lightTypeAndSpotAngles[MAX_LIGHTS];
+    // params[0] = type
+	// params[1] = inner spot angle
+	// params[2] = outer spot angle
+	// params[3] = shadows enabled
+    float4 params[MAX_LIGHTS];
 	int lightCount;
     bool enableEnvironmentalLighting;
     float2 padding0;
@@ -36,7 +42,7 @@ struct InputType
 	float3 normal : NORMAL;
     float3 worldPos : POSITION0;
 	float3 viewDir : POSITION1;
-    float4 lightViewPos : POSITION2;
+    float4 lightViewPos[MAX_LIGHTS] : POSITION2;
 };
 
 // shadows
@@ -56,6 +62,12 @@ float shadowed(Texture2D shadowMap, float4 lightViewPos, float bias)
 
 float4 main(InputType input) : SV_TARGET
 {
+    Texture2D shadowMaps[4];
+    shadowMaps[0] = shadowMap0;
+    shadowMaps[1] = shadowMap1;
+    shadowMaps[2] = shadowMap2;
+    shadowMaps[3] = shadowMap3;
+    
 	float3 n = normalize(input.normal);
 	float3 v = -normalize(input.viewDir);
     float3 r = normalize(reflect(-v, n));
@@ -68,13 +80,13 @@ float4 main(InputType input) : SV_TARGET
 	for (int i = 0; i < lightCount; i++)
 	{       
 		// calculate light direction and irradiance
-        float type = lightTypeAndSpotAngles[i].x;
+        float type = params[i].x;
         float3 el = lightIrradiance[i].rgb;
 		
         float3 l = float3(0.0f, 0.0f, 1.0f);
         if (type == 0.0f)
         {
-			l = -normalize(lightDirection[i].xyz);
+            l = -normalize(lightDirection[i].xyz);
         }
 		else if (type == 1.0f)
         {
@@ -85,14 +97,18 @@ float4 main(InputType input) : SV_TARGET
             l = -normalize(lightDirection[i].xyz);
 			
             float3 toLight = normalize(lightPosition[i].xyz - input.worldPos);
-            float spotAttenuation = 1.0f - smoothstep(lightTypeAndSpotAngles[i].y, lightTypeAndSpotAngles[i].z, dot(l, toLight));
+            float spotAttenuation = 1.0f - smoothstep(params[i].y, params[i].z, dot(l, toLight));
             el *= spotAttenuation;
         }
     
 		// evaluate shading equation
 		float3 brdf = ggx_brdf(v, l, n, albedo.rgb, f0, roughness, metallic) * el * saturate(dot(n, l));
         
-        lo += brdf * shadowed(shadowMap, input.lightViewPos, 0.01f);
+        float shadow = 1.0f;
+        if (params[i].w)
+            shadow = shadowed(shadowMaps[i], input.lightViewPos[i], 0.01f);
+        
+        lo += brdf * shadow;
     }
     
     float3 ambient = globalAmbience.rgb;

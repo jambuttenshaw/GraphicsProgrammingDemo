@@ -121,8 +121,6 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
 	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
-	XMMATRIX tlightView = XMMatrixTranspose(lights[0].GetViewMatrix());
-	XMMATRIX tLightProj = XMMatrixTranspose(lights[0].GetOrthoMatrix());
 
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
@@ -134,8 +132,11 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	CameraBufferType* cameraPtr;
 	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	cameraPtr = (CameraBufferType*)mappedResource.pData;
-	cameraPtr->lightView = tlightView;
-	cameraPtr->lightProj = tLightProj;
+	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
+	{
+		XMMATRIX tlightViewProj = XMMatrixTranspose(lights[i].GetViewMatrix() * lights[i].GetOrthoMatrix());
+		cameraPtr->lightViewProj[i] = tlightViewProj;
+	}
 	cameraPtr->cameraPos = camera->getPosition();
 	cameraPtr->padding = 0.0f;
 	deviceContext->Unmap(cameraBuffer, 0);
@@ -160,7 +161,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		XMFLOAT3 d = light->GetDirection();
 		lightPtr->direction[count] = XMFLOAT4{ d.x, d.y, d.z, 0.0f };
 		
-		lightPtr->typeAndSpotAngles[count] = { static_cast<float>(light->GetType()), cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()), 0.0f };
+		lightPtr->params[count] = { static_cast<float>(light->GetType()), cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()), light->IsShadowsEnabled() ? 1.0f : 0.0f };
 
 		count++;
 	}
@@ -184,8 +185,16 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
 	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);
 
-	ID3D11ShaderResourceView* srvs[2] = { environmentMap, lights[0].GetShadowMap()->getDepthMapSRV() };
-	deviceContext->PSSetShaderResources(0, 2, srvs);
+	ID3D11ShaderResourceView* shadowMaps[4];
+	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
+	{
+		if (lights[i].IsShadowsEnabled())
+			shadowMaps[i] = lights[i].GetShadowMap()->getDepthMapSRV();
+		else
+			shadowMaps[i] = nullptr;
+	}
+	deviceContext->PSSetShaderResources(0, 1, &environmentMap);
+	deviceContext->PSSetShaderResources(1, 4, shadowMaps);
 
 	ID3D11SamplerState* samplers[2] = { environmentSampler, shadowSampler };
 	deviceContext->PSSetSamplers(0, 2, samplers);

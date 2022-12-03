@@ -17,8 +17,7 @@ private:
 
 	struct CameraBufferType
 	{
-		XMMATRIX lightView;
-		XMMATRIX lightProj;
+		XMMATRIX lightViewProj[MAX_LIGHTS];
 		XMFLOAT3 cameraPos;
 		float padding;
 	};
@@ -29,7 +28,11 @@ private:
 		XMFLOAT4 irradiance[MAX_LIGHTS];
 		XMFLOAT4 position[MAX_LIGHTS];
 		XMFLOAT4 direction[MAX_LIGHTS];
-		XMFLOAT4 typeAndSpotAngles[MAX_LIGHTS];
+		// params[0] = type
+		// params[1] = inner spot angle
+		// params[2] = outer spot angle
+		// params[3] = shadows enabled
+		XMFLOAT4 params[MAX_LIGHTS];
 		int lightCount;
 		bool enableEnvironmentalLighting;
 		XMFLOAT2 padding;

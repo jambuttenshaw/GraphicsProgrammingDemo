@@ -249,6 +249,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\defines.hlsli" />
     <None Include="shaders\math.hlsli" />
     <None Include="shaders\noiseFunctions.hlsli" />
     <None Include="shaders\noiseSimplex.hlsli" />

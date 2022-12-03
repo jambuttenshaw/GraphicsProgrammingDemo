@@ -53,7 +53,8 @@ public:
 	void GenerateViewMatrix();
 	void GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane);
 	
-	// shadow map
+	// shadow mapping
+	inline bool IsShadowsEnabled() const { return m_ShadowMap != nullptr; }
 	void CreateShadowMap(ID3D11Device* device);
 	inline ShadowMap* GetShadowMap() const { return m_ShadowMap; }
 
