@@ -5,6 +5,9 @@
 TextureCube environmentMap : register(t0);
 SamplerState environmentSampler : register(s0);
 
+Texture2D shadowMap : register(t1);
+SamplerState shadowSampler : register(s1);
+
 
 cbuffer LightBuffer : register(b0)
 {
@@ -14,7 +17,8 @@ cbuffer LightBuffer : register(b0)
     float4 lightDirection[MAX_LIGHTS];
     float4 lightTypeAndSpotAngles[MAX_LIGHTS];
 	int lightCount;
-    float3 padding0;
+    bool enableEnvironmentalLighting;
+    float2 padding0;
 };
 
 cbuffer MaterialBuffer : register(b1)
@@ -32,7 +36,22 @@ struct InputType
 	float3 normal : NORMAL;
     float3 worldPos : POSITION0;
 	float3 viewDir : POSITION1;
+    float4 lightViewPos : POSITION2;
 };
+
+// shadows
+// returns 0 if in shadow or 1 if illuminated
+float shadowed(Texture2D shadowMap, float4 lightViewPos, float bias)
+{
+    float2 uv = remap01(lightViewPos.xy / lightViewPos.w);
+    uv.y = 1.0f - uv.y;
+    
+    float depthValue = shadowMap.Sample(shadowSampler, uv).r;
+    float distFromLight = lightViewPos.z / lightViewPos.w;
+    distFromLight -= bias;
+    
+    return depthValue >= distFromLight;
+}
 
 
 float4 main(InputType input) : SV_TARGET
@@ -47,7 +66,7 @@ float4 main(InputType input) : SV_TARGET
     float3 lo = float3(0.0f, 0.0f, 0.0f);
 	
 	for (int i = 0; i < lightCount; i++)
-	{
+	{       
 		// calculate light direction and irradiance
         float type = lightTypeAndSpotAngles[i].x;
         float3 el = lightIrradiance[i].rgb;
@@ -71,29 +90,35 @@ float4 main(InputType input) : SV_TARGET
         }
     
 		// evaluate shading equation
-		lo += ggx_brdf(v, l, n, albedo.rgb, f0, roughness, metallic) * el * saturate(dot(n, l));
+		float3 brdf = ggx_brdf(v, l, n, albedo.rgb, f0, roughness, metallic) * el * saturate(dot(n, l));
+        
+        lo += brdf * shadowed(shadowMap, input.lightViewPos, 0.01f);
     }
     
-    // ues IBL for ambient lighting
-    float3 F = shlick_fresnel_roughness_reflectance(f0, v, n, roughness);
-    
-    float3 kS = F;
-    float3 kD = 1.0 - kS;
-    kD *= 1.0 - metallic;
-    
-    float3 irradiance = environmentMap.Sample(environmentSampler, n).rgb;
-    float3 diffuse = irradiance * albedo.rgb;
-    
-    /*
-    // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-    const float MAX_REFLECTION_LOD = 4.0;
-    float3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
-    vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
-    float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-*/
-    float3 ambient = (kD * diffuse);
+    float3 ambient = globalAmbience.rgb;
+    if (enableEnvironmentalLighting)
+    {
+        // ues IBL for ambient lighting
+        float3 F = shlick_fresnel_roughness_reflectance(f0, v, n, roughness);
+        
+        float3 kS = F;
+        float3 kD = 1.0 - kS;
+        kD *= 1.0 - metallic;
+        
+        float3 irradiance = environmentMap.Sample(environmentSampler, n).rgb;
+        float3 diffuse = irradiance * albedo.rgb;
+        
+        /*
+        // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
+        const float MAX_REFLECTION_LOD = 4.0;
+        float3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+        vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
+        */
+
+        ambient = (kD * diffuse);
+    }
     
     float3 color = ambient + lo;
-
     return float4(color, 1.0f);
 }

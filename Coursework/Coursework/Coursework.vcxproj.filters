@@ -52,6 +52,12 @@
     <FxCompile Include="skybox_ps.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\texture_ps.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\texture_vs.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">
@@ -114,6 +120,9 @@
     <ClCompile Include="Skybox.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
+    <ClCompile Include="TextureShader.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -163,6 +172,9 @@
     </ClInclude>
     <ClInclude Include="Skybox.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureShader.h">
+      <Filter>Rendering\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

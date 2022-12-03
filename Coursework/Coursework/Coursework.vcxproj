@@ -211,6 +211,12 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
     </FxCompile>
+    <FxCompile Include="shaders\texture_ps.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+    </FxCompile>
+    <FxCompile Include="shaders\texture_vs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+    </FxCompile>
     <FxCompile Include="shaders\unlit_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
     </FxCompile>
@@ -263,6 +269,7 @@
     <ClCompile Include="stb_image_build.cpp" />
     <ClCompile Include="TerrainMesh.cpp" />
     <ClCompile Include="TerrainShader.cpp" />
+    <ClCompile Include="TextureShader.cpp" />
     <ClCompile Include="UnlitShader.cpp" />
     <ClCompile Include="WaterShader.cpp" />
   </ItemGroup>
@@ -280,6 +287,7 @@
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="TerrainMesh.h" />
     <ClInclude Include="TerrainShader.h" />
+    <ClInclude Include="TextureShader.h" />
     <ClInclude Include="Transform.h" />
     <ClInclude Include="UnlitShader.h" />
     <ClInclude Include="WaterShader.h" />

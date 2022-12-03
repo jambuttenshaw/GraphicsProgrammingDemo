@@ -6,6 +6,7 @@
 #include "TerrainShader.h"
 #include "WaterShader.h"
 #include "UnlitShader.h"
+#include "TextureShader.h"
 
 #include "Cubemap.h"
 #include "Skybox.h"
@@ -37,6 +38,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_TerrainShader = new TerrainShader(renderer->getDevice());
 	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
+	m_TextureShader = new TextureShader(renderer->getDevice(), hwnd);
 
 	m_RenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 
@@ -52,15 +54,26 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_Cube = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_Sphere = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
+	m_Plane = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 20);
+	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
 
-	camera->setPosition(0.0f, 0.0f, -3.0f);
+	camera->setPosition(4.0f, 1.0f, 0.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// setup default light settings
 	SceneLight& light = m_Lights[0];
 	light.SetEnbled(true);
-	light.SetYaw(XMConvertToRadians(30.0f));
-	light.SetPitch(XMConvertToRadians(-40.0f));
+	light.SetPosition({ 0.0f, 0.0f, -10.0f });
+	light.SetType(SceneLight::LightType::Directional);
+	light.SetPitch(XMConvertToRadians(-45.0f));
+	light.SetIntensity(1.5f);
+	light.GenerateOrthoMatrix(100, 100, 0.1f, 100.0f);
+	light.CreateShadowMap(renderer->getDevice());
+
+	//light = m_Lights[1];
+	//light.SetEnbled(true);
+	//light.SetType(SceneLight::LightType::Point);
+	//light.SetIntensity(3.0f);
 
 	if (m_LoadOnOpen)
 	{
@@ -120,6 +133,7 @@ bool App1::render()
 	// Generate the view matrix based on the camera's position.
 	camera->update();
 
+	depthPass(m_Lights[0]);
 
 	// render world to render texture
 	//m_RenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
@@ -135,6 +149,20 @@ bool App1::render()
 	//	
 	//	waterPass();
 	//}
+
+	// Render ortho mesh
+	if (m_ShowShadowMap)
+	{
+		renderer->setZBuffer(false);
+		XMMATRIX worldMatrix = renderer->getWorldMatrix();
+		XMMATRIX orthoMatrix = renderer->getOrthoMatrix();  // ortho matrix for 2D rendering
+		XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
+
+		m_ShadowMapMesh->sendData(renderer->getDeviceContext());
+		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap].GetShadowMap()->getDepthMapSRV());
+		m_TextureShader->render(renderer->getDeviceContext(), m_ShadowMapMesh->getIndexCount());
+		renderer->setZBuffer(true);
+	}
 
 	// GUI
 	
@@ -156,6 +184,39 @@ bool App1::render()
 	return true;
 }
 
+void App1::depthPass(SceneLight& light)
+{
+	// bind shadow map
+	assert(light.GetShadowMap() && "Light doesnt have a shadow map!");
+	light.GetShadowMap()->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
+
+	// get world view projection matrices
+	XMMATRIX worldMatrix = renderer->getWorldMatrix();
+
+	light.GenerateViewMatrix();
+	XMMATRIX lightViewMatrix = light.GetViewMatrix();
+	XMMATRIX lightProjectionMatrix = light.GetOrthoMatrix();
+
+	// render world with an unlit shader
+	XMMATRIX w = worldMatrix * XMMatrixTranslation(2.0f, 1.0f, 5.0f);
+	m_Cube->sendData(renderer->getDeviceContext());
+	m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrix, lightProjectionMatrix);
+	m_UnlitShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
+
+	w = worldMatrix * XMMatrixTranslation(6.0f, 1.0f, 5.0f);
+	m_Sphere->sendData(renderer->getDeviceContext());
+	m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrix, lightProjectionMatrix);
+	m_UnlitShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
+
+	m_Plane->sendData(renderer->getDeviceContext());
+	m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
+	m_UnlitShader->render(renderer->getDeviceContext(), m_Plane->getIndexCount());
+
+	// Set back buffer as render target and reset view port.
+	renderer->setBackBufferRenderTarget();
+	renderer->resetViewport();
+}
+
 void App1::worldPass()
 {
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
@@ -175,18 +236,22 @@ void App1::worldPass()
 
 	if (true)
 	{
-		XMMATRIX w = worldMatrix * XMMatrixTranslation(-2.0f, 0.0f, 0.0f);
+		XMMATRIX w = worldMatrix * XMMatrixTranslation(2.0f, 1.0f, 5.0f);
 
 		m_Cube->sendData(renderer->getDeviceContext());
 		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat1);
 		m_LightShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
 
 
-		w = worldMatrix * XMMatrixTranslation(2.0f, 0.0f, 0.0f);
+		w = worldMatrix * XMMatrixTranslation(6.0f, 1.0f, 5.0f);
 
 		m_Sphere->sendData(renderer->getDeviceContext());
 		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat2);
 		m_LightShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
+
+		m_Plane->sendData(renderer->getDeviceContext());
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat1);
+		m_LightShader->render(renderer->getDeviceContext(), m_Plane->getIndexCount());
 	}
 
 	// draw skybox
@@ -229,7 +294,6 @@ void App1::renderLightDebugSpheres()
 	for (auto& light : m_Lights)
 	{
 		if (!light.IsEnabled()) continue;
-		if (light.GetType() == SceneLight::LightType::Directional) continue;
 
 		XMFLOAT3 p = light.GetPosition();
 		XMMATRIX w = worldMatrix * XMMatrixTranslation(p.x, p.y, p.z);
@@ -286,9 +350,17 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Lighting"))
 	{
-		ImGui::Text("Global");
+		ImGui::Text("Debug");
+
 		ImGui::Checkbox("Debug Spheres", &m_LightDebugSpheres);
+		ImGui::Checkbox("Display Shadow Map", &m_ShowShadowMap);
+		if (m_ShowShadowMap)
+			ImGui::SliderInt("Shadow map", &m_SelectedShadowMap, 0, static_cast<int>(m_Lights.size()));
+		ImGui::Separator();
+
+		ImGui::Text("Global");
 		m_LightShader->GlobalLightSettingsGUI();
+
 		ImGui::Separator();
 
 		int index = 0;

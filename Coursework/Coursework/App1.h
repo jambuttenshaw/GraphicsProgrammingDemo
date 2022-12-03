@@ -22,6 +22,7 @@ class LightShader;
 class WaterShader;
 class TerrainShader;
 class UnlitShader;
+class TextureShader;
 
 class Cubemap;
 class Skybox;
@@ -42,6 +43,7 @@ protected:
 	void gui();
 
 	// passes
+	void depthPass(SceneLight& light);
 	void worldPass();
 	void waterPass();
 
@@ -65,6 +67,7 @@ private:
 	TerrainShader* m_TerrainShader = nullptr;
 	WaterShader* m_WaterShader = nullptr;
 	UnlitShader* m_UnlitShader = nullptr;
+	TextureShader* m_TextureShader = nullptr;
 
 	RenderTarget* m_RenderTarget = nullptr;
 
@@ -76,11 +79,18 @@ private:
 	
 	CubeMesh* m_Cube = nullptr;
 	SphereMesh* m_Sphere = nullptr;
+	PlaneMesh* m_Plane = nullptr;
+
+	std::vector<BaseMesh*> m_Occluders;
 
 	std::array<SceneLight, 4> m_Lights;
 
 	bool m_LightDebugSpheres = true;
 	SphereMesh* m_LightDebugSphereMesh = nullptr;
+
+	bool m_ShowShadowMap = false;
+	int m_SelectedShadowMap = 0;
+	OrthoMesh* m_ShadowMapMesh = nullptr;
 
 	Material mat1, mat2;
 

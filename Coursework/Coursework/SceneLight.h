@@ -1,6 +1,6 @@
 #pragma once
 
-
+#include "DXF.h"
 #include <DirectXMath.h>
 
 using namespace DirectX;
@@ -18,13 +18,10 @@ public:
 
 public:
 
-	SceneLight() = default;
-	~SceneLight() = default;
+	SceneLight();
+	~SceneLight();
 
 	void SettingsGUI();
-
-	// create light view matrix
-
 
 	// getters and setters
 	inline bool IsEnabled() const { return m_Enabled; }
@@ -50,6 +47,17 @@ public:
 	inline void SetInnerAngle(float a) { m_InnerAngle = a; }
 	inline void SetOuterAngle(float a) { m_OuterAngle = a; }
 
+	// light matrices
+	inline const XMMATRIX& GetViewMatrix() const { return m_ViewMatrix; }
+	inline const XMMATRIX& GetOrthoMatrix() const { return m_OrthoMatrix; }
+	void GenerateViewMatrix();
+	void GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane);
+	
+	// shadow map
+	void CreateShadowMap(ID3D11Device* device);
+	inline ShadowMap* GetShadowMap() const { return m_ShadowMap; }
+
+
 private:
 	void CalculateDirectionFromEulerAngles();
 
@@ -70,4 +78,8 @@ private:
 	// for spot lights only
 	float m_InnerAngle = 0.175f;
 	float m_OuterAngle = 0.524f;
+
+	// shadow mapping
+	ShadowMap* m_ShadowMap = nullptr;
+	XMMATRIX m_ViewMatrix, m_OrthoMatrix;
 };

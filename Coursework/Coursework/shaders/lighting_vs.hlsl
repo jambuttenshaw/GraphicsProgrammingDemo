@@ -7,6 +7,8 @@ cbuffer MatrixBuffer : register(b0)
 
 cbuffer CameraBuffer : register(b1)
 {
+    matrix lightView;
+    matrix lightProjection;
 	float3 cameraPos;
 	float padding;
 };
@@ -25,6 +27,7 @@ struct OutputType
     float3 normal : NORMAL;
     float3 worldPos : POSITION0;
     float3 viewDir : POSITION1;
+    float4 lightViewPos : POSITION2;
 };
 
 OutputType main(InputType input)
@@ -35,7 +38,8 @@ OutputType main(InputType input)
     float4 worldPos = mul(input.position, worldMatrix);
     output.worldPos = worldPos.xyz;
     output.position = mul(mul(worldPos, viewMatrix), projectionMatrix);
-
+    output.lightViewPos = mul(mul(worldPos, lightView), lightProjection);
+    
 	// Store the texture coordinates for the pixel shader.
     output.tex = input.tex;
 

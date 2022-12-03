@@ -47,12 +47,11 @@ void UnlitShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 
-	XMMATRIX tworld, tview, tproj;
-
 	// Transpose the matrices to prepare them for the shader.
-	tworld = XMMatrixTranspose(worldMatrix);
-	tview = XMMatrixTranspose(viewMatrix);
-	tproj = XMMatrixTranspose(projectionMatrix);
+	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
+	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
+	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
+
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;

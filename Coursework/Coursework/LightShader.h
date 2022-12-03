@@ -14,8 +14,11 @@ using namespace DirectX;
 class LightShader : public BaseShader
 {
 private:
+
 	struct CameraBufferType
 	{
+		XMMATRIX lightView;
+		XMMATRIX lightProj;
 		XMFLOAT3 cameraPos;
 		float padding;
 	};
@@ -28,7 +31,8 @@ private:
 		XMFLOAT4 direction[MAX_LIGHTS];
 		XMFLOAT4 typeAndSpotAngles[MAX_LIGHTS];
 		int lightCount;
-		XMFLOAT3 padding;
+		bool enableEnvironmentalLighting;
+		XMFLOAT2 padding;
 	};
 
 	struct MaterialBufferType
@@ -57,7 +61,9 @@ private:
 	ID3D11Buffer* materialBuffer = nullptr;
 
 	ID3D11SamplerState* environmentSampler = nullptr;
+	ID3D11SamplerState* shadowSampler = nullptr;
 
 	XMFLOAT4 m_GlobalAmbient{ 0.2f, 0.2f, 0.2f, 1.0f };
+	bool m_EnableEnvironmentalLighting = true;
 };
 

@@ -36,6 +36,7 @@ LightShader::~LightShader()
 void LightShader::GlobalLightSettingsGUI()
 {
 	ImGui::ColorEdit3("Global Ambience", &m_GlobalAmbient.x);
+	ImGui::Checkbox("Enable Environmental Lighting", &m_EnableEnvironmentalLighting);
 }
 
 void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
@@ -83,17 +84,28 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	renderer->CreateBuffer(&materialBufferDesc, NULL, &materialBuffer);
 
 	// setup cubemap sampler state
-	D3D11_SAMPLER_DESC cubemapSamplerDesc;
-	cubemapSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-	cubemapSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	cubemapSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	cubemapSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	cubemapSamplerDesc.MipLODBias = 0.0f;
-	cubemapSamplerDesc.MaxAnisotropy = 1;
-	cubemapSamplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
-	cubemapSamplerDesc.MinLOD = 0;
-	cubemapSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	renderer->CreateSamplerState(&cubemapSamplerDesc, &environmentSampler);
+	D3D11_SAMPLER_DESC environmentSamplerDesc;
+	environmentSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	environmentSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	environmentSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	environmentSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	environmentSamplerDesc.MipLODBias = 0.0f;
+	environmentSamplerDesc.MaxAnisotropy = 1;
+	environmentSamplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	environmentSamplerDesc.MinLOD = 0;
+	environmentSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	renderer->CreateSamplerState(&environmentSamplerDesc, &environmentSampler);
+
+	D3D11_SAMPLER_DESC shadowSamplerDesc;
+	shadowSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.BorderColor[0] = 1.0f;
+	shadowSamplerDesc.BorderColor[1] = 1.0f;
+	shadowSamplerDesc.BorderColor[2] = 1.0f;
+	shadowSamplerDesc.BorderColor[3] = 1.0f;
+	renderer->CreateSamplerState(&shadowSamplerDesc, &shadowSampler);
 }
 
 
@@ -104,13 +116,14 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	MatrixBufferType* dataPtr;
 
-	XMMATRIX tworld, tview, tproj;
-
 
 	// Transpose the matrices to prepare them for the shader.
-	tworld = XMMatrixTranspose(worldMatrix);
-	tview = XMMatrixTranspose(viewMatrix);
-	tproj = XMMatrixTranspose(projectionMatrix);
+	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
+	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
+	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
+	XMMATRIX tlightView = XMMatrixTranspose(lights[0].GetViewMatrix());
+	XMMATRIX tLightProj = XMMatrixTranspose(lights[0].GetOrthoMatrix());
+
 	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	dataPtr = (MatrixBufferType*)mappedResource.pData;
 	dataPtr->world = tworld;// worldMatrix;
@@ -121,6 +134,8 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	CameraBufferType* cameraPtr;
 	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	cameraPtr = (CameraBufferType*)mappedResource.pData;
+	cameraPtr->lightView = tlightView;
+	cameraPtr->lightProj = tLightProj;
 	cameraPtr->cameraPos = camera->getPosition();
 	cameraPtr->padding = 0.0f;
 	deviceContext->Unmap(cameraBuffer, 0);
@@ -150,7 +165,8 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		count++;
 	}
 	lightPtr->lightCount = count;
-	lightPtr->padding = { 0.0f, 0.0f, 0.0f };
+	lightPtr->enableEnvironmentalLighting = m_EnableEnvironmentalLighting;
+	lightPtr->padding = { 0.0f, 0.0f };
 	deviceContext->Unmap(lightBuffer, 0);
 
 	MaterialBufferType* matPtr;
@@ -163,10 +179,14 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	deviceContext->Unmap(materialBuffer, 0);
 
 	ID3D11Buffer* vsBuffers[2] = { matrixBuffer, cameraBuffer };
-	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
 	deviceContext->VSSetConstantBuffers(0, 2, vsBuffers);
+
+	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
 	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);
 
-	deviceContext->PSSetShaderResources(0, 1, &environmentMap);
-	deviceContext->PSSetSamplers(0, 1, &environmentSampler);
+	ID3D11ShaderResourceView* srvs[2] = { environmentMap, lights[0].GetShadowMap()->getDepthMapSRV() };
+	deviceContext->PSSetShaderResources(0, 2, srvs);
+
+	ID3D11SamplerState* samplers[2] = { environmentSampler, shadowSampler };
+	deviceContext->PSSetSamplers(0, 2, samplers);
 }

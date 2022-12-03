@@ -20,6 +20,10 @@ struct OutputType
 OutputType main(InputType input)
 {
     OutputType output;
-    output.position = mul(mul(mul(input.position, worldMatrix), viewMatrix), projectionMatrix);
+    
+    output.position = mul(input.position, worldMatrix);
+    output.position = mul(output.position, viewMatrix);
+    output.position = mul(output.position, projectionMatrix);
+    
     return output;
 }

@@ -3,6 +3,17 @@
 #include "imGUI/imgui.h"
 
 
+SceneLight::SceneLight()
+{
+	m_ViewMatrix = XMMatrixIdentity();
+	m_OrthoMatrix = XMMatrixIdentity();
+}
+
+SceneLight::~SceneLight()
+{
+	if (m_ShadowMap) delete m_ShadowMap;
+}
+
 void SceneLight::SettingsGUI()
 {
 	ImGui::Checkbox("Enabled", &m_Enabled);
@@ -19,9 +30,7 @@ void SceneLight::SettingsGUI()
 	ImGui::Separator();
 
 	if (m_Type != LightType::Directional)
-	{
 		ImGui::DragFloat3("Position", &m_Position.x, 0.1f);
-	}
 
 	if (m_Type != LightType::Point)
 	{
@@ -47,6 +56,30 @@ XMFLOAT3 SceneLight::GetIrradiance() const
 	return XMFLOAT3{ m_Colour.x * i, m_Colour.y * i, m_Colour.z * i };
 }
 
+void SceneLight::GenerateViewMatrix()
+{
+	// default up vector
+	XMVECTOR up;
+	if ((m_Direction.y == 0 && m_Direction.z == 0))
+		up = XMVectorSet(0.0f, 0.0f, copysignf(1.0f, m_Direction.y), 1.0);
+	else
+		up = XMVectorSet(0.0f, 1.0f, 0.0f, 1.0f);
+
+	XMVECTOR pos = XMVectorSet(m_Position.x, m_Position.y, m_Position.z, 1.0f);
+
+	XMVECTOR dir = XMVectorSet(m_Direction.x, m_Direction.y, m_Direction.z, 1.0f);
+	XMVECTOR right = XMVector3Cross(dir, up);
+	up = XMVector3Cross(right, dir); // make dir, right and up orthonormal
+
+	// Create the view matrix from the three vectors.
+	m_ViewMatrix = XMMatrixLookAtLH(pos, pos + dir, up);
+}
+
+void SceneLight::GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane)
+{
+	m_OrthoMatrix = XMMatrixOrthographicLH(screenWidth, screenHeight, nearPlane, farPlane);
+}
+
 void SceneLight::CalculateDirectionFromEulerAngles()
 {
 	// calculate forward vector
@@ -63,4 +96,9 @@ void SceneLight::CalculateDirectionFromEulerAngles()
 	m_Direction.x = XMVectorGetX(v);
 	m_Direction.y = XMVectorGetY(v);
 	m_Direction.z = XMVectorGetZ(v);
+}
+
+void SceneLight::CreateShadowMap(ID3D11Device* device)
+{
+	m_ShadowMap = new ShadowMap(device, 1024, 1024);
 }
