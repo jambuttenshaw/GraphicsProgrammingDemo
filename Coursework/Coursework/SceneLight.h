@@ -18,7 +18,7 @@ public:
 
 public:
 
-	SceneLight();
+	SceneLight(ID3D11Device* device);
 	~SceneLight();
 
 	void SettingsGUI();
@@ -54,15 +54,21 @@ public:
 	void GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane);
 	
 	// shadow mapping
-	inline bool IsShadowsEnabled() const { return m_ShadowMap != nullptr; }
-	void CreateShadowMap(ID3D11Device* device);
+	void EnableShadows();
+	void DisableShadows();
+	inline bool IsShadowsEnabled() const { return m_ShadowsEnabled; }
+	
 	inline ShadowMap* GetShadowMap() const { return m_ShadowMap; }
 
 
 private:
 	void CalculateDirectionFromEulerAngles();
+	
+	void CreateShadowMap();
 
 private:
+	ID3D11Device* m_Device = nullptr;
+
 	bool m_Enabled = false;
 
 	LightType m_Type = LightType::Directional;
@@ -81,6 +87,7 @@ private:
 	float m_OuterAngle = 0.524f;
 
 	// shadow mapping
+	bool m_ShadowsEnabled = false;
 	ShadowMap* m_ShadowMap = nullptr;
 	XMMATRIX m_ViewMatrix, m_OrthoMatrix;
 };

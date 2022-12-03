@@ -60,30 +60,30 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	camera->setPosition(4.0f, 1.0f, 0.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
+	// create lights
+	for (auto& light : m_Lights)
+	{
+		light = new SceneLight(renderer->getDevice());
+		light->SetPosition({ 0.0f, 0.0f, -10.0f });
+	}
+
 	// setup default light settings
-	SceneLight& light = m_Lights[0];
+	SceneLight& light = *(m_Lights[0]);
 	light.SetEnbled(true);
 	light.SetPosition({ 0.0f, 0.0f, -10.0f });
 	light.SetType(SceneLight::LightType::Directional);
 	light.SetPitch(XMConvertToRadians(-45.0f));
 	light.SetIntensity(1.5f);
-	light.GenerateOrthoMatrix(100, 100, 0.1f, 100.0f);
-	light.CreateShadowMap(renderer->getDevice());
+	light.EnableShadows();
 
-	SceneLight& light2 = m_Lights[1];
+	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
 	light2.SetPosition({ 0.0f, 0.0f, -10.0f });
 	light2.SetType(SceneLight::LightType::Directional);
 	light2.SetYaw(XMConvertToRadians(45.0f));
 	light2.SetPitch(XMConvertToRadians(-45.0f));
 	light2.SetIntensity(1.5f);
-	light2.GenerateOrthoMatrix(100, 100, 0.1f, 100.0f);
-	light2.CreateShadowMap(renderer->getDevice());
-
-	//light = m_Lights[1];
-	//light.SetEnbled(true);
-	//light.SetType(SceneLight::LightType::Point);
-	//light.SetIntensity(3.0f);
+	light2.EnableShadows();
 
 	if (m_LoadOnOpen)
 	{
@@ -143,9 +143,9 @@ bool App1::render()
 	// Generate the view matrix based on the camera's position.
 	camera->update();
 
-	for (auto& light : m_Lights)
+	for (auto light : m_Lights)
 	{
-		if (light.IsShadowsEnabled())
+		if (light->IsShadowsEnabled())
 			depthPass(light);
 	}
 
@@ -165,7 +165,7 @@ bool App1::render()
 	//}
 
 	// Render ortho mesh
-	if (m_ShowShadowMap)
+	if (m_ShowShadowMap && m_Lights[m_SelectedShadowMap]->GetShadowMap() != nullptr)
 	{
 		renderer->setZBuffer(false);
 		XMMATRIX worldMatrix = renderer->getWorldMatrix();
@@ -173,7 +173,7 @@ bool App1::render()
 		XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
 
 		m_ShadowMapMesh->sendData(renderer->getDeviceContext());
-		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap].GetShadowMap()->getDepthMapSRV());
+		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV());
 		m_TextureShader->render(renderer->getDeviceContext(), m_ShadowMapMesh->getIndexCount());
 		renderer->setZBuffer(true);
 	}
@@ -198,18 +198,18 @@ bool App1::render()
 	return true;
 }
 
-void App1::depthPass(SceneLight& light)
+void App1::depthPass(SceneLight* light)
 {
 	// bind shadow map
-	assert(light.GetShadowMap() && "Light doesnt have a shadow map!");
-	light.GetShadowMap()->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
+	assert(light->GetShadowMap() && "Light doesnt have a shadow map!");
+	light->GetShadowMap()->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
 
 	// get world view projection matrices
 	XMMATRIX worldMatrix = renderer->getWorldMatrix();
 
-	light.GenerateViewMatrix();
-	XMMATRIX lightViewMatrix = light.GetViewMatrix();
-	XMMATRIX lightProjectionMatrix = light.GetOrthoMatrix();
+	light->GenerateViewMatrix();
+	XMMATRIX lightViewMatrix = light->GetViewMatrix();
+	XMMATRIX lightProjectionMatrix = light->GetOrthoMatrix();
 
 	// render world with an unlit shader
 	XMMATRIX w = worldMatrix * XMMatrixTranslation(2.0f, 1.0f, 5.0f);
@@ -307,9 +307,9 @@ void App1::renderLightDebugSpheres()
 
 	for (auto& light : m_Lights)
 	{
-		if (!light.IsEnabled()) continue;
+		if (!light->IsEnabled()) continue;
 
-		XMFLOAT3 p = light.GetPosition();
+		XMFLOAT3 p = light->GetPosition();
 		XMMATRIX w = worldMatrix * XMMatrixTranslation(p.x, p.y, p.z);
 
 		m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix);
@@ -369,7 +369,7 @@ void App1::gui()
 		ImGui::Checkbox("Debug Spheres", &m_LightDebugSpheres);
 		ImGui::Checkbox("Display Shadow Map", &m_ShowShadowMap);
 		if (m_ShowShadowMap)
-			ImGui::SliderInt("Shadow map", &m_SelectedShadowMap, 0, static_cast<int>(m_Lights.size()));
+			ImGui::SliderInt("Shadow map", &m_SelectedShadowMap, 0, static_cast<int>(m_Lights.size() - 1));
 		ImGui::Separator();
 
 		ImGui::Text("Global");
@@ -384,7 +384,7 @@ void App1::gui()
 			{
 				ImGui::Separator();
 
-				light.SettingsGUI();
+				light->SettingsGUI();
 
 				ImGui::TreePop();
 				ImGui::Separator();

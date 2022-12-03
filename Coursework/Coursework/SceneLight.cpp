@@ -3,10 +3,13 @@
 #include "imGUI/imgui.h"
 
 
-SceneLight::SceneLight()
+SceneLight::SceneLight(ID3D11Device* device)
+	: m_Device(device)
 {
 	m_ViewMatrix = XMMatrixIdentity();
 	m_OrthoMatrix = XMMatrixIdentity();
+
+	GenerateOrthoMatrix(100, 100, 0.1f, 100.0f);
 }
 
 SceneLight::~SceneLight()
@@ -48,6 +51,14 @@ void SceneLight::SettingsGUI()
 		ImGui::SliderAngle("Inner Angle", &m_InnerAngle, 0.0f, XMConvertToDegrees(m_OuterAngle));
 		ImGui::SliderAngle("Outer Angle", &m_OuterAngle, XMConvertToDegrees(m_InnerAngle) + 1.0f, 90.0f);
 	}
+
+	ImGui::Separator();
+
+	bool s = m_ShadowsEnabled;
+	if (ImGui::Checkbox("Enable Shadows", &s))
+	{
+		s ? EnableShadows() : DisableShadows();
+	}
 }
 
 XMFLOAT3 SceneLight::GetIrradiance() const
@@ -80,6 +91,20 @@ void SceneLight::GenerateOrthoMatrix(float screenWidth, float screenHeight, floa
 	m_OrthoMatrix = XMMatrixOrthographicLH(screenWidth, screenHeight, nearPlane, farPlane);
 }
 
+void SceneLight::EnableShadows()
+{
+	if (m_ShadowsEnabled) return;
+	m_ShadowsEnabled = true;
+
+	if (!m_ShadowMap) CreateShadowMap();
+}
+
+void SceneLight::DisableShadows()
+{
+	if (!m_ShadowsEnabled) return;
+	m_ShadowsEnabled = false;
+}
+
 void SceneLight::CalculateDirectionFromEulerAngles()
 {
 	// calculate forward vector
@@ -98,7 +123,7 @@ void SceneLight::CalculateDirectionFromEulerAngles()
 	m_Direction.z = XMVectorGetZ(v);
 }
 
-void SceneLight::CreateShadowMap(ID3D11Device* device)
+void SceneLight::CreateShadowMap()
 {
-	m_ShadowMap = new ShadowMap(device, 1024, 1024);
+	m_ShadowMap = new ShadowMap(m_Device, 1024, 1024);
 }

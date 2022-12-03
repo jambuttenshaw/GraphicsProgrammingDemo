@@ -110,7 +110,7 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 
 
 void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-									size_t lightCount, const SceneLight* lights, ID3D11ShaderResourceView* environmentMap, Camera* camera, const Material* mat)
+									size_t lightCount, SceneLight** lights, ID3D11ShaderResourceView* environmentMap, Camera* camera, const Material* mat)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -132,10 +132,15 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	CameraBufferType* cameraPtr;
 	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	cameraPtr = (CameraBufferType*)mappedResource.pData;
+	int index = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
 	{
-		XMMATRIX tlightViewProj = XMMatrixTranspose(lights[i].GetViewMatrix() * lights[i].GetOrthoMatrix());
-		cameraPtr->lightViewProj[i] = tlightViewProj;
+		if (!lights[i]->IsEnabled()) continue;
+
+		XMMATRIX tlightViewProj = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetOrthoMatrix());
+		cameraPtr->lightViewProj[index] = tlightViewProj;
+
+		index++;
 	}
 	cameraPtr->cameraPos = camera->getPosition();
 	cameraPtr->padding = 0.0f;
@@ -148,7 +153,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	int count = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
 	{
-		const SceneLight* light = lights + i;
+		SceneLight* light = lights[i];
 		
 		if (!light->IsEnabled()) continue;
 
@@ -186,12 +191,17 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);
 
 	ID3D11ShaderResourceView* shadowMaps[4];
+	index = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
 	{
-		if (lights[i].IsShadowsEnabled())
-			shadowMaps[i] = lights[i].GetShadowMap()->getDepthMapSRV();
-		else
-			shadowMaps[i] = nullptr;
+		shadowMaps[i] = nullptr;
+
+		if (!lights[i]->IsEnabled()) continue;
+
+		if (lights[i]->IsShadowsEnabled())
+			shadowMaps[index] = lights[i]->GetShadowMap()->getDepthMapSRV();
+
+		index++;
 	}
 	deviceContext->PSSetShaderResources(0, 1, &environmentMap);
 	deviceContext->PSSetShaderResources(1, 4, shadowMaps);

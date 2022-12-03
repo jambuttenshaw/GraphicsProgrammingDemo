@@ -43,7 +43,7 @@ protected:
 	void gui();
 
 	// passes
-	void depthPass(SceneLight& light);
+	void depthPass(SceneLight* light);
 	void worldPass();
 	void waterPass();
 
@@ -83,7 +83,7 @@ private:
 
 	std::vector<BaseMesh*> m_Occluders;
 
-	std::array<SceneLight, 4> m_Lights;
+	std::array<SceneLight*, 4> m_Lights;
 
 	bool m_LightDebugSpheres = true;
 	SphereMesh* m_LightDebugSphereMesh = nullptr;
