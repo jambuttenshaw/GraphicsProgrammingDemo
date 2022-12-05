@@ -126,6 +126,9 @@
     <ClCompile Include="TextureShader.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
+    <ClCompile Include="GlobalLighting.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -178,6 +181,9 @@
     </ClInclude>
     <ClInclude Include="TextureShader.h">
       <Filter>Rendering\Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="GlobalLighting.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

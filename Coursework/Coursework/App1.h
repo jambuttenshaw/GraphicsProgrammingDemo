@@ -24,6 +24,7 @@ class TerrainShader;
 class UnlitShader;
 class TextureShader;
 
+class GlobalLighting;
 class Cubemap;
 class Skybox;
 
@@ -71,6 +72,7 @@ private:
 
 	RenderTarget* m_RenderTarget = nullptr;
 
+	GlobalLighting* m_GlobalLighting = nullptr;
 	Cubemap* m_EnvironmentMap = nullptr;
 	Skybox* m_Skybox = nullptr;
 

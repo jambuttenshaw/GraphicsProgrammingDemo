@@ -1,9 +1,10 @@
 #include "LightShader.h"
 
+#include "GlobalLighting.h"
 #include "imGUI/imgui.h"
 
 
-LightShader::LightShader(ID3D11Device* device, HWND hwnd) : BaseShader(device, hwnd)
+LightShader::LightShader(ID3D11Device* device, HWND hwnd, GlobalLighting* globalLighting) : BaseShader(device, hwnd), m_GlobalLighting(globalLighting)
 {
 	initShader(L"lighting_vs.cso", L"lighting_ps.cso");
 }
@@ -31,12 +32,6 @@ LightShader::~LightShader()
 		lightBuffer->Release();
 		lightBuffer = 0;
 	}
-}
-
-void LightShader::GlobalLightSettingsGUI()
-{
-	ImGui::ColorEdit3("Global Ambience", &m_GlobalAmbient.x);
-	ImGui::Checkbox("Enable Environmental Lighting", &m_EnableEnvironmentalLighting);
 }
 
 void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
@@ -110,7 +105,7 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 
 
 void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-									size_t lightCount, SceneLight** lights, ID3D11ShaderResourceView* environmentMap, Camera* camera, const Material* mat)
+									size_t lightCount, SceneLight** lights, Camera* camera, const Material* mat)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -149,7 +144,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
-	lightPtr->globalAmbient = m_GlobalAmbient;
+	lightPtr->globalAmbient = m_GlobalLighting->GetGlobalAmbient();
 	int count = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
 	{
@@ -172,7 +167,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		count++;
 	}
 	lightPtr->lightCount = count;
-	lightPtr->enableEnvironmentalLighting = m_EnableEnvironmentalLighting;
+	lightPtr->enableEnvironmentalLighting = m_GlobalLighting->IsEnvironmentMapEnabled();
 	lightPtr->padding = { 0.0f, 0.0f };
 	deviceContext->Unmap(lightBuffer, 0);
 
@@ -204,6 +199,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 
 		index++;
 	}
+	ID3D11ShaderResourceView* environmentMap = m_GlobalLighting->GetEnvironmentMap()->GetSRV();
 	deviceContext->PSSetShaderResources(0, 1, &environmentMap);
 	deviceContext->PSSetShaderResources(1, 4, shadowMaps);
 

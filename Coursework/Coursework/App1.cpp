@@ -8,6 +8,7 @@
 #include "UnlitShader.h"
 #include "TextureShader.h"
 
+#include "GlobalLighting.h"
 #include "Cubemap.h"
 #include "Skybox.h"
 
@@ -34,7 +35,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	m_LightShader = new LightShader(renderer->getDevice(), hwnd);
+	m_GlobalLighting = new GlobalLighting();
+
+	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
 	m_TerrainShader = new TerrainShader(renderer->getDevice());
 	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
@@ -42,11 +45,13 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_RenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 
+
 	m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
 		"res/skybox/right.png", "res/skybox/left.png", 
 		"res/skybox/top.png", "res/skybox/bottom.png",
 		"res/skybox/front.png", "res/skybox/back.png");
 	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
+	m_GlobalLighting->SetEnvironmentMap(m_EnvironmentMap);
 
 	m_LightDebugSphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 
@@ -68,6 +73,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	}
 
 	// setup default light settings
+	/*
 	SceneLight& light = *(m_Lights[0]);
 	light.SetEnbled(true);
 	light.SetPosition({ 4.0f, 8.0f, 5.0f });
@@ -77,8 +83,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.SetRange(20.0f);
 	light.EnableShadows();
 	light.SetShadowBias(0.001f);
+	*/
 
-	/*
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
 	light2.SetPosition({ 0.0f, 0.0f, -10.0f });
@@ -87,8 +93,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetPitch(XMConvertToRadians(-45.0f));
 	light2.SetIntensity(1.5f);
 	light2.EnableShadows();
-	*/
-
+	
 	if (m_LoadOnOpen)
 	{
 		loadSettings(std::string(m_SaveFilePath));
@@ -257,18 +262,18 @@ void App1::worldPass()
 		XMMATRIX w = worldMatrix * XMMatrixTranslation(2.0f, 1.0f, 5.0f);
 
 		m_Cube->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat1);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat1);
 		m_LightShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
 
 
 		w = worldMatrix * XMMatrixTranslation(6.0f, 1.0f, 5.0f);
 
 		m_Sphere->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat2);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat2);
 		m_LightShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
 
 		m_Plane->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), m_EnvironmentMap->GetSRV(), camera, &mat1);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat1);
 		m_LightShader->render(renderer->getDeviceContext(), m_Plane->getIndexCount());
 	}
 
@@ -368,16 +373,22 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Lighting"))
 	{
-		ImGui::Text("Debug");
+		if (ImGui::TreeNode("Debug"))
+		{
+			ImGui::Checkbox("Debug Spheres", &m_LightDebugSpheres);
+			ImGui::Checkbox("Display Shadow Map", &m_ShowShadowMap);
+			if (m_ShowShadowMap)
+				ImGui::SliderInt("Shadow map", &m_SelectedShadowMap, 0, static_cast<int>(m_Lights.size() - 1));
 
-		ImGui::Checkbox("Debug Spheres", &m_LightDebugSpheres);
-		ImGui::Checkbox("Display Shadow Map", &m_ShowShadowMap);
-		if (m_ShowShadowMap)
-			ImGui::SliderInt("Shadow map", &m_SelectedShadowMap, 0, static_cast<int>(m_Lights.size() - 1));
+			ImGui::TreePop();
+		}
 		ImGui::Separator();
 
-		ImGui::Text("Global");
-		m_LightShader->GlobalLightSettingsGUI();
+		if (ImGui::TreeNode("Global"))
+		{
+			m_GlobalLighting->SettingsGUI();
+			ImGui::TreePop();
+		}
 
 		ImGui::Separator();
 

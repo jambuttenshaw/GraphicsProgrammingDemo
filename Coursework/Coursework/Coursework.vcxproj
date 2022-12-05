@@ -259,6 +259,7 @@
     <ClCompile Include="App1.cpp" />
     <ClCompile Include="BaseFullScreenShader.cpp" />
     <ClCompile Include="Cubemap.cpp" />
+    <ClCompile Include="GlobalLighting.cpp" />
     <ClCompile Include="HeightmapFilters.cpp" />
     <ClCompile Include="LightShader.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -279,6 +280,7 @@
     <ClInclude Include="BaseFullScreenShader.h" />
     <ClInclude Include="BaseHeightmapFilter.h" />
     <ClInclude Include="Cubemap.h" />
+    <ClInclude Include="GlobalLighting.h" />
     <ClInclude Include="HeightmapFilters.h" />
     <ClInclude Include="LightShader.h" />
     <ClInclude Include="Material.h" />
