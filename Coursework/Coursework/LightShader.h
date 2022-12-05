@@ -28,11 +28,15 @@ private:
 		XMFLOAT4 irradiance[MAX_LIGHTS];
 		XMFLOAT4 positionAndRange[MAX_LIGHTS];
 		XMFLOAT4 direction[MAX_LIGHTS];
-		// params[0] = type
-		// params[1] = inner spot angle
-		// params[2] = outer spot angle
-		// params[3] = shadows enabled
-		XMFLOAT4 params[MAX_LIGHTS];
+		// x = type
+		// y = range
+		// z = inner spot angle
+		// w = outer spot angle
+		XMFLOAT4 params0[MAX_LIGHTS];
+		// x = shadows enabled
+		// y = shadow bias
+		XMFLOAT4 params1[MAX_LIGHTS];
+
 		int lightCount;
 		bool enableEnvironmentalLighting;
 		XMFLOAT2 padding;
@@ -67,6 +71,6 @@ private:
 	ID3D11SamplerState* shadowSampler = nullptr;
 
 	XMFLOAT4 m_GlobalAmbient{ 0.2f, 0.2f, 0.2f, 1.0f };
-	bool m_EnableEnvironmentalLighting = true;
+	bool m_EnableEnvironmentalLighting = false;
 };
 

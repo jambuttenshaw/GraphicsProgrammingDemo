@@ -70,12 +70,15 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// setup default light settings
 	SceneLight& light = *(m_Lights[0]);
 	light.SetEnbled(true);
-	light.SetPosition({ 0.0f, 0.0f, -10.0f });
-	light.SetType(SceneLight::LightType::Directional);
-	light.SetPitch(XMConvertToRadians(-45.0f));
-	light.SetIntensity(1.5f);
+	light.SetPosition({ 4.0f, 8.0f, 5.0f });
+	light.SetType(SceneLight::LightType::Spot);
+	light.SetPitch(XMConvertToRadians(-89.0f));
+	light.SetIntensity(2.0f);
+	light.SetRange(20.0f);
 	light.EnableShadows();
+	light.SetShadowBias(0.001f);
 
+	/*
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
 	light2.SetPosition({ 0.0f, 0.0f, -10.0f });
@@ -84,6 +87,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetPitch(XMConvertToRadians(-45.0f));
 	light2.SetIntensity(1.5f);
 	light2.EnableShadows();
+	*/
 
 	if (m_LoadOnOpen)
 	{
@@ -173,7 +177,7 @@ bool App1::render()
 		XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
 
 		m_ShadowMapMesh->sendData(renderer->getDeviceContext());
-		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV());
+		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV(), m_Lights[m_SelectedShadowMap]->GetProjectionMatrix());
 		m_TextureShader->render(renderer->getDeviceContext(), m_ShadowMapMesh->getIndexCount());
 		renderer->setZBuffer(true);
 	}
@@ -209,7 +213,7 @@ void App1::depthPass(SceneLight* light)
 
 	light->GenerateViewMatrix();
 	XMMATRIX lightViewMatrix = light->GetViewMatrix();
-	XMMATRIX lightProjectionMatrix = light->GetOrthoMatrix();
+	XMMATRIX lightProjectionMatrix = light->GetProjectionMatrix();
 
 	// render world with an unlit shader
 	XMMATRIX w = worldMatrix * XMMatrixTranslation(2.0f, 1.0f, 5.0f);

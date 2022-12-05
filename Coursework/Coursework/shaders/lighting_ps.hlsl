@@ -17,13 +17,16 @@ cbuffer LightBuffer : register(b0)
 
     // per light:
     float4 lightIrradiance[MAX_LIGHTS];
-    float4 lightPositionAndRange[MAX_LIGHTS]; // xyz = pos, w = range
+    float4 lightPosition[MAX_LIGHTS]; // xyz = pos, w = range
     float4 lightDirection[MAX_LIGHTS];
-    // params[0] = type
-	// params[1] = inner spot angle
-	// params[2] = outer spot angle
-	// params[3] = shadows enabled
-    float4 params[MAX_LIGHTS];
+    // x = type
+	// y = range
+	// z = inner spot angle
+	// w = outer spot angle
+    float4 lightParams0[MAX_LIGHTS];
+    // x = shadows enabled
+    // y = shadow bias
+    float4 lightParams1[MAX_LIGHTS];
 
     // global:
 	int lightCount;
@@ -53,8 +56,11 @@ struct InputType
 // returns 0 if in shadow or 1 if illuminated
 float shadowed(Texture2D shadowMap, float4 lightViewPos, float bias)
 {
-    float2 uv = remap01(lightViewPos.xy / lightViewPos.w);
+    float2 uv = remap01_noclamp(lightViewPos.xy / lightViewPos.w);
     uv.y = 1.0f - uv.y;
+    
+    if (abs(uv.x) > 1.0f || abs(uv.y) > 1.0f)
+        return 1.0f;
     
     float depthValue = shadowMap.Sample(shadowSampler, uv).r;
     float distFromLight = lightViewPos.z / lightViewPos.w;
@@ -96,7 +102,7 @@ float4 main(InputType input) : SV_TARGET
 	for (int i = 0; i < lightCount; i++)
 	{       
 		// calculate light direction and irradiance
-        float type = params[i].x;
+        float type = lightParams0[i].x;
         float3 el = lightIrradiance[i].rgb;
 		
         float3 l = float3(0.0f, 0.0f, 1.0f);
@@ -106,22 +112,22 @@ float4 main(InputType input) : SV_TARGET
         }
 		else if (type == 1.0f)
         {
-            l = normalize(lightPositionAndRange[i].xyz - input.worldPos);
-			el *= distanceAttenuation(length(lightPositionAndRange[i].xyz - input.worldPos), lightPositionAndRange[i].w);
+            l = normalize(lightPosition[i].xyz - input.worldPos);
+			el *= distanceAttenuation(length(lightPosition[i].xyz - input.worldPos), lightParams0[i].y);
 		}
 		else if (type == 2.0f)
         {
-			float3 toLight = lightPositionAndRange[i].xyz - input.worldPos;
+			float3 toLight = lightPosition[i].xyz - input.worldPos;
 			l = normalize(toLight);
-			el *= distanceAttenuation(length(toLight), lightPositionAndRange[i].w) * spotAttenuation(l, -lightDirection[i].xyz, params[i].yz);
-		}
+            el *= distanceAttenuation(length(toLight), lightParams0[i].y) * spotAttenuation(l, -lightDirection[i].xyz, lightParams0[i].zw);
+        }
     
 		// evaluate shading equation
 		float3 brdf = ggx_brdf(v, l, n, albedo.rgb, f0, roughness, metallic) * el * saturate(dot(n, l));
         
         float shadow = 1.0f;
-        if (params[i].w)
-            shadow = shadowed(shadowMaps[i], input.lightViewPos[i], 0.01f);
+        if (lightParams1[i].x)
+            shadow = shadowed(shadowMaps[i], input.lightViewPos[i], lightParams1[i].y);
         
         lo += brdf * shadow;
     }
@@ -145,7 +151,7 @@ float4 main(InputType input) : SV_TARGET
         float3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
         vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
         float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-        */
+        */  
 
         ambient = (kD * diffuse);
     }

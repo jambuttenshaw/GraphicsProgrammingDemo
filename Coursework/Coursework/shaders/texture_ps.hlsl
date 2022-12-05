@@ -1,9 +1,10 @@
-// Texture pixel/fragment shader
-// Basic fragment shader for rendering textured geometry
-
-// Texture and sampler registers
 Texture2D texture0 : register(t0);
 SamplerState Sampler0 : register(s0);
+
+cbuffer LightMatrixBuffer : register(b0)
+{
+    Matrix projection;
+}
 
 struct InputType
 {
@@ -12,9 +13,15 @@ struct InputType
     float3 normal : NORMAL;
 };
 
+float calculateLinearDepth(float z)
+{
+    return projection._43 / (z - projection._33);
+}
 
 float4 main(InputType input) : SV_TARGET
 {
-	// Sample the pixel color from the texture using the sampler at this texture coordinate location.
-    return texture0.Sample(Sampler0, input.tex);
+    float depth = texture0.Sample(Sampler0, input.tex).r;
+    float linearDepth = calculateLinearDepth(depth);
+    float c = linearDepth;
+    return float4(c, c, c, 1.0f);
 }

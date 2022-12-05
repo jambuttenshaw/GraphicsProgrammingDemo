@@ -35,7 +35,7 @@ TextureShader::~TextureShader()
 
 void TextureShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilename)
 {
-	D3D11_BUFFER_DESC matrixBufferDesc;
+	D3D11_BUFFER_DESC matrixBufferDesc, lightMatrixBufferDesc;
 	D3D11_SAMPLER_DESC samplerDesc;
 
 	// Load (+ compile) shader files
@@ -52,6 +52,14 @@ void TextureShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilen
 
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+
+	lightMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	lightMatrixBufferDesc.ByteWidth = sizeof(LightMatrixBufferType);
+	lightMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	lightMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	lightMatrixBufferDesc.MiscFlags = 0;
+	lightMatrixBufferDesc.StructureByteStride = 0;
+	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
 
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -70,26 +78,37 @@ void TextureShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilen
 }
 
 
-void TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture)
+void TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture, const XMMATRIX& lightProj)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
-	MatrixBufferType* dataPtr;
-	XMMATRIX tworld, tview, tproj;
 	
 	// Transpose the matrices to prepare them for the shader.
-	tworld = XMMatrixTranspose(worldMatrix);
-	tview = XMMatrixTranspose(viewMatrix);
-	tproj = XMMatrixTranspose(projectionMatrix);
+	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
+	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
+	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
+	XMMATRIX tlightproj = XMMatrixTranspose(lightProj);
 
-	// Send matrix data
-	result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	dataPtr = (MatrixBufferType*)mappedResource.pData;
-	dataPtr->world = tworld;// worldMatrix;
-	dataPtr->view = tview;
-	dataPtr->projection = tproj;
-	deviceContext->Unmap(matrixBuffer, 0);
-	deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
+	{
+		// Send matrix data
+		MatrixBufferType* dataPtr;
+		result = deviceContext->Map(matrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		dataPtr = (MatrixBufferType*)mappedResource.pData;
+		dataPtr->world = tworld;// worldMatrix;
+		dataPtr->view = tview;
+		dataPtr->projection = tproj;
+		deviceContext->Unmap(matrixBuffer, 0);
+		deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
+	}
+	{
+		LightMatrixBufferType* dataPtr;
+		result = deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		dataPtr = (LightMatrixBufferType*)mappedResource.pData;
+		dataPtr->projection = tlightproj;
+		deviceContext->Unmap(lightMatrixBuffer, 0);
+		deviceContext->PSSetConstantBuffers(0, 1, &lightMatrixBuffer);
+	}
+
 
 	// Set shader texture and sampler resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);

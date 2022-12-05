@@ -137,7 +137,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	{
 		if (!lights[i]->IsEnabled()) continue;
 
-		XMMATRIX tlightViewProj = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetOrthoMatrix());
+		XMMATRIX tlightViewProj = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetProjectionMatrix());
 		cameraPtr->lightViewProj[index] = tlightViewProj;
 
 		index++;
@@ -161,12 +161,13 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		lightPtr->irradiance[count] = { irradiance.x, irradiance.y, irradiance.z, 1.0f };
 
 		XMFLOAT3 p = light->GetPosition();
-		lightPtr->positionAndRange[count] = XMFLOAT4{ p.x, p.y, p.z, light->GetRange() };
+		lightPtr->positionAndRange[count] = XMFLOAT4{ p.x, p.y, p.z, 1.0f };
 
 		XMFLOAT3 d = light->GetDirection();
 		lightPtr->direction[count] = XMFLOAT4{ d.x, d.y, d.z, 0.0f };
 		
-		lightPtr->params[count] = { static_cast<float>(light->GetType()), cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()), light->IsShadowsEnabled() ? 1.0f : 0.0f };
+		lightPtr->params0[count] = { static_cast<float>(light->GetType()), light->GetRange(), cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()) };
+		lightPtr->params1[count] = { light->IsShadowsEnabled() ? 1.0f : 0.0f, light->GetShadowBias(), 0.0f, 0.0f };
 
 		count++;
 	}

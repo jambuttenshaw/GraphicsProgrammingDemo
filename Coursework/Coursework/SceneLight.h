@@ -51,15 +51,19 @@ public:
 
 	// light matrices
 	inline const XMMATRIX& GetViewMatrix() const { return m_ViewMatrix; }
-	inline const XMMATRIX& GetOrthoMatrix() const { return m_OrthoMatrix; }
+	const XMMATRIX& GetProjectionMatrix() const;
 	void GenerateViewMatrix();
 	void GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane);
+	void GeneratePerspectiveMatrix(float nearPlane);
 	
 	// shadow mapping
 	void EnableShadows();
 	void DisableShadows();
 	inline bool IsShadowsEnabled() const { return m_ShadowsEnabled; }
 	
+	inline float GetShadowBias() const { return m_ShadowBias; }
+	inline void SetShadowBias(float bias) { m_ShadowBias = bias; }
+
 	inline ShadowMap* GetShadowMap() const { return m_ShadowMap; }
 
 
@@ -92,6 +96,7 @@ private:
 
 	// shadow mapping
 	bool m_ShadowsEnabled = false;
+	float m_ShadowBias = 0.01f;
 	ShadowMap* m_ShadowMap = nullptr;
-	XMMATRIX m_ViewMatrix, m_OrthoMatrix;
+	XMMATRIX m_ViewMatrix, m_OrthoMatrix, m_PerspectiveMatrix;
 };

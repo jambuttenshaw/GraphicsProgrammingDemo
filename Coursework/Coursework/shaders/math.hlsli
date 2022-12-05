@@ -62,3 +62,25 @@ float4 remap01(float4 v)
 {
     return saturate(0.5f * (1.0f + v));
 }
+
+
+float remap01_noclamp(float v)
+{
+    return 0.5f * (1.0f + v);
+}
+float remap01_noclamp(float v, float v_min, float v_max)
+{
+    return (v - v_min) / (v_max - v_min);
+}
+float2 remap01_noclamp(float2 v)
+{
+    return 0.5f * (1.0f + v);
+}
+float3 remap01_noclamp(float3 v)
+{
+    return 0.5f * (1.0f + v);
+}
+float4 remap01_noclamp(float4 v)
+{
+    return 0.5f * (1.0f + v);
+}
