@@ -26,7 +26,7 @@ private:
 	{
 		XMFLOAT4 globalAmbient;
 		XMFLOAT4 irradiance[MAX_LIGHTS];
-		XMFLOAT4 position[MAX_LIGHTS];
+		XMFLOAT4 positionAndRange[MAX_LIGHTS];
 		XMFLOAT4 direction[MAX_LIGHTS];
 		// params[0] = type
 		// params[1] = inner spot angle

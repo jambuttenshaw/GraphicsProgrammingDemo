@@ -41,6 +41,8 @@ public:
 	inline const XMFLOAT3& GetDirection() const { return m_Direction; }
 	inline void SetYaw(float y) { m_Yaw = y; CalculateDirectionFromEulerAngles(); }
 	inline void SetPitch(float p) { m_Pitch = p; CalculateDirectionFromEulerAngles(); }
+	inline float GetRange() const { return m_Range; }
+	inline void SetRange(float r) { m_Range = r; }
 
 	inline float GetInnerAngle() const { return m_InnerAngle; }
 	inline float GetOuterAngle() const { return m_OuterAngle; }
@@ -78,6 +80,8 @@ private:
 
 	XMFLOAT3 m_Position{ 0.0f, 0.0f, 0.0f };
 	XMFLOAT3 m_Direction{ 0.0f, 0.0f, 1.0f };
+
+	float m_Range = 5.0f;
 
 	// for directional lights only
 	float m_Yaw = 0.0f, m_Pitch = 0.0f;

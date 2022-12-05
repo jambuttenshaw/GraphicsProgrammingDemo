@@ -161,7 +161,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		lightPtr->irradiance[count] = { irradiance.x, irradiance.y, irradiance.z, 1.0f };
 
 		XMFLOAT3 p = light->GetPosition();
-		lightPtr->position[count] = XMFLOAT4{ p.x, p.y, p.z, 0.0f };
+		lightPtr->positionAndRange[count] = XMFLOAT4{ p.x, p.y, p.z, light->GetRange() };
 
 		XMFLOAT3 d = light->GetDirection();
 		lightPtr->direction[count] = XMFLOAT4{ d.x, d.y, d.z, 0.0f };

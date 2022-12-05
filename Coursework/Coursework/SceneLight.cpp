@@ -33,7 +33,10 @@ void SceneLight::SettingsGUI()
 	ImGui::Separator();
 
 	if (m_Type != LightType::Directional)
+	{
 		ImGui::DragFloat3("Position", &m_Position.x, 0.1f);
+		ImGui::DragFloat("Range", &m_Range, 0.05f);
+	}
 
 	if (m_Type != LightType::Point)
 	{

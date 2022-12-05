@@ -14,14 +14,18 @@ SamplerState shadowSampler : register(s1);
 cbuffer LightBuffer : register(b0)
 {
     float4 globalAmbience;
+
+    // per light:
     float4 lightIrradiance[MAX_LIGHTS];
-    float4 lightPosition[MAX_LIGHTS];
+    float4 lightPositionAndRange[MAX_LIGHTS]; // xyz = pos, w = range
     float4 lightDirection[MAX_LIGHTS];
     // params[0] = type
 	// params[1] = inner spot angle
 	// params[2] = outer spot angle
 	// params[3] = shadows enabled
     float4 params[MAX_LIGHTS];
+
+    // global:
 	int lightCount;
     bool enableEnvironmentalLighting;
     float2 padding0;
@@ -59,6 +63,18 @@ float shadowed(Texture2D shadowMap, float4 lightViewPos, float bias)
     return depthValue >= distFromLight;
 }
 
+float distanceAttenuation(float r, float rmax)
+{
+	float a1 = r / rmax;
+	float a2 = max(0.0f, 1.0f - (a1 * a1));
+	return a2 * a2;
+}
+
+float spotAttenuation(float3 toLight, float3 lightDir, float2 spotAngles)
+{
+	return (1.0f - smoothstep(spotAngles.x, spotAngles.y, dot(lightDir, toLight)));
+}
+
 
 float4 main(InputType input) : SV_TARGET
 {
@@ -86,20 +102,19 @@ float4 main(InputType input) : SV_TARGET
         float3 l = float3(0.0f, 0.0f, 1.0f);
         if (type == 0.0f)
         {
-            l = -normalize(lightDirection[i].xyz);
+            l = -lightDirection[i].xyz;
         }
 		else if (type == 1.0f)
         {
-            l = normalize(lightPosition[i].xyz - input.worldPos);
-        }
+            l = normalize(lightPositionAndRange[i].xyz - input.worldPos);
+			el *= distanceAttenuation(length(lightPositionAndRange[i].xyz - input.worldPos), lightPositionAndRange[i].w);
+		}
 		else if (type == 2.0f)
         {
-            l = -normalize(lightDirection[i].xyz);
-			
-            float3 toLight = normalize(lightPosition[i].xyz - input.worldPos);
-            float spotAttenuation = 1.0f - smoothstep(params[i].y, params[i].z, dot(l, toLight));
-            el *= spotAttenuation;
-        }
+			float3 toLight = lightPositionAndRange[i].xyz - input.worldPos;
+			l = normalize(toLight);
+			el *= distanceAttenuation(length(toLight), lightPositionAndRange[i].w) * spotAttenuation(l, -lightDirection[i].xyz, params[i].yz);
+		}
     
 		// evaluate shading equation
 		float3 brdf = ggx_brdf(v, l, n, albedo.rgb, f0, roughness, metallic) * el * saturate(dot(n, l));
