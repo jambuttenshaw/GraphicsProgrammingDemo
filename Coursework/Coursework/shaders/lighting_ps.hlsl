@@ -1,16 +1,24 @@
 #include "lighting.hlsli"
 #include "defines.hlsli"
 
-TextureCube environmentMap : register(t0);
-SamplerState environmentSampler : register(s0);
 
-Texture2D shadowMap0 : register(t1);
-Texture2D shadowMap1 : register(t2);
-Texture2D shadowMap2 : register(t3);
-Texture2D shadowMap3 : register(t4);
-SamplerState shadowSampler : register(s1);
+// shadows
+Texture2D shadowMap0 : register(t0);
+Texture2D shadowMap1 : register(t1);
+Texture2D shadowMap2 : register(t2);
+Texture2D shadowMap3 : register(t3);
 
+SamplerState shadowSampler : register(s0);
 
+// ibl
+TextureCube irradianceMap : register(t4);
+TextureCube prefilterMap : register(t5);
+Texture2D brdfIntegrationMap : register(t6);
+
+SamplerState irradianceMapSampler : register(s1);
+SamplerState brdfIntegrationSampler : register(s2);
+
+// lighting
 cbuffer LightBuffer : register(b0)
 {
     float4 globalAmbience;
@@ -34,6 +42,7 @@ cbuffer LightBuffer : register(b0)
     float2 padding0;
 };
 
+// materials
 cbuffer MaterialBuffer : register(b1)
 {
 	float4 albedo;
@@ -142,18 +151,16 @@ float4 main(InputType input) : SV_TARGET
         float3 kD = 1.0 - kS;
         kD *= 1.0 - metallic;
         
-        float3 irradiance = environmentMap.Sample(environmentSampler, n).rgb;
+        float3 irradiance = irradianceMap.Sample(irradianceMapSampler, n).rgb;
         float3 diffuse = irradiance * albedo.rgb;
         
-        /*
         // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
         const float MAX_REFLECTION_LOD = 4.0;
-        float3 prefilteredColor = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
-        vec2 brdf = texture(brdfLUT, vec2(max(dot(N, V), 0.0), roughness)).rg;
+        float3 prefilteredColor = prefilterMap.SampleLevel(irradianceMapSampler, r, roughness * MAX_REFLECTION_LOD).rgb;
+        float2 brdf = brdfIntegrationMap.Sample(brdfIntegrationSampler, float2(saturate(dot(n, v)), roughness)).rg;
         float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
-        */  
 
-        ambient = (kD * diffuse);
+        ambient = kD * diffuse + specular;
     }
     
     float3 color = ambient + lo;

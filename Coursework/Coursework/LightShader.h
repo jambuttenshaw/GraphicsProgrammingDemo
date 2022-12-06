@@ -68,7 +68,6 @@ private:
 	ID3D11Buffer* lightBuffer = nullptr;
 	ID3D11Buffer* materialBuffer = nullptr;
 
-	ID3D11SamplerState* environmentSampler = nullptr;
 	ID3D11SamplerState* shadowSampler = nullptr;
 
 	GlobalLighting* m_GlobalLighting;

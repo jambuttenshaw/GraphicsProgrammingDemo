@@ -58,6 +58,15 @@
     <FxCompile Include="shaders\terrain_vs.hlsl">
       <Filter>Shaders\terrain</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\irradiance_cs.hlsl">
+      <Filter>Shaders\compute</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\prefilteredenvironment_cs.hlsl">
+      <Filter>Shaders\compute</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\brdfintegration_cs.hlsl">
+      <Filter>Shaders\compute</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">

@@ -42,9 +42,7 @@ float3 shlick_fresnel_roughness_reflectance(float3 f0, float3 v, float3 h, float
 // GEOMETRY FUNCTIONS
 float schlichggx_geometry(float NdotV, float k)
 {
-	float denom = NdotV * (1.0f - k) + k;
-	
-	return NdotV / denom;
+    return NdotV / (NdotV * (1.0f - k) + k);
 }
   
 float smith_geometry(float3 n, float3 v, float3 l, float k)
@@ -55,6 +53,21 @@ float smith_geometry(float3 n, float3 v, float3 l, float k)
 	float ggx2 = schlichggx_geometry(NdotL, k);
 	
 	return ggx1 * ggx2;
+}
+
+float schlichggx_geometry_ibl(float NdotV, float roughness)
+{
+    float k = (roughness * roughness) / 2.0f; // k has a different definition for ibl than direct lighting
+    return NdotV / (NdotV * (1.0f - k) + k);
+}
+float smith_geometry_ibl(float3 n, float3 v, float3 l, float roughness)
+{
+    float NdotV = max(dot(n, v), 0.0f);
+    float NdotL = max(dot(n, l), 0.0f);
+    float ggx2 = schlichggx_geometry_ibl(NdotV, roughness);
+    float ggx1 = schlichggx_geometry_ibl(NdotL, roughness);
+
+    return ggx1 * ggx2;
 }
 
 
@@ -110,4 +123,31 @@ float3 ggx_brdf(float3 v, float3 l, float3 n, float3 albedo, float3 f0, float ro
 	float3 fdiff = lambertian_diffuse(cdiff);
 	
 	return fdiff + fspec;
+}
+
+
+// IBL
+
+// adapted GGX NDF used to generate orientated and biased sample vectors for importance sampling, used for preprocessing the environment map for IBL
+float3 ImportanceSampleGGX(float2 Xi, float3 N, float roughness)
+{
+    float a = roughness * roughness;
+	
+    float phi = 2.0f * PI * Xi.x;
+    float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
+    float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+	
+    // from spherical coordinates to cartesian coordinates
+    float3 H;
+    H.x = cos(phi) * sinTheta;
+    H.y = sin(phi) * sinTheta;
+    H.z = cosTheta;
+	
+    // from tangent-space vector to world-space sample vector
+    float3 up = abs(N.z) < 0.999f ? float3(0.0f, 0.0f, 1.0f) : float3(1.0f, 0.0f, 0.0f);
+    float3 tangent = normalize(cross(up, N));
+    float3 bitangent = cross(N, tangent);
+	
+    float3 sampleVec = tangent * H.x + bitangent * H.y + N * H.z;
+    return normalize(sampleVec);
 }

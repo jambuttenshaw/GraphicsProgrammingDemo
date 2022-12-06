@@ -35,7 +35,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	m_GlobalLighting = new GlobalLighting();
+	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
 	m_TerrainShader = new TerrainShader(renderer->getDevice());
@@ -50,8 +50,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 		"res/skybox/right.png", "res/skybox/left.png", 
 		"res/skybox/top.png", "res/skybox/bottom.png",
 		"res/skybox/front.png", "res/skybox/back.png");
+	//m_EnvironmentMap = new Cubemap(renderer->getDevice(),
+	//	"res/skybox2/px.png",	"res/skybox2/nx.png",
+	//	"res/skybox2/py.png",	"res/skybox2/ny.png",
+	//	"res/skybox2/pz.png",	"res/skybox2/nz.png");
+	m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
-	m_GlobalLighting->SetEnvironmentMap(m_EnvironmentMap);
 
 	m_LightDebugSphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 
