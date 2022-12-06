@@ -10,7 +10,7 @@ SceneLight::SceneLight(ID3D11Device* device)
 	m_OrthoMatrix = XMMatrixIdentity();
 	m_PerspectiveMatrix = XMMatrixIdentity();
 
-	GenerateOrthoMatrix(100, 100, 0.1f, 100.0f);
+	GenerateOrthoMatrix(50, 50, 0.1f, 50.0f);
 	GeneratePerspectiveMatrix(0.1f);
 }
 

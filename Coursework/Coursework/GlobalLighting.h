@@ -41,7 +41,7 @@ private:
 private:
 	ID3D11Device* m_Device = nullptr;
 
-	XMFLOAT4 m_GlobalAmbient{ 0.3f, 0.3f, 0.3f, 1.0f };
+	XMFLOAT4 m_GlobalAmbient{ 0.1f, 0.1f, 0.1f, 1.0f };
 	
 	bool m_EnableIBL = true;
 	Cubemap* m_EnvironmentMap = nullptr;

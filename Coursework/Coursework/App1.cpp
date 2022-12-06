@@ -91,7 +91,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
-	light2.SetPosition({ 0.0f, 0.0f, -10.0f });
+	light2.SetPosition({ 0.0f, 0.0f, -3.0f });
 	light2.SetType(SceneLight::LightType::Directional);
 	light2.SetYaw(XMConvertToRadians(45.0f));
 	light2.SetPitch(XMConvertToRadians(-45.0f));
