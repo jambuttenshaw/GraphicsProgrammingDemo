@@ -27,7 +27,6 @@ private:
 
 	struct LightBufferType
 	{
-		XMFLOAT4 globalAmbient;
 		XMFLOAT4 irradiance[MAX_LIGHTS];
 		XMFLOAT4 positionAndRange[MAX_LIGHTS];
 		XMFLOAT4 direction[MAX_LIGHTS];

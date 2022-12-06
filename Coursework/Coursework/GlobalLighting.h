@@ -18,9 +18,6 @@ public:
 	inline bool IsIBLEnabled() const { return m_EnableIBL; }
 	inline void SetIBLEnabled(bool e) { m_EnableIBL = e; }
 
-	inline const XMFLOAT4& GetGlobalAmbient() const { return m_GlobalAmbient; }
-	inline void SetGlobaAmbient(const XMFLOAT4& c) { m_GlobalAmbient = c; }
-
 	inline ID3D11ShaderResourceView* GetIrradianceMap() const { return m_IrradianceMap->GetSRV(); }
 	inline ID3D11ShaderResourceView* GetPrefilterMap() const { return m_PrefilteredEnvironmentMap->GetSRV(); }
 	inline ID3D11ShaderResourceView* GetBRDFIntegrationMap() const { return m_BRDFIntegrationMapSRV; }
@@ -41,8 +38,6 @@ private:
 private:
 	ID3D11Device* m_Device = nullptr;
 
-	XMFLOAT4 m_GlobalAmbient{ 0.1f, 0.1f, 0.1f, 1.0f };
-	
 	bool m_EnableIBL = true;
 	Cubemap* m_EnvironmentMap = nullptr;
 

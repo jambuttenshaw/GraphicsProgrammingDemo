@@ -21,8 +21,6 @@ SamplerState brdfIntegrationSampler : register(s2);
 // lighting
 cbuffer LightBuffer : register(b0)
 {
-    float4 globalAmbience;
-
     // per light:
     float4 lightIrradiance[MAX_LIGHTS];
     float4 lightPosition[MAX_LIGHTS]; // xyz = pos, w = range
@@ -141,21 +139,21 @@ float4 main(InputType input) : SV_TARGET
         lo += brdf * shadow;
     }
     
-    float3 ambient = globalAmbience.rgb;
+    float3 ambient = float3(0.0f, 0.0f, 0.0f);
     if (enableEnvironmentalLighting)
     {
         // ues IBL for ambient lighting
         float3 F = shlick_fresnel_roughness_reflectance(f0, v, n, roughness);
         
         float3 kS = F;
-        float3 kD = 1.0 - kS;
-        kD *= 1.0 - metallic;
+        float3 kD = 1.0f - kS;
+        kD *= 1.0f - metallic;
         
         float3 irradiance = irradianceMap.Sample(irradianceMapSampler, n).rgb;
         float3 diffuse = irradiance * albedo.rgb;
         
         // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
-        const float MAX_REFLECTION_LOD = 4.0;
+        const float MAX_REFLECTION_LOD = 4.0f;
         float3 prefilteredColor = prefilterMap.SampleLevel(irradianceMapSampler, r, roughness * MAX_REFLECTION_LOD).rgb;
         float2 brdf = brdfIntegrationMap.Sample(brdfIntegrationSampler, float2(saturate(dot(n, v)), roughness)).rg;
         float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
@@ -164,5 +162,6 @@ float4 main(InputType input) : SV_TARGET
     }
     
     float3 color = ambient + lo;
+    
     return float4(color, 1.0f);
 }

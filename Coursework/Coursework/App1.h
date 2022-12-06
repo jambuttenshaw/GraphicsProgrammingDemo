@@ -23,6 +23,7 @@ class WaterShader;
 class TerrainShader;
 class UnlitShader;
 class TextureShader;
+class DOFShader;
 
 class GlobalLighting;
 class Cubemap;
@@ -46,6 +47,10 @@ protected:
 	// passes
 	void depthPass(SceneLight* light);
 	void worldPass();
+
+	// post processing
+	void SwitchRenderTarget();
+
 	void waterPass();
 
 	void renderLightDebugSpheres();
@@ -69,8 +74,10 @@ private:
 	WaterShader* m_WaterShader = nullptr;
 	UnlitShader* m_UnlitShader = nullptr;
 	TextureShader* m_TextureShader = nullptr;
+	DOFShader* m_DOFShader = nullptr;
 
-	RenderTarget* m_RenderTarget = nullptr;
+	RenderTarget* m_SrcRenderTarget = nullptr;
+	RenderTarget* m_DstRenderTarget = nullptr;
 
 	GlobalLighting* m_GlobalLighting = nullptr;
 	Cubemap* m_EnvironmentMap = nullptr;

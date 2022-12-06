@@ -131,7 +131,6 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
-	lightPtr->globalAmbient = m_GlobalLighting->GetGlobalAmbient();
 	int count = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
 	{

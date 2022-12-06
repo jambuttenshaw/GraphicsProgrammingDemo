@@ -1,19 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <FxCompile Include="shaders\fullscreen_vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\lighting_ps.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\lighting_vs.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\water_ps.hlsl">
-      <Filter>Shaders</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\water_vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="shaders\unlit_ps.hlsl">
@@ -67,6 +58,15 @@
     <FxCompile Include="Shaders\brdfintegration_cs.hlsl">
       <Filter>Shaders\compute</Filter>
     </FxCompile>
+    <FxCompile Include="Shaders\dof_ps.hlsl">
+      <Filter>Shaders\postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\fullscreen_vs.hlsl">
+      <Filter>Shaders\postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\water_ps.hlsl">
+      <Filter>Shaders\postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">
@@ -108,9 +108,6 @@
     <ClCompile Include="Material.cpp">
       <Filter>Rendering</Filter>
     </ClCompile>
-    <ClCompile Include="BaseFullScreenShader.cpp">
-      <Filter>Rendering\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="LightShader.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
@@ -118,9 +115,6 @@
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="UnlitShader.cpp">
-      <Filter>Rendering\Shaders</Filter>
-    </ClCompile>
-    <ClCompile Include="WaterShader.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
     <ClCompile Include="stb_image_build.cpp">
@@ -137,6 +131,15 @@
     </ClCompile>
     <ClCompile Include="GlobalLighting.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="BaseFullScreenShader.cpp">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterShader.cpp">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
+    </ClCompile>
+    <ClCompile Include="DOFShader.cpp">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -167,9 +170,6 @@
     <ClInclude Include="Material.h">
       <Filter>Rendering</Filter>
     </ClInclude>
-    <ClInclude Include="BaseFullScreenShader.h">
-      <Filter>Rendering\Shaders</Filter>
-    </ClInclude>
     <ClInclude Include="LightShader.h">
       <Filter>Rendering\Shaders</Filter>
     </ClInclude>
@@ -177,9 +177,6 @@
       <Filter>Rendering\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="UnlitShader.h">
-      <Filter>Rendering\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="WaterShader.h">
       <Filter>Rendering\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="Cubemap.h">
@@ -193,6 +190,15 @@
     </ClInclude>
     <ClInclude Include="GlobalLighting.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseFullScreenShader.h">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
+    </ClInclude>
+    <ClInclude Include="WaterShader.h">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
+    </ClInclude>
+    <ClInclude Include="DOFShader.h">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -222,6 +228,12 @@
     </Filter>
     <Filter Include="Shaders\terrain">
       <UniqueIdentifier>{f97ae902-7eba-4ca1-81a1-bb579c09cecb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\PostProcesing">
+      <UniqueIdentifier>{2521d333-61ae-461a-8572-05bf76b932ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\postprocess">
+      <UniqueIdentifier>{10257d75-c353-4b66-af16-ee9618859d8b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

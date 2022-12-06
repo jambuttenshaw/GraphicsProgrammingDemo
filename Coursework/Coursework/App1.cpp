@@ -7,6 +7,7 @@
 #include "WaterShader.h"
 #include "UnlitShader.h"
 #include "TextureShader.h"
+#include "DOFShader.h"
 
 #include "GlobalLighting.h"
 #include "Cubemap.h"
@@ -42,18 +43,19 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 	m_TextureShader = new TextureShader(renderer->getDevice(), hwnd);
+	m_DOFShader = new DOFShader(renderer->getDevice());
 
-	m_RenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
+	m_SrcRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
+	m_DstRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 
-
-	m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
-		"res/skybox/right.png", "res/skybox/left.png", 
-		"res/skybox/top.png", "res/skybox/bottom.png",
-		"res/skybox/front.png", "res/skybox/back.png");
-	//m_EnvironmentMap = new Cubemap(renderer->getDevice(),
-	//	"res/skybox2/px.png",	"res/skybox2/nx.png",
-	//	"res/skybox2/py.png",	"res/skybox2/ny.png",
-	//	"res/skybox2/pz.png",	"res/skybox2/nz.png");
+	//m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
+	//	"res/skybox/right.png", "res/skybox/left.png", 
+	//	"res/skybox/top.png", "res/skybox/bottom.png",
+	//	"res/skybox/front.png", "res/skybox/back.png");
+	m_EnvironmentMap = new Cubemap(renderer->getDevice(),
+		"res/skybox2/px.png",	"res/skybox2/nx.png",
+		"res/skybox2/py.png",	"res/skybox2/ny.png",
+		"res/skybox2/pz.png",	"res/skybox2/nz.png");
 	m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
 
@@ -116,7 +118,8 @@ App1::~App1()
 	if (m_TerrainShader) delete m_TerrainShader;
 	if (m_LightShader) delete m_LightShader;
 
-	if (m_RenderTarget) delete m_RenderTarget;
+	if (m_SrcRenderTarget) delete m_SrcRenderTarget;
+	if (m_DstRenderTarget) delete m_DstRenderTarget;
 
 	for (auto filter : m_HeightmapFilters)
 	{
@@ -163,19 +166,30 @@ bool App1::render()
 	}
 
 	// render world to render texture
-	//m_RenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
-	//if (!wireframeToggle) m_RenderTarget->Set(renderer->getDeviceContext());
+	m_DstRenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
+
+	if (!wireframeToggle) m_DstRenderTarget->Set(renderer->getDeviceContext());
 	worldPass();
 
 	if (m_LightDebugSpheres) renderLightDebugSpheres();
 
-	//if (!wireframeToggle)
-	//{
-	//	// water is a post-processing effect and rendered afterwards
-	//	renderer->setBackBufferRenderTarget();
-	//	
-	//	waterPass();
-	//}
+	// post processing
+	if (!wireframeToggle)
+	{
+		renderer->setZBuffer(false);
+		// water is a post-processing effect and rendered afterwards
+		//waterPass();
+		
+		SwitchRenderTarget();
+		renderer->setBackBufferRenderTarget();
+
+		m_DOFShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV());
+		m_DOFShader->Render(renderer->getDeviceContext());
+
+		renderer->setZBuffer(true);
+	}
+
+
 
 	// Render ortho mesh
 	if (m_ShowShadowMap && m_Lights[m_SelectedShadowMap]->GetShadowMap() != nullptr)
@@ -294,6 +308,15 @@ void App1::worldPass()
 	}
 }
 
+void App1::SwitchRenderTarget()
+{
+	RenderTarget* temp = m_SrcRenderTarget;
+	m_SrcRenderTarget = m_DstRenderTarget;
+	m_DstRenderTarget = temp;
+
+	m_DstRenderTarget->Set(renderer->getDeviceContext());
+}
+
 void App1::waterPass()
 {
 	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
@@ -304,7 +327,7 @@ void App1::waterPass()
 	{
 
 		renderer->setZBuffer(false);
-		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_RenderTarget->GetColourSRV(), m_RenderTarget->GetDepthSRV(), nullptr, camera, m_Time);
+		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV(), nullptr, camera, m_Time);
 		m_WaterShader->Render(renderer->getDeviceContext());
 		renderer->setZBuffer(true);
 	}
