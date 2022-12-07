@@ -7,7 +7,7 @@
 #include "WaterShader.h"
 #include "UnlitShader.h"
 #include "TextureShader.h"
-#include "DOFShader.h"
+#include "ToneMappingShader.h"
 
 #include "GlobalLighting.h"
 #include "Cubemap.h"
@@ -36,6 +36,13 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
+	textureMgr->loadTexture(L"asphalt_albedo", L"res/pbr/cracking_painted_asphalt_albedo.png");
+	textureMgr->loadTexture(L"asphalt_roughness", L"res/pbr/cracking_painted_asphalt_roughness.png");
+	textureMgr->loadTexture(L"asphalt_normal", L"res/pbr/cracking_painted_asphalt_normal.png");
+
+	textureMgr->loadTexture(L"worn_metal_albedo", L"res/pbr/worn-shiny-metal-albedo.png");
+	textureMgr->loadTexture(L"worn_metal_roughness", L"res/pbr/worn-shiny-metal-roughness.png");
+
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
@@ -43,10 +50,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 	m_TextureShader = new TextureShader(renderer->getDevice(), hwnd);
-	m_DOFShader = new DOFShader(renderer->getDevice());
+	m_ToneMappingShader = new ToneMappingShader(renderer->getDevice());
 
 	m_SrcRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 	m_DstRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
+
+	m_OutputMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);
 
 	//m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
 	//	"res/skybox/right.png", "res/skybox/left.png", 
@@ -100,6 +109,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetIntensity(1.5f);
 	light2.EnableShadows();
 	
+	mat2.SetAlbedoMap(textureMgr->getTexture(L"asphalt_albedo"));
+	mat2.SetRoughnessMap(textureMgr->getTexture(L"asphalt_roughness"));
+	mat2.SetNormalMap(textureMgr->getTexture(L"asphalt_normal"));
+
 	if (m_LoadOnOpen)
 	{
 		loadSettings(std::string(m_SaveFilePath));
@@ -164,46 +177,50 @@ bool App1::render()
 		if (light->IsShadowsEnabled())
 			depthPass(light);
 	}
+	renderer->resetViewport();
 
-	// render world to render texture
+
 	m_DstRenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
+	m_DstRenderTarget->Set(renderer->getDeviceContext());
 
-	if (!wireframeToggle) m_DstRenderTarget->Set(renderer->getDeviceContext());
 	worldPass();
 
 	if (m_LightDebugSpheres) renderLightDebugSpheres();
 
 	// post processing
-	if (!wireframeToggle)
+	renderer->setZBuffer(false);
+	if (!wireframeToggle && m_EnablePostProcessing)
 	{
-		renderer->setZBuffer(false);
 		// water is a post-processing effect and rendered afterwards
 		//waterPass();
 		
 		SwitchRenderTarget();
-		renderer->setBackBufferRenderTarget();
 
-		m_DOFShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV());
-		m_DOFShader->Render(renderer->getDeviceContext());
+		m_ToneMappingShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV());
+		m_ToneMappingShader->Render(renderer->getDeviceContext());
 
-		renderer->setZBuffer(true);
 	}
 
+	XMMATRIX worldMatrix = renderer->getWorldMatrix();
+	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
+	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();			// ortho matrix for 2D rendering
 
+	// output to backbuffer
+	renderer->setBackBufferRenderTarget();
+	{
+		m_OutputMesh->sendData(renderer->getDeviceContext());
+		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_DstRenderTarget->GetColourSRV());
+		m_TextureShader->render(renderer->getDeviceContext(), m_OutputMesh->getIndexCount());
+	}
 
 	// Render ortho mesh
 	if (m_ShowShadowMap && m_Lights[m_SelectedShadowMap]->GetShadowMap() != nullptr)
 	{
-		renderer->setZBuffer(false);
-		XMMATRIX worldMatrix = renderer->getWorldMatrix();
-		XMMATRIX orthoMatrix = renderer->getOrthoMatrix();  // ortho matrix for 2D rendering
-		XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
-
 		m_ShadowMapMesh->sendData(renderer->getDeviceContext());
-		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV(), m_Lights[m_SelectedShadowMap]->GetProjectionMatrix());
+		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV());
 		m_TextureShader->render(renderer->getDeviceContext(), m_ShadowMapMesh->getIndexCount());
-		renderer->setZBuffer(true);
 	}
+	renderer->setZBuffer(true);
 
 	// GUI
 	
@@ -252,10 +269,6 @@ void App1::depthPass(SceneLight* light)
 	m_Plane->sendData(renderer->getDeviceContext());
 	m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
 	m_UnlitShader->render(renderer->getDeviceContext(), m_Plane->getIndexCount());
-
-	// Set back buffer as render target and reset view port.
-	renderer->setBackBufferRenderTarget();
-	renderer->resetViewport();
 }
 
 void App1::worldPass()
@@ -447,6 +460,18 @@ void App1::gui()
 		if (ImGui::TreeNode("Material 2"))
 		{
 			mat2.SettingsGUI();
+			ImGui::TreePop();
+		}
+	}
+	ImGui::Separator();
+
+	if (ImGui::CollapsingHeader("Post Processing"))
+	{
+		ImGui::Checkbox("Enable", &m_EnablePostProcessing);
+
+		if (ImGui::TreeNode("Tone mapping"))
+		{
+			m_ToneMappingShader->SettingsGUI();
 			ImGui::TreePop();
 		}
 	}

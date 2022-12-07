@@ -7,23 +7,17 @@ using namespace DirectX;
 
 class TextureShader : public BaseShader
 {
-	struct LightMatrixBufferType
-	{
-		XMMATRIX projection;
-	};
-
 public:
 	TextureShader(ID3D11Device* device, HWND hwnd);
 	~TextureShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* texture, const XMMATRIX& lightProj);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection, ID3D11ShaderResourceView* texture);
 
 private:
 	void initShader(const wchar_t* vs, const wchar_t* ps);
 
 private:
 	ID3D11Buffer * matrixBuffer;
-	ID3D11Buffer* lightMatrixBuffer;
 	ID3D11SamplerState* sampleState;
 };
 

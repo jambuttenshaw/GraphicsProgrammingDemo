@@ -181,7 +181,7 @@
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">4.0</ShaderModel>
     </FxCompile>
-    <FxCompile Include="Shaders\dof_ps.hlsl">
+    <FxCompile Include="Shaders\tonemapping_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
@@ -284,7 +284,7 @@
     <ClCompile Include="App1.cpp" />
     <ClCompile Include="BaseFullScreenShader.cpp" />
     <ClCompile Include="Cubemap.cpp" />
-    <ClCompile Include="DOFShader.cpp" />
+    <ClCompile Include="ToneMappingShader.cpp" />
     <ClCompile Include="GlobalLighting.cpp" />
     <ClCompile Include="HeightmapFilters.cpp" />
     <ClCompile Include="LightShader.cpp" />
@@ -306,7 +306,7 @@
     <ClInclude Include="BaseFullScreenShader.h" />
     <ClInclude Include="BaseHeightmapFilter.h" />
     <ClInclude Include="Cubemap.h" />
-    <ClInclude Include="DOFShader.h" />
+    <ClInclude Include="ToneMappingShader.h" />
     <ClInclude Include="GlobalLighting.h" />
     <ClInclude Include="HeightmapFilters.h" />
     <ClInclude Include="LightShader.h" />

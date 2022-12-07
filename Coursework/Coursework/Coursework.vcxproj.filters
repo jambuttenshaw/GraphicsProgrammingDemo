@@ -58,7 +58,7 @@
     <FxCompile Include="Shaders\brdfintegration_cs.hlsl">
       <Filter>Shaders\compute</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\dof_ps.hlsl">
+    <FxCompile Include="Shaders\tonemapping_ps.hlsl">
       <Filter>Shaders\postprocess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\fullscreen_vs.hlsl">
@@ -138,7 +138,7 @@
     <ClCompile Include="WaterShader.cpp">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
-    <ClCompile Include="DOFShader.cpp">
+    <ClCompile Include="ToneMappingShader.cpp">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
   </ItemGroup>
@@ -197,7 +197,7 @@
     <ClInclude Include="WaterShader.h">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
-    <ClInclude Include="DOFShader.h">
+    <ClInclude Include="ToneMappingShader.h">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
   </ItemGroup>

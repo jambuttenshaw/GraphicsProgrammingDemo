@@ -46,10 +46,12 @@ private:
 
 	struct MaterialBufferType
 	{
-		XMFLOAT4 albedo;
-		float metallic;
+		XMFLOAT3 albedo;
+		float useAlbedoTexture;
 		float roughness;
-		XMFLOAT2 padding;
+		float useRoughnessMap;
+		float metallic;
+		float useNormalMap;
 	};
 
 public:
@@ -67,6 +69,7 @@ private:
 	ID3D11Buffer* lightBuffer = nullptr;
 	ID3D11Buffer* materialBuffer = nullptr;
 
+	ID3D11SamplerState* materialSampler = nullptr;
 	ID3D11SamplerState* shadowSampler = nullptr;
 
 	GlobalLighting* m_GlobalLighting;

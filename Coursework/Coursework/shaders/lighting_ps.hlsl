@@ -18,6 +18,13 @@ Texture2D brdfIntegrationMap : register(t6);
 SamplerState irradianceMapSampler : register(s1);
 SamplerState brdfIntegrationSampler : register(s2);
 
+// material
+Texture2D albedoMap : register(t7);
+Texture2D roughnessMap : register(t8);
+Texture2D normalMap : register(t9);
+
+SamplerState materialSampler : register(s3);
+
 // lighting
 cbuffer LightBuffer : register(b0)
 {
@@ -43,10 +50,12 @@ cbuffer LightBuffer : register(b0)
 // materials
 cbuffer MaterialBuffer : register(b1)
 {
-	float4 albedo;
+	float3 albedoColor;
+	float useAlbedoMap;
+	float roughnessValue;
+	float useRoughnessMap;
 	float metallic;
-	float roughness;
-	float2 padding1;
+	float useNormalMap;
 };
 
 struct InputType
@@ -88,6 +97,23 @@ float spotAttenuation(float3 toLight, float3 lightDir, float2 spotAngles)
 	return (1.0f - smoothstep(spotAngles.x, spotAngles.y, dot(lightDir, toLight)));
 }
 
+float3x3 cotangent_frame(float3 N, float3 p, float2 uv)
+{ 
+    // get edge vectors of the pixel triangle 
+	float3 dp1 = ddx(p);
+	float3 dp2 = ddy(p);
+	float2 duv1 = ddx(uv);
+	float2 duv2 = ddy(uv);
+    // solve the linear system 
+	float3 dp2perp = cross(dp2, N);
+	float3 dp1perp = cross(N, dp1);
+	float3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+	float3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+    // construct a scale-invariant frame 
+    float invmax = rsqrt( max( dot(T,T), dot(B,B) ) ); 
+	return float3x3(T * invmax, B * invmax, N);
+}
+
 
 float4 main(InputType input) : SV_TARGET
 {
@@ -100,9 +126,21 @@ float4 main(InputType input) : SV_TARGET
 	float3 n = normalize(input.normal);
 	float3 v = -normalize(input.viewDir);
     float3 r = normalize(reflect(-v, n));
-
+    
+	if (useNormalMap)
+	{
+		float3 map = normalMap.Sample(materialSampler, input.tex);
+		map = (map * 2.0f) - 1.0f;
+        
+		float3x3 TBN = cotangent_frame(n, -v, input.tex);
+		n = normalize(mul(map, TBN));
+	}
+    
+    float3 albedo = useAlbedoMap ? albedoMap.Sample(materialSampler, input.tex).rgb : albedoColor.rgb;
+	float roughness = useRoughnessMap ? roughnessMap.Sample(materialSampler, input.tex).r : roughnessValue;
+    
     float3 f0 = float3(0.04f, 0.04f, 0.04f);
-    f0 = lerp(f0, albedo.rgb, metallic);
+    f0 = lerp(f0, albedo, metallic);
     
     float3 lo = float3(0.0f, 0.0f, 0.0f);
 	
@@ -130,7 +168,7 @@ float4 main(InputType input) : SV_TARGET
         }
     
 		// evaluate shading equation
-		float3 brdf = ggx_brdf(v, l, n, albedo.rgb, f0, roughness, metallic) * el * saturate(dot(n, l));
+		float3 brdf = ggx_brdf(v, l, n, albedo, f0, roughness, metallic) * el * saturate(dot(n, l));
         
         float shadow = 1.0f;
         if (lightParams1[i].x)
@@ -150,7 +188,7 @@ float4 main(InputType input) : SV_TARGET
         kD *= 1.0f - metallic;
         
         float3 irradiance = irradianceMap.Sample(irradianceMapSampler, n).rgb;
-        float3 diffuse = irradiance * albedo.rgb;
+        float3 diffuse = irradiance * albedo;
         
         // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
         const float MAX_REFLECTION_LOD = 4.0f;

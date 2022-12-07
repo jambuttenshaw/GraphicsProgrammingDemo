@@ -23,7 +23,7 @@ class WaterShader;
 class TerrainShader;
 class UnlitShader;
 class TextureShader;
-class DOFShader;
+class ToneMappingShader;
 
 class GlobalLighting;
 class Cubemap;
@@ -74,10 +74,11 @@ private:
 	WaterShader* m_WaterShader = nullptr;
 	UnlitShader* m_UnlitShader = nullptr;
 	TextureShader* m_TextureShader = nullptr;
-	DOFShader* m_DOFShader = nullptr;
+	ToneMappingShader* m_ToneMappingShader = nullptr;
 
 	RenderTarget* m_SrcRenderTarget = nullptr;
 	RenderTarget* m_DstRenderTarget = nullptr;
+	OrthoMesh* m_OutputMesh = nullptr;
 
 	GlobalLighting* m_GlobalLighting = nullptr;
 	Cubemap* m_EnvironmentMap = nullptr;
@@ -90,8 +91,6 @@ private:
 	SphereMesh* m_Sphere = nullptr;
 	PlaneMesh* m_Plane = nullptr;
 
-	std::vector<BaseMesh*> m_Occluders;
-
 	std::array<SceneLight*, 4> m_Lights;
 
 	bool m_LightDebugSpheres = true;
@@ -102,6 +101,9 @@ private:
 	OrthoMesh* m_ShadowMapMesh = nullptr;
 
 	Material mat1, mat2;
+
+	// post processing
+	bool m_EnablePostProcessing = true;
 
 	std::vector<IHeightmapFilter*> m_HeightmapFilters;
 	int m_SelectedHeightmapFilter = -1;

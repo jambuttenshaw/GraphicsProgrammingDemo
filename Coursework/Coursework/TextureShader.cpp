@@ -53,14 +53,6 @@ void TextureShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilen
 	// Create the constant buffer pointer so we can access the vertex shader constant buffer from within this class.
 	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
 
-	lightMatrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	lightMatrixBufferDesc.ByteWidth = sizeof(LightMatrixBufferType);
-	lightMatrixBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	lightMatrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	lightMatrixBufferDesc.MiscFlags = 0;
-	lightMatrixBufferDesc.StructureByteStride = 0;
-	renderer->CreateBuffer(&lightMatrixBufferDesc, NULL, &lightMatrixBuffer);
-
 	// Create a texture sampler state description.
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
 	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -78,7 +70,7 @@ void TextureShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilen
 }
 
 
-void TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture, const XMMATRIX& lightProj)
+void TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix, ID3D11ShaderResourceView* texture)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -87,7 +79,6 @@ void TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, cons
 	XMMATRIX tworld = XMMatrixTranspose(worldMatrix);
 	XMMATRIX tview = XMMatrixTranspose(viewMatrix);
 	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
-	XMMATRIX tlightproj = XMMatrixTranspose(lightProj);
 
 	{
 		// Send matrix data
@@ -100,22 +91,8 @@ void TextureShader::setShaderParameters(ID3D11DeviceContext* deviceContext, cons
 		deviceContext->Unmap(matrixBuffer, 0);
 		deviceContext->VSSetConstantBuffers(0, 1, &matrixBuffer);
 	}
-	{
-		LightMatrixBufferType* dataPtr;
-		result = deviceContext->Map(lightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		dataPtr = (LightMatrixBufferType*)mappedResource.pData;
-		dataPtr->projection = tlightproj;
-		deviceContext->Unmap(lightMatrixBuffer, 0);
-		deviceContext->PSSetConstantBuffers(0, 1, &lightMatrixBuffer);
-	}
-
 
 	// Set shader texture and sampler resource in the pixel shader.
 	deviceContext->PSSetShaderResources(0, 1, &texture);
 	deviceContext->PSSetSamplers(0, 1, &sampleState);
 }
-
-
-
-
-

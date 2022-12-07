@@ -78,6 +78,18 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	materialBufferDesc.StructureByteStride = 0;
 	renderer->CreateBuffer(&materialBufferDesc, NULL, &materialBuffer);
 
+	D3D11_SAMPLER_DESC samplerDesc;
+	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.MipLODBias = 0.0f;
+	samplerDesc.MaxAnisotropy = 1;
+	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	samplerDesc.MinLOD = 0;
+	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	renderer->CreateSamplerState(&samplerDesc, &materialSampler);
+
 	D3D11_SAMPLER_DESC shadowSamplerDesc;
 	shadowSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
 	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -161,9 +173,12 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	deviceContext->Map(materialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	matPtr = (MaterialBufferType*)mappedResource.pData;
 	matPtr->albedo = mat->GetAlbedo();
-	matPtr->metallic = mat->GetMetalness();
+	matPtr->useAlbedoTexture = mat->UseAlbedoMap();
 	matPtr->roughness = mat->GetRoughness();
-	matPtr->padding = { 0.0f, 0.0f };
+	matPtr->useRoughnessMap = mat->UseRoughnessMap();
+	matPtr->metallic = mat->GetMetalness();
+	matPtr->useNormalMap = mat->UseNormalMap();
+
 	deviceContext->Unmap(materialBuffer, 0);
 
 	ID3D11Buffer* vsBuffers[2] = { matrixBuffer, cameraBuffer };
@@ -194,6 +209,13 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	};
 	deviceContext->PSSetShaderResources(4, 3, iblMaps);
 
-	ID3D11SamplerState* samplers[3] = { shadowSampler, m_GlobalLighting->GetCubemapSampler(), m_GlobalLighting->GetBRDFIntegrationSampler() };
-	deviceContext->PSSetSamplers(0, 3, samplers);
+	ID3D11ShaderResourceView* matMaps[3] = {
+		mat->GetAlbedoMap(),
+		mat->GetRoughnessMap(),
+		mat->GetNormalMap()
+	};
+	deviceContext->PSSetShaderResources(7, 3, matMaps);
+
+	ID3D11SamplerState* samplers[4] = { shadowSampler, m_GlobalLighting->GetCubemapSampler(), m_GlobalLighting->GetBRDFIntegrationSampler(), materialSampler };
+	deviceContext->PSSetSamplers(0, 4, samplers);
 }
