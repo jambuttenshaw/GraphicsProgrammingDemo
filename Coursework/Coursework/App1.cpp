@@ -43,6 +43,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"worn_metal_albedo", L"res/pbr/worn-shiny-metal-albedo.png");
 	textureMgr->loadTexture(L"worn_metal_roughness", L"res/pbr/worn-shiny-metal-roughness.png");
 
+	textureMgr->loadTexture(L"armor_albedo", L"res/pbr/armor-plating1_albedo.png");
+	textureMgr->loadTexture(L"armor_roughness", L"res/pbr/armor-plating1_roughness.png");
+	textureMgr->loadTexture(L"armor_normal", L"res/pbr/armor-plating1_normal.png");
+
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
@@ -109,9 +113,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetIntensity(1.5f);
 	light2.EnableShadows();
 	
-	mat2.SetAlbedoMap(textureMgr->getTexture(L"asphalt_albedo"));
-	mat2.SetRoughnessMap(textureMgr->getTexture(L"asphalt_roughness"));
-	mat2.SetNormalMap(textureMgr->getTexture(L"asphalt_normal"));
+	mat1.SetAlbedoMap(textureMgr->getTexture(L"armor_albedo"));
+	mat1.SetRoughnessMap(textureMgr->getTexture(L"armor_roughness"));
+	mat1.SetNormalMap(textureMgr->getTexture(L"armor_normal"));
 
 	if (m_LoadOnOpen)
 	{
