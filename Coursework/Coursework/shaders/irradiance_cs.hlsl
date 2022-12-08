@@ -35,6 +35,11 @@ void main( uint3 DTid : SV_DispatchThreadID )
     float3 irradiance = float3(0.0f, 0.0f, 0.0f);
 
     float3 up = float3(0.0f, 1.0f, 0.0f);
+    
+    // fix artifacts at the poles of the irradiance map when normal and up are co-linear
+    if (abs(normal.y) == 1.0f)
+        up.yz = up.zy;
+    
     float3 right = normalize(cross(up, normal));
     up = normalize(cross(normal, right));
     float sampleDelta = 0.025f;
