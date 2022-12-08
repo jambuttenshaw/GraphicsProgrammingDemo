@@ -25,26 +25,31 @@ private:
 		float padding;
 	};
 
+	struct LightDataType
+	{
+		XMFLOAT4 irradiance;
+		XMFLOAT4 position;
+		XMFLOAT4 direction;
+
+		float type;
+		float range;
+		XMFLOAT2 spotAngles;
+
+		float shadowsEnabled;
+		float shadowBias;
+
+		XMFLOAT2 padding;
+	};
 	struct LightBufferType
 	{
-		XMFLOAT4 irradiance[MAX_LIGHTS];
-		XMFLOAT4 positionAndRange[MAX_LIGHTS];
-		XMFLOAT4 direction[MAX_LIGHTS];
-		// x = type
-		// y = range
-		// z = inner spot angle
-		// w = outer spot angle
-		XMFLOAT4 params0[MAX_LIGHTS];
-		// x = shadows enabled
-		// y = shadow bias
-		XMFLOAT4 params1[MAX_LIGHTS];
+		LightDataType lights[MAX_LIGHTS];
 
 		int lightCount;
 		bool enableEnvironmentalLighting;
 		XMFLOAT2 padding;
 	};
 
-	struct MaterialBufferType
+	struct MaterialDataType
 	{
 		XMFLOAT3 albedo;
 		float useAlbedoTexture;
@@ -52,6 +57,10 @@ private:
 		float useRoughnessMap;
 		float metallic;
 		float useNormalMap;
+	};
+	struct MaterialBufferType
+	{
+		MaterialDataType material;
 	};
 
 public:

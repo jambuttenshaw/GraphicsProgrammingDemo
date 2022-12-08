@@ -150,17 +150,24 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		
 		if (!light->IsEnabled()) continue;
 
+		LightDataType lightData;
+
 		XMFLOAT3 irradiance = light->GetIrradiance();
-		lightPtr->irradiance[count] = { irradiance.x, irradiance.y, irradiance.z, 1.0f };
+		lightData.irradiance = { irradiance.x, irradiance.y, irradiance.z, 1.0f };
 
 		XMFLOAT3 p = light->GetPosition();
-		lightPtr->positionAndRange[count] = XMFLOAT4{ p.x, p.y, p.z, 1.0f };
+		lightData.position = XMFLOAT4{ p.x, p.y, p.z, 1.0f };
 
 		XMFLOAT3 d = light->GetDirection();
-		lightPtr->direction[count] = XMFLOAT4{ d.x, d.y, d.z, 0.0f };
+		lightData.direction = XMFLOAT4{ d.x, d.y, d.z, 0.0f };
 		
-		lightPtr->params0[count] = { static_cast<float>(light->GetType()), light->GetRange(), cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()) };
-		lightPtr->params1[count] = { light->IsShadowsEnabled() ? 1.0f : 0.0f, light->GetShadowBias(), 0.0f, 0.0f };
+		lightData.type = static_cast<float>(light->GetType());
+		lightData.range = light->GetRange();
+		lightData.spotAngles = { cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()) };
+		lightData.shadowsEnabled = light->IsShadowsEnabled() ? 1.0f : 0.0f;
+		lightData.shadowBias = light->GetShadowBias();
+
+		lightPtr->lights[count] = lightData;
 
 		count++;
 	}
@@ -172,13 +179,15 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	MaterialBufferType* matPtr;
 	deviceContext->Map(materialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	matPtr = (MaterialBufferType*)mappedResource.pData;
-	matPtr->albedo = mat->GetAlbedo();
-	matPtr->useAlbedoTexture = mat->UseAlbedoMap();
-	matPtr->roughness = mat->GetRoughness();
-	matPtr->useRoughnessMap = mat->UseRoughnessMap();
-	matPtr->metallic = mat->GetMetalness();
-	matPtr->useNormalMap = mat->UseNormalMap();
-
+	MaterialDataType matData = {
+		mat->GetAlbedo(),
+		mat->UseAlbedoMap() ? 1.0f : 0.0f,
+		mat->GetRoughness(),
+		mat->UseRoughnessMap() ? 1.0f : 0.0f,
+		mat->GetMetalness(),
+		mat->UseNormalMap() ? 1.0f : 0.0f
+	};
+	matPtr->material = matData;
 	deviceContext->Unmap(materialBuffer, 0);
 
 	ID3D11Buffer* vsBuffers[2] = { matrixBuffer, cameraBuffer };
