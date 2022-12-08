@@ -25,18 +25,6 @@
     <FxCompile Include="shaders\texture_vs.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl">
-      <Filter>Shaders\compute</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\terrainNoise_cs.hlsl">
-      <Filter>Shaders\compute</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\simpleNoise_cs.hlsl">
-      <Filter>Shaders\compute</Filter>
-    </FxCompile>
-    <FxCompile Include="shaders\ridgeNoise_cs.hlsl">
-      <Filter>Shaders\compute</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\terrain_ds.hlsl">
       <Filter>Shaders\terrain</Filter>
     </FxCompile>
@@ -66,6 +54,18 @@
     </FxCompile>
     <FxCompile Include="shaders\water_ps.hlsl">
       <Filter>Shaders\postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\simpleNoise_cs.hlsl">
+      <Filter>Shaders\compute\heightmap</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\ridgeNoise_cs.hlsl">
+      <Filter>Shaders\compute\heightmap</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\warpedSimpleNoise_cs.hlsl">
+      <Filter>Shaders\compute\heightmap</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\terrainNoise_cs.hlsl">
+      <Filter>Shaders\compute\heightmap</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -234,6 +234,9 @@
     </Filter>
     <Filter Include="Shaders\postprocess">
       <UniqueIdentifier>{10257d75-c353-4b66-af16-ee9618859d8b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\compute\heightmap">
+      <UniqueIdentifier>{0cd92b72-d808-4eb5-a2fd-b5d66ea18687}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

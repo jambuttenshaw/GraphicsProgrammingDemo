@@ -36,7 +36,7 @@ float3 shlick_fresnel_reflectance(float3 f0, float3 v, float3 h)
 
 float3 shlick_fresnel_roughness_reflectance(float3 f0, float3 v, float3 h, float roughness)
 {
-    return f0 + (max((1.0f - roughness).xxx, f0) - f0) * pow(1.0 - saturate(dot(h, v)), 5.0);
+    return f0 + (max((1.0f - roughness).xxx, f0) - f0) * pow(1.0f - saturate(dot(h, v)), 5.0f);
 }
 
 // GEOMETRY FUNCTIONS

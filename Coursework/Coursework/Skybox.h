@@ -25,6 +25,8 @@ public:
 
 	void Render(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection);
 
+	inline void SetCubemap(Cubemap* cubemap) { m_Cubemap = cubemap; }
+
 private:
 	void LoadVS();
 	void LoadPS();

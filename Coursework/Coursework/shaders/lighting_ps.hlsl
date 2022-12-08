@@ -193,11 +193,11 @@ float4 main(InputType input) : SV_TARGET
         // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
         const float MAX_REFLECTION_LOD = 4.0f;
         float3 prefilteredColor = prefilterMap.SampleLevel(irradianceMapSampler, r, roughness * MAX_REFLECTION_LOD).rgb;
-        float2 brdf = brdfIntegrationMap.Sample(brdfIntegrationSampler, float2(saturate(dot(n, v)), roughness)).rg;
+        float2 brdf = brdfIntegrationMap.Sample(brdfIntegrationSampler, float2(abs(dot(n, v)), roughness)).rg;
         float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
         ambient = kD * diffuse + specular;
-    }
+	}
     
     float3 color = ambient + lo;
     

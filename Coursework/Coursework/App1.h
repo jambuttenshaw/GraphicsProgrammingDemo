@@ -83,6 +83,7 @@ private:
 	GlobalLighting* m_GlobalLighting = nullptr;
 	Cubemap* m_EnvironmentMap = nullptr;
 	Skybox* m_Skybox = nullptr;
+	int m_SelectedSkybox = 0;
 
 	Transform m_TerrainTransform;
 	TerrainMesh* m_Terrain = nullptr;

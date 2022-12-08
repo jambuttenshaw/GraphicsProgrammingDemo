@@ -43,9 +43,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"worn_metal_albedo", L"res/pbr/worn-shiny-metal-albedo.png");
 	textureMgr->loadTexture(L"worn_metal_roughness", L"res/pbr/worn-shiny-metal-roughness.png");
 
-	textureMgr->loadTexture(L"armor_albedo", L"res/pbr/armor-plating1_albedo.png");
-	textureMgr->loadTexture(L"armor_roughness", L"res/pbr/armor-plating1_roughness.png");
-	textureMgr->loadTexture(L"armor_normal", L"res/pbr/armor-plating1_normal.png");
+	mat1.SetAlbedoMap(textureMgr->getTexture(L"asphalt_albedo"));
+	mat1.SetRoughnessMap(textureMgr->getTexture(L"asphalt_roughness"));
+	mat1.SetNormalMap(textureMgr->getTexture(L"asphalt_normal"));
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
@@ -61,14 +61,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_OutputMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);
 
-	//m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
-	//	"res/skybox/right.png", "res/skybox/left.png", 
-	//	"res/skybox/top.png", "res/skybox/bottom.png",
-	//	"res/skybox/front.png", "res/skybox/back.png");
-	m_EnvironmentMap = new Cubemap(renderer->getDevice(),
-		"res/skybox2/px.png",	"res/skybox2/nx.png",
-		"res/skybox2/py.png",	"res/skybox2/ny.png",
-		"res/skybox2/pz.png",	"res/skybox2/nz.png");
+	m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
+		"res/skybox/right.png", "res/skybox/left.png", 
+		"res/skybox/top.png", "res/skybox/bottom.png",
+		"res/skybox/front.png", "res/skybox/back.png");
+
 	m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
 
@@ -113,10 +110,6 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetIntensity(1.5f);
 	light2.EnableShadows();
 	
-	mat1.SetAlbedoMap(textureMgr->getTexture(L"armor_albedo"));
-	mat1.SetRoughnessMap(textureMgr->getTexture(L"armor_roughness"));
-	mat1.SetNormalMap(textureMgr->getTexture(L"armor_normal"));
-
 	if (m_LoadOnOpen)
 	{
 		loadSettings(std::string(m_SaveFilePath));
@@ -430,6 +423,33 @@ void App1::gui()
 
 		if (ImGui::TreeNode("Global"))
 		{
+			int selectedSkybox = m_SelectedSkybox;
+			ImGui::Text("Select Environment:");
+			ImGui::RadioButton("Sky", &selectedSkybox, 0); ImGui::SameLine();
+			ImGui::RadioButton("Trees", &selectedSkybox, 1);
+
+			if (selectedSkybox != m_SelectedSkybox)
+			{
+				m_SelectedSkybox = selectedSkybox;
+				delete m_EnvironmentMap;
+				if (m_SelectedSkybox == 0)
+				{
+					m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
+						"res/skybox/right.png", "res/skybox/left.png", 
+						"res/skybox/top.png", "res/skybox/bottom.png",
+						"res/skybox/front.png", "res/skybox/back.png");
+				}
+				else if (m_SelectedSkybox == 1)
+				{
+					m_EnvironmentMap = new Cubemap(renderer->getDevice(),
+						"res/skybox2/px.png", "res/skybox2/nx.png",
+						"res/skybox2/py.png", "res/skybox2/ny.png",
+						"res/skybox2/pz.png", "res/skybox2/nz.png");
+				}
+				m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
+				m_Skybox->SetCubemap(m_EnvironmentMap);
+			}
+
 			m_GlobalLighting->SettingsGUI();
 			ImGui::TreePop();
 		}
