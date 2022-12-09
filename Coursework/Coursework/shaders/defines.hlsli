@@ -18,9 +18,8 @@ struct LightData
     float2 spotAngles;
     
     int shadowMapIndex;
-    float shadowBias;
     
-    float2 padding;
+    float3 padding;
 };
 
 struct LightBuffer

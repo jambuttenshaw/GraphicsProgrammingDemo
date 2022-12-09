@@ -110,6 +110,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &mat2 });
 	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &mat2 });
 	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &mat2 });
+	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &mat1 });
+	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &mat1 });
 
 	// create lights
 	for (auto& light : m_Lights)

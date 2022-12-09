@@ -141,6 +141,9 @@
     <ClCompile Include="ToneMappingShader.cpp">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowCubemap.cpp">
+      <Filter>Rendering</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -202,6 +205,9 @@
     </ClInclude>
     <ClInclude Include="GameObject.h">
       <Filter>Utility</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowCubemap.h">
+      <Filter>Rendering</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

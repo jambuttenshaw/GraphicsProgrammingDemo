@@ -29,7 +29,7 @@ XMFLOAT3 Cubemap::s_FaceBitangents[6] = {
 };
 
 
-Cubemap::Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels)
+Cubemap::Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels, DXGI_FORMAT format, DXGI_FORMAT srvFormat)
 {
 	m_ReadOnly = false;
 	m_HasMips = mipLevels != 1;
@@ -39,7 +39,7 @@ Cubemap::Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels
 	texDesc.Height = size;
 	texDesc.MipLevels = mipLevels;
 	texDesc.ArraySize = 6;
-	texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	texDesc.Format = format;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
 	texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -48,7 +48,7 @@ Cubemap::Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels
 	texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = texDesc.Format;
+	srvDesc.Format = srvFormat;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 	srvDesc.TextureCube.MipLevels = m_HasMips ? -1 : texDesc.MipLevels;
 	srvDesc.TextureCube.MostDetailedMip = 0;

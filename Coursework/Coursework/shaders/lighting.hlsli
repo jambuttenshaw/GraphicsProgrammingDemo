@@ -142,7 +142,7 @@ float spotAttenuation(float3 toLight, float3 lightDir, float2 spotAngles)
 
 
 // shadows
-float2 calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMapIndex, SamplerComparisonState shadowSampler, float4 lightViewPos, float bias)
+float2 calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMapIndex, SamplerComparisonState shadowSampler, float4 lightViewPos)
 {
     const float SMAP_SIZE = 1024.0f;
     const float dx = 1.0f / SMAP_SIZE;
@@ -154,27 +154,20 @@ float2 calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMap
         return 1.0f;
     
     float distFromLight = lightViewPos.z / lightViewPos.w;
-    //distFromLight -= bias;
+    
+    // perform 3x3 box blur
     
     const float2 offsets[9] =
     {
-        { -dx, -dx },
-        { 0.0f, -dx },
-        { dx, -dx },
-        { -dx, 0.0f },
-        { 0.0f, 0.0f },
-        { dx, 0.0f },
-        { -dx, dx },
-        { 0.0f, dx },
-        { dx, dx }
+        { -dx, -dx }, { 0.0f, -dx }, { dx, -dx },
+        { -dx, 0.0f }, { 0.0f, 0.0f }, { dx, 0.0f },
+        { -dx, dx }, { 0.0f, dx }, { dx, dx }
     };
     
     float percentLit = 0.0f;
-    
+    [unroll]
     for (int i = 0; i < 9; i++)
-    {
         percentLit += SampleTexture2DComp(texBuffer, shadowMapIndex, shadowSampler, uv + offsets[i], distFromLight);
-    }
     
     return percentLit / 9.0f;
 }
@@ -273,7 +266,7 @@ float3 calculateLighting(
         float shadowFactor = 1.0f;
         if (light.shadowMapIndex > -1)
         {
-            shadowFactor = calculateShadowFactor(texture2DBuffer, light.shadowMapIndex, shadowSampler, l_p[i], light.shadowBias);
+            shadowFactor = calculateShadowFactor(texture2DBuffer, light.shadowMapIndex, shadowSampler, l_p[i]);
         }
         
         lo += brdf * shadowFactor;

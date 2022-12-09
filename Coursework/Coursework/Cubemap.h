@@ -22,7 +22,7 @@ Convention for order of faces in memory:
 class Cubemap
 {
 public:
-	Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels = 1);
+	Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels = 1, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT srvFormat = DXGI_FORMAT_R8G8B8A8_UNORM);
 	Cubemap(ID3D11Device* device, const char* right, const char* left, const char* top, const char* bottom, const char* front, const char* back);
 	Cubemap(ID3D11Device* device, const char* faces[6]);
 	~Cubemap();
@@ -35,13 +35,13 @@ public:
 	static const XMFLOAT3& GetFaceTangent(int face) { return s_FaceTangents[face]; }
 	static const XMFLOAT3& GetFaceBitangent(int face) { return s_FaceBitangents[face]; }
 
-private:
+protected:
 
 	void Load(ID3D11Device* device, const char* faces[6]);
 
 	void CreateUAVs(ID3D11Device* device, unsigned int mipSlice = 0);
 
-private:
+protected:
 	bool m_ReadOnly = true;
 	bool m_HasMips = false;
 
@@ -51,7 +51,7 @@ private:
 	// for rendering to the cubemap
 	std::vector<ID3D11UnorderedAccessView*> m_UAVs;
 
-private:
+protected:
 	static XMFLOAT3 s_FaceNormals[6];
 	static XMFLOAT3 s_FaceTangents[6];
 	static XMFLOAT3 s_FaceBitangents[6];

@@ -2,6 +2,8 @@
 
 #include "imGUI/imgui.h"
 
+#include "ShadowCubemap.h"
+
 
 SceneLight::SceneLight(ID3D11Device* device)
 	: m_Device(device)
@@ -24,9 +26,16 @@ void SceneLight::SettingsGUI()
 	ImGui::Checkbox("Enabled", &m_Enabled);
 	if (!m_Enabled) return;
 
-	ImGui::RadioButton("Directional", (int*)(&m_Type), (int)LightType::Directional); ImGui::SameLine();
-	ImGui::RadioButton("Point", (int*)(&m_Type), (int)LightType::Point); ImGui::SameLine();
-	ImGui::RadioButton("Spot", (int*)(&m_Type), (int)LightType::Spot);
+	LightType t = m_Type;
+	ImGui::RadioButton("Directional", (int*)(&t), (int)LightType::Directional); ImGui::SameLine();
+	ImGui::RadioButton("Point", (int*)(&t), (int)LightType::Point); ImGui::SameLine();
+	ImGui::RadioButton("Spot", (int*)(&t), (int)LightType::Spot);
+	if (t != m_Type)
+	{
+		m_Type = t;
+		// check to see if shadow map needs switched
+		if (m_ShadowsEnabled) CreateShadowMap();
+	}
 
 	ImGui::ColorEdit3("Colour", &m_Colour.x);
 
@@ -64,10 +73,6 @@ void SceneLight::SettingsGUI()
 	if (ImGui::Checkbox("Enable Shadows", &s))
 	{
 		s ? EnableShadows() : DisableShadows();
-	}
-	if (m_ShadowsEnabled)
-	{
-		ImGui::DragFloat("Shadow Bias", &m_ShadowBias, 0.0001f, 0.0f, 0.0f, "%.4f");
 	}
 }
 
@@ -122,7 +127,7 @@ void SceneLight::EnableShadows()
 	if (m_ShadowsEnabled) return;
 	m_ShadowsEnabled = true;
 
-	if (!m_ShadowMap) CreateShadowMap();
+	if (!m_ShadowMap && !m_ShadowCubeMap) CreateShadowMap();
 }
 
 void SceneLight::DisableShadows()
@@ -151,5 +156,24 @@ void SceneLight::CalculateDirectionFromEulerAngles()
 
 void SceneLight::CreateShadowMap()
 {
-	m_ShadowMap = new ShadowMap(m_Device, 1024, 1024);
+	if (m_Type == LightType::Point)
+	{
+		if (m_ShadowMap)
+		{
+			delete m_ShadowMap;
+			m_ShadowMap = nullptr;
+		}
+		if (!m_ShadowCubeMap)
+			m_ShadowCubeMap = new ShadowCubemap(m_Device, 1024);
+	}
+	else
+	{
+		if (m_ShadowCubeMap)
+		{
+			delete m_ShadowCubeMap;
+			m_ShadowCubeMap = nullptr;
+		}
+		if (!m_ShadowMap)
+			m_ShadowMap = new ShadowMap(m_Device, 1024, 1024);
+	}
 }

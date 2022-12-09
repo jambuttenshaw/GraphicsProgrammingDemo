@@ -5,6 +5,8 @@
 
 using namespace DirectX;
 
+class ShadowCubemap;
+
 
 class SceneLight
 {
@@ -61,9 +63,6 @@ public:
 	void DisableShadows();
 	inline bool IsShadowsEnabled() const { return m_ShadowsEnabled; }
 	
-	inline float GetShadowBias() const { return m_ShadowBias; }
-	inline void SetShadowBias(float bias) { m_ShadowBias = bias; }
-
 	inline ShadowMap* GetShadowMap() const { return m_ShadowMap; }
 
 
@@ -96,7 +95,8 @@ private:
 
 	// shadow mapping
 	bool m_ShadowsEnabled = false;
-	float m_ShadowBias = 0.004f;
 	ShadowMap* m_ShadowMap = nullptr;
+	ShadowCubemap* m_ShadowCubeMap = nullptr;
+
 	XMMATRIX m_ViewMatrix, m_OrthoMatrix, m_PerspectiveMatrix;
 };

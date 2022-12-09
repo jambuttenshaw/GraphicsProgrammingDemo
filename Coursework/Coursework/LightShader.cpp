@@ -193,7 +193,6 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		}
 		else
 			lightData.shadowMapIndex = -1;
-		lightData.shadowBias = light->GetShadowBias();
 
 		lightPtr->lights[count] = lightData;
 
