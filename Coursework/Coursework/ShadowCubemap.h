@@ -9,7 +9,7 @@ public:
 	ShadowCubemap(ID3D11Device* device, unsigned int resolution);
 	virtual ~ShadowCubemap();
 
-	inline ID3D11DepthStencilView* GetDSV(int face) const { return m_DSVs[i]; }
+	inline ID3D11DepthStencilView* GetDSV(int face) const { return m_DSVs[face]; }
 
 protected:
 
