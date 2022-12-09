@@ -43,9 +43,20 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"worn_metal_albedo", L"res/pbr/worn-shiny-metal-albedo.png");
 	textureMgr->loadTexture(L"worn_metal_roughness", L"res/pbr/worn-shiny-metal-roughness.png");
 
+	textureMgr->loadTexture(L"armor_albedo", L"res/pbr/armor-plating1_albedo.png");
+	textureMgr->loadTexture(L"armor_roughness", L"res/pbr/armor-plating1_roughness.png");
+	textureMgr->loadTexture(L"armor_normal", L"res/pbr/armor-plating1_normal.png");
+
 	mat1.SetAlbedoMap(textureMgr->getTexture(L"asphalt_albedo"));
 	mat1.SetRoughnessMap(textureMgr->getTexture(L"asphalt_roughness"));
 	mat1.SetNormalMap(textureMgr->getTexture(L"asphalt_normal"));
+
+	mat2.SetAlbedoMap(textureMgr->getTexture(L"worn_metal_albedo"));
+	mat2.SetRoughnessMap(textureMgr->getTexture(L"worn_metal_roughness"));
+
+	mat3.SetAlbedoMap(textureMgr->getTexture(L"armor_albedo"));
+	mat3.SetRoughnessMap(textureMgr->getTexture(L"armor_roughness"));
+	mat3.SetNormalMap(textureMgr->getTexture(L"armor_normal"));
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
@@ -89,17 +100,13 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	}
 
 	// setup default light settings
-	/*
 	SceneLight& light = *(m_Lights[0]);
 	light.SetEnbled(true);
-	light.SetPosition({ 4.0f, 8.0f, 5.0f });
-	light.SetType(SceneLight::LightType::Spot);
-	light.SetPitch(XMConvertToRadians(-89.0f));
+	light.SetType(SceneLight::LightType::Directional);
+	light.SetPitch(XMConvertToRadians(-40.0f));
+	light.SetYaw(XMConvertToRadians(-40.0f));
 	light.SetIntensity(2.0f);
-	light.SetRange(20.0f);
 	light.EnableShadows();
-	light.SetShadowBias(0.001f);
-	*/
 
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
@@ -301,7 +308,7 @@ void App1::worldPass()
 		m_LightShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
 
 		m_Plane->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat1);
+		m_LightShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat3);
 		m_LightShader->render(renderer->getDeviceContext(), m_Plane->getIndexCount());
 	}
 
@@ -484,6 +491,11 @@ void App1::gui()
 		if (ImGui::TreeNode("Material 2"))
 		{
 			mat2.SettingsGUI();
+			ImGui::TreePop();
+		}
+		if (ImGui::TreeNode("Material 3"))
+		{
+			mat3.SettingsGUI();
 			ImGui::TreePop();
 		}
 	}

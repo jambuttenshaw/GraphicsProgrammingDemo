@@ -140,6 +140,14 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	cameraPtr->padding = 0.0f;
 	deviceContext->Unmap(cameraBuffer, 0);
 
+
+	ID3D11ShaderResourceView* tex2DBuffer[TEX_BUFFER_SIZE];
+	int tex2DCount = 0;
+	ID3D11ShaderResourceView* texCubeBuffer[TEX_BUFFER_SIZE];
+	int texCubeCount = 0;
+	for (int i = 0; i < TEX_BUFFER_SIZE; i++) { tex2DBuffer[i] = nullptr; texCubeBuffer[i] = nullptr; }
+
+
 	LightBufferType* lightPtr;
 	deviceContext->Map(lightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
@@ -164,7 +172,14 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		lightData.type = static_cast<float>(light->GetType());
 		lightData.range = light->GetRange();
 		lightData.spotAngles = { cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()) };
-		lightData.shadowsEnabled = light->IsShadowsEnabled() ? 1.0f : 0.0f;
+		if (light->IsShadowsEnabled())
+		{
+			lightData.shadowMapIndex = tex2DCount;
+			tex2DBuffer[tex2DCount] = light->GetShadowMap()->getDepthMapSRV();
+			tex2DCount++;
+		}
+		else
+			lightData.shadowMapIndex = -1;
 		lightData.shadowBias = light->GetShadowBias();
 
 		lightPtr->lights[count] = lightData;
@@ -172,21 +187,57 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		count++;
 	}
 	lightPtr->lightCount = count;
-	lightPtr->enableEnvironmentalLighting = m_GlobalLighting->IsIBLEnabled();
-	lightPtr->padding = { 0.0f, 0.0f };
+	if (m_GlobalLighting->IsIBLEnabled())
+	{
+		lightPtr->enableEnvironmentalLighting = true;
+
+		lightPtr->irradianceMapIndex = texCubeCount;
+		texCubeBuffer[texCubeCount] = m_GlobalLighting->GetIrradianceMap();
+		texCubeCount++;
+
+		lightPtr->prefilterMapIndex = texCubeCount;
+		texCubeBuffer[texCubeCount] = m_GlobalLighting->GetPrefilterMap();
+		texCubeCount++;
+
+		lightPtr->brdfIntegrationMapIndex = tex2DCount;
+		tex2DBuffer[tex2DCount] = m_GlobalLighting->GetBRDFIntegrationMap();
+		tex2DCount++;
+	}
+
+	lightPtr->padding = { 0.0f, 0.0f, 0.0f };
+	
 	deviceContext->Unmap(lightBuffer, 0);
 
 	MaterialBufferType* matPtr;
 	deviceContext->Map(materialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	matPtr = (MaterialBufferType*)mappedResource.pData;
-	MaterialDataType matData = {
-		mat->GetAlbedo(),
-		mat->UseAlbedoMap() ? 1.0f : 0.0f,
-		mat->GetRoughness(),
-		mat->UseRoughnessMap() ? 1.0f : 0.0f,
-		mat->GetMetalness(),
-		mat->UseNormalMap() ? 1.0f : 0.0f
-	};
+	MaterialDataType matData;
+
+	matData.albedo = mat->GetAlbedo();
+	if (mat->UseAlbedoMap())
+	{
+		matData.albedoMapIndex = tex2DCount;
+		tex2DBuffer[tex2DCount++] = mat->GetAlbedoMap();
+	}
+	else matData.albedoMapIndex = -1;
+
+	matData.roughness = mat->GetRoughness();
+	if (mat->UseRoughnessMap())
+	{
+		matData.roughnessMapIndex= tex2DCount;
+		tex2DBuffer[tex2DCount++] = mat->GetRoughnessMap();
+	}
+	else matData.roughnessMapIndex = -1;
+
+	if (mat->UseNormalMap())
+	{
+		matData.normalMapIndex = tex2DCount;
+		tex2DBuffer[tex2DCount++] = mat->GetNormalMap();
+	}
+	else matData.normalMapIndex = -1;
+
+	matData.metallic = mat->GetMetalness();
+
 	matPtr->material = matData;
 	deviceContext->Unmap(materialBuffer, 0);
 
@@ -195,35 +246,9 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 
 	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
 	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);
-
-	ID3D11ShaderResourceView* shadowMaps[4];
-	index = 0;
-	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
-	{
-		shadowMaps[i] = nullptr;
-
-		if (!lights[i]->IsEnabled()) continue;
-
-		if (lights[i]->IsShadowsEnabled())
-			shadowMaps[index] = lights[i]->GetShadowMap()->getDepthMapSRV();
-
-		index++;
-	}
-	deviceContext->PSSetShaderResources(0, 4, shadowMaps);
-
-	ID3D11ShaderResourceView* iblMaps[3] = {
-		 m_GlobalLighting->GetIrradianceMap(),
-		 m_GlobalLighting->GetPrefilterMap(),
-		 m_GlobalLighting->GetBRDFIntegrationMap()
-	};
-	deviceContext->PSSetShaderResources(4, 3, iblMaps);
-
-	ID3D11ShaderResourceView* matMaps[3] = {
-		mat->GetAlbedoMap(),
-		mat->GetRoughnessMap(),
-		mat->GetNormalMap()
-	};
-	deviceContext->PSSetShaderResources(7, 3, matMaps);
+	
+	deviceContext->PSSetShaderResources(0, TEX_BUFFER_SIZE, tex2DBuffer);
+	deviceContext->PSSetShaderResources(TEX_BUFFER_SIZE, TEX_BUFFER_SIZE, texCubeBuffer);
 
 	ID3D11SamplerState* samplers[4] = { shadowSampler, m_GlobalLighting->GetCubemapSampler(), m_GlobalLighting->GetBRDFIntegrationSampler(), materialSampler };
 	deviceContext->PSSetSamplers(0, 4, samplers);

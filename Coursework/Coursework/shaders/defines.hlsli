@@ -1,10 +1,11 @@
 
+#define TEX_BUFFER_SIZE 8
+
 #define MAX_LIGHTS 4
 
 #define LIGHT_TYPE_DIRECTIONAL 0.0f
 #define LIGHT_TYPE_POINT 1.0f
 #define LIGHT_TYPE_SPOT 2.0f
-
 
 struct LightData
 {
@@ -16,7 +17,7 @@ struct LightData
     float range;
     float2 spotAngles;
     
-    float shadowsEnabled;
+    int shadowMapIndex;
     float shadowBias;
     
     float2 padding;
@@ -25,17 +26,92 @@ struct LightData
 struct LightBuffer
 {
     LightData lights[MAX_LIGHTS];
+    
     int lightCount;
     bool enableEnvironmentalLighting;
-    float2 padding;
+    int irradianceMapIndex;
+    int prefilterMapIndex;
+    
+    int brdfIntegrationMapIndex;
+    float3 padding;
 };
 
 struct MaterialData
 {
     float3 albedoColor;
-    float useAlbedoMap;
+    int albedoMapIndex;
+    
     float roughnessValue;
-    float useRoughnessMap;
+    int roughnessMapIndex;
+    
     float metallic;
-    float useNormalMap;
+    
+    int normalMapIndex;
 };
+
+
+float4 SampleTexture2D(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float2 uv)
+{
+    switch (i)
+    {
+        case 0: return texBuffer[0].Sample(s, uv);
+        case 1: return texBuffer[1].Sample(s, uv);
+        case 2: return texBuffer[2].Sample(s, uv);
+        case 3: return texBuffer[3].Sample(s, uv);
+        case 4: return texBuffer[4].Sample(s, uv);
+        case 5: return texBuffer[5].Sample(s, uv);
+        case 6: return texBuffer[6].Sample(s, uv);
+        case 7: return texBuffer[7].Sample(s, uv);
+        default: return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return float4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+float4 SampleTextureCube(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float3 uvw)
+{
+    switch (i)
+    {
+        case 0: return texBuffer[0].Sample(s, uvw);
+        case 1: return texBuffer[1].Sample(s, uvw);
+        case 2: return texBuffer[2].Sample(s, uvw);
+        case 3: return texBuffer[3].Sample(s, uvw);
+        case 4: return texBuffer[4].Sample(s, uvw);
+        case 5: return texBuffer[5].Sample(s, uvw);
+        case 6: return texBuffer[6].Sample(s, uvw);
+        case 7: return texBuffer[7].Sample(s, uvw);
+        default: return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return float4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+
+float4 SampleTexture2DLOD(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float2 uv, float lod)
+{
+    switch (i)
+    {
+        case 0: return texBuffer[0].SampleLevel(s, uv, lod);
+        case 1: return texBuffer[1].SampleLevel(s, uv, lod);
+        case 2: return texBuffer[2].SampleLevel(s, uv, lod);
+        case 3: return texBuffer[3].SampleLevel(s, uv, lod);
+        case 4: return texBuffer[4].SampleLevel(s, uv, lod);
+        case 5: return texBuffer[5].SampleLevel(s, uv, lod);
+        case 6: return texBuffer[6].SampleLevel(s, uv, lod);
+        case 7: return texBuffer[7].SampleLevel(s, uv, lod);
+        default: return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return float4(0.0f, 0.0f, 0.0f, 0.0f);
+}
+float4 SampleTextureCubeLOD(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float3 uvw, float lod)
+{
+    switch (i)
+    {
+        case 0: return texBuffer[0].SampleLevel(s, uvw, lod);
+        case 1: return texBuffer[1].SampleLevel(s, uvw, lod);
+        case 2: return texBuffer[2].SampleLevel(s, uvw, lod);
+        case 3: return texBuffer[3].SampleLevel(s, uvw, lod);
+        case 4: return texBuffer[4].SampleLevel(s, uvw, lod);
+        case 5: return texBuffer[5].SampleLevel(s, uvw, lod);
+        case 6: return texBuffer[6].SampleLevel(s, uvw, lod);
+        case 7: return texBuffer[7].SampleLevel(s, uvw, lod);
+        default: return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return float4(0.0f, 0.0f, 0.0f, 0.0f);
+}

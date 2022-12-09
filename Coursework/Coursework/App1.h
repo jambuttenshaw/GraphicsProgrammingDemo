@@ -101,7 +101,7 @@ private:
 	int m_SelectedShadowMap = 0;
 	OrthoMesh* m_ShadowMapMesh = nullptr;
 
-	Material mat1, mat2;
+	Material mat1, mat2, mat3;
 
 	// post processing
 	bool m_EnablePostProcessing = true;

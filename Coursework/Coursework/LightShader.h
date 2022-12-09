@@ -10,6 +10,7 @@ using namespace std;
 using namespace DirectX;
 
 #define MAX_LIGHTS 4
+#define TEX_BUFFER_SIZE 8
 
 class GlobalLighting;
 
@@ -35,7 +36,7 @@ private:
 		float range;
 		XMFLOAT2 spotAngles;
 
-		float shadowsEnabled;
+		int shadowMapIndex;
 		float shadowBias;
 
 		XMFLOAT2 padding;
@@ -46,17 +47,21 @@ private:
 
 		int lightCount;
 		bool enableEnvironmentalLighting;
-		XMFLOAT2 padding;
+		int irradianceMapIndex;
+		int prefilterMapIndex;
+
+		int brdfIntegrationMapIndex;
+		XMFLOAT3 padding;
 	};
 
 	struct MaterialDataType
 	{
 		XMFLOAT3 albedo;
-		float useAlbedoTexture;
+		int albedoMapIndex;
 		float roughness;
-		float useRoughnessMap;
+		int roughnessMapIndex;
 		float metallic;
-		float useNormalMap;
+		int normalMapIndex;
 	};
 	struct MaterialBufferType
 	{

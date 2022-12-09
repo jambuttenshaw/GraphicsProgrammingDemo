@@ -142,7 +142,7 @@ float spotAttenuation(float3 toLight, float3 lightDir, float2 spotAngles)
 
 
 // shadows
-float calculateShadowFactor(Texture2D shadowMap, SamplerState shadowSampler, float4 lightViewPos, float bias)
+float calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMapIndex, SamplerState shadowSampler, float4 lightViewPos, float bias)
 {
     float2 uv = remap01_noclamp(lightViewPos.xy / lightViewPos.w);
     uv.y = 1.0f - uv.y;
@@ -150,7 +150,7 @@ float calculateShadowFactor(Texture2D shadowMap, SamplerState shadowSampler, flo
     if (abs(uv.x) > 1.0f || abs(uv.y) > 1.0f)
         return 1.0f;
     
-    float depthValue = shadowMap.Sample(shadowSampler, uv).r;
+    float depthValue = SampleTexture2D(texBuffer, shadowMapIndex, shadowSampler, uv).r;
     float distFromLight = lightViewPos.z / lightViewPos.w;
     distFromLight -= bias;
     
@@ -162,7 +162,9 @@ float calculateShadowFactor(Texture2D shadowMap, SamplerState shadowSampler, flo
 
 // ambient lighting
 float3 calculateAmbientLighting(float3 n, float3 v, float3 albedo, float3 f0, float roughness, float metallic,
-TextureCube irradianceMap, TextureCube prefilterMap, Texture2D brdfIntegrationMap, SamplerState irradianceMapSampler, SamplerState brdfIntegrationSampler)
+                                Texture2D tex2dBuffer[TEX_BUFFER_SIZE], TextureCube texCubeBuffer[TEX_BUFFER_SIZE],
+                                int irradianceMapIndex, int prefilterMapIndex, int brdfMapIndex,
+                                SamplerState irradianceSampler, SamplerState brdfSampler)
 {
     // ues IBL for ambient lighting
     float3 F = shlick_fresnel_roughness_reflectance(f0, v, n, roughness);
@@ -171,15 +173,15 @@ TextureCube irradianceMap, TextureCube prefilterMap, Texture2D brdfIntegrationMa
     float3 kD = 1.0f - kS;
     kD *= 1.0f - metallic;
         
-    float3 irradiance = irradianceMap.Sample(irradianceMapSampler, n).rgb;
+    float3 irradiance = SampleTextureCube(texCubeBuffer, irradianceMapIndex, irradianceSampler, n).rgb;
     float3 diffuse = irradiance * albedo;
         
     // sample both the pre-filter map and the BRDF lut and combine them together as per the Split-Sum approximation to get the IBL specular part.
     const float MAX_REFLECTION_LOD = 4.0f;
     float3 r = normalize(reflect(-v, n));
     
-    float3 prefilteredColor = prefilterMap.SampleLevel(irradianceMapSampler, r, roughness * MAX_REFLECTION_LOD).rgb;
-    float2 brdf = brdfIntegrationMap.Sample(brdfIntegrationSampler, float2(abs(dot(n, v)), roughness)).rg;
+    float3 prefilteredColor = SampleTextureCubeLOD(texCubeBuffer, prefilterMapIndex, irradianceSampler, r, roughness * MAX_REFLECTION_LOD).rgb;
+    float2 brdf = SampleTexture2D(tex2dBuffer, brdfMapIndex, brdfSampler, float2(abs(dot(n, v)), roughness)).rg;
     float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
     return kD * diffuse + specular;
@@ -189,38 +191,33 @@ TextureCube irradianceMap, TextureCube prefilterMap, Texture2D brdfIntegrationMa
 
 // the big calculate lighting function
 float3 calculateLighting(
-    float3 p,               // world pos
-    float4 l_p[MAX_LIGHTS], // light view pos
-    float3 n,               // world space normal
-    float3 v,               // world space view direction
-    float2 uv,              // tex coords
-    MaterialData material,  // material properties
-    LightBuffer lights,     // light data
-    Texture2D albedoMap,
-    Texture2D normalMap,
-    Texture2D roughnessMap,
+    float3 p,                       // world pos
+    float4 l_p[MAX_LIGHTS],         // light view pos
+    float3 n,                       // world space normal
+    float3 v,                       // world space view direction
+    float2 uv,                      // tex coords
+    const MaterialData material,    // material properties
+    const LightBuffer lights,       // light data
+    Texture2D texture2DBuffer[TEX_BUFFER_SIZE],
+    TextureCube textureCubeBuffer[TEX_BUFFER_SIZE],
     SamplerState materialSampler,
-    Texture2D shadowMaps[4],
     SamplerState shadowSampler,
-    TextureCube irradianceMap,
-    TextureCube prefilterMap,
-    Texture2D brdfIntegrationMap,
     SamplerState irradianceMapSampler,
     SamplerState brdfIntegrationSampler
 )
 {
     
-    if (material.useNormalMap)
+    if (material.normalMapIndex > -1)
     {
-        float3 map = normalMap.Sample(materialSampler, uv).rgb;
+        float3 map = SampleTexture2D(texture2DBuffer, material.normalMapIndex, materialSampler, uv).rgb;
         map = (map * 2.0f) - 1.0f;
         
         float3x3 TBN = cotangent_frame(n, -v, uv);
         n = normalize(mul(map, TBN));
     }
     
-    float3 albedo = material.useAlbedoMap ? albedoMap.Sample(materialSampler, uv).rgb : material.albedoColor.rgb;
-    float roughness = material.useRoughnessMap ? roughnessMap.Sample(materialSampler, uv).r : material.roughnessValue;
+    float3 albedo = material.albedoMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.albedoMapIndex, materialSampler, uv).rgb : material.albedoColor.rgb;
+    float roughness = material.roughnessMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.roughnessMapIndex, materialSampler, uv).r : material.roughnessValue;
     
     float3 f0 = float3(0.04f, 0.04f, 0.04f);
     f0 = lerp(f0, albedo, material.metallic);
@@ -255,15 +252,20 @@ float3 calculateLighting(
         float3 brdf = ggx_brdf(v, l, n, albedo, f0, roughness, material.metallic) * el * saturate(dot(n, l));
         
         float shadowFactor = 1.0f;
-        if (light.shadowsEnabled)
-            shadowFactor = calculateShadowFactor(shadowMaps[i], shadowSampler, l_p[i], light.shadowBias);
+        if (light.shadowMapIndex > -1)
+        {
+            shadowFactor = calculateShadowFactor(texture2DBuffer, light.shadowMapIndex, shadowSampler, l_p[i], light.shadowBias);
+        }
         
         lo += brdf * shadowFactor;
     }
     
     float3 ambient = float3(0.0f, 0.0f, 0.0f);
     if (lights.enableEnvironmentalLighting)
-        ambient = calculateAmbientLighting(n, v, albedo, f0, roughness, material.metallic, irradianceMap, prefilterMap, brdfIntegrationMap, irradianceMapSampler, brdfIntegrationSampler);
+    {
+        ambient = calculateAmbientLighting(n, v, albedo, f0, roughness, material.metallic,
+        texture2DBuffer, textureCubeBuffer, lights.irradianceMapIndex, lights.prefilterMapIndex, lights.brdfIntegrationMapIndex, irradianceMapSampler, brdfIntegrationSampler);
+    }
     
     return ambient + lo;
 }
