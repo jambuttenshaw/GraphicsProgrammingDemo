@@ -96,7 +96,7 @@ private:
 
 	// shadow mapping
 	bool m_ShadowsEnabled = false;
-	float m_ShadowBias = 0.001f;
+	float m_ShadowBias = 0.004f;
 	ShadowMap* m_ShadowMap = nullptr;
 	XMMATRIX m_ViewMatrix, m_OrthoMatrix, m_PerspectiveMatrix;
 };

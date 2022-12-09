@@ -115,3 +115,19 @@ float4 SampleTextureCubeLOD(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, Sampl
     }
     return float4(0.0f, 0.0f, 0.0f, 0.0f);
 }
+float4 SampleTexture2DComp(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerComparisonState s, float2 uv, float compareValue)
+{
+    switch (i)
+    {
+        case 0: return texBuffer[0].SampleCmpLevelZero(s, uv, compareValue);
+        case 1: return texBuffer[1].SampleCmpLevelZero(s, uv, compareValue);
+        case 2: return texBuffer[2].SampleCmpLevelZero(s, uv, compareValue);
+        case 3: return texBuffer[3].SampleCmpLevelZero(s, uv, compareValue);
+        case 4: return texBuffer[4].SampleCmpLevelZero(s, uv, compareValue);
+        case 5: return texBuffer[5].SampleCmpLevelZero(s, uv, compareValue);
+        case 6: return texBuffer[6].SampleCmpLevelZero(s, uv, compareValue);
+        case 7: return texBuffer[7].SampleCmpLevelZero(s, uv, compareValue);
+        default: return float4(0.0f, 0.0f, 0.0f, 0.0f);
+    }
+    return float4(0.0f, 0.0f, 0.0f, 0.0f);
+}

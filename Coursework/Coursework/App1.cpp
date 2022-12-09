@@ -53,10 +53,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	mat2.SetAlbedoMap(textureMgr->getTexture(L"worn_metal_albedo"));
 	mat2.SetRoughnessMap(textureMgr->getTexture(L"worn_metal_roughness"));
+	mat2.SetMetalness(1.0f);
 
 	mat3.SetAlbedoMap(textureMgr->getTexture(L"armor_albedo"));
 	mat3.SetRoughnessMap(textureMgr->getTexture(L"armor_roughness"));
 	mat3.SetNormalMap(textureMgr->getTexture(L"armor_normal"));
+	mat3.SetMetalness(1.0f);
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
@@ -80,17 +82,34 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
 
-	m_LightDebugSphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
-
 	m_Terrain = new TerrainMesh(renderer->getDevice());
 
-	m_Cube = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
-	m_Sphere = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
-	m_Plane = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 20);
+	m_CubeMesh = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
+	m_SphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
+	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 40);
 	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
 
-	camera->setPosition(4.0f, 1.0f, 0.0f);
+	D3D11_RASTERIZER_DESC shadowRasterDesc;
+	shadowRasterDesc.FillMode = D3D11_FILL_SOLID;
+	shadowRasterDesc.CullMode = D3D11_CULL_BACK;
+	shadowRasterDesc.FrontCounterClockwise = true;
+	shadowRasterDesc.DepthBias = 100000;
+	shadowRasterDesc.DepthBiasClamp = 0.0f;
+	shadowRasterDesc.SlopeScaledDepthBias = 1.0f;
+	shadowRasterDesc.DepthClipEnable = true;
+	shadowRasterDesc.ScissorEnable = false;
+	shadowRasterDesc.MultisampleEnable = false;
+	shadowRasterDesc.AntialiasedLineEnable = false;
+	renderer->getDevice()->CreateRasterizerState(&shadowRasterDesc, &m_ShadowRasterizerState);
+
+	camera->setPosition(0.0f, 5.0f, -5.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
+
+	// create game objects
+	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &mat3 });
+	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &mat2 });
+	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &mat2 });
+	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &mat2 });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -102,17 +121,20 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// setup default light settings
 	SceneLight& light = *(m_Lights[0]);
 	light.SetEnbled(true);
+	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Directional);
-	light.SetPitch(XMConvertToRadians(-40.0f));
-	light.SetYaw(XMConvertToRadians(-40.0f));
+	light.SetPosition({ 0, 10, 0 });
+	light.SetPitch(XMConvertToRadians(-37.0f));
+	light.SetYaw(XMConvertToRadians(-14.0f));
 	light.SetIntensity(2.0f);
 	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
-	light2.SetPosition({ 0.0f, 0.0f, -3.0f });
+	light2.SetColour({ 0.352f, 0.791f, 0.946f });
+	light2.SetPosition({ 0, 10, 0 });
 	light2.SetType(SceneLight::LightType::Directional);
-	light2.SetYaw(XMConvertToRadians(45.0f));
+	light2.SetYaw(XMConvertToRadians(-88.0f));
 	light2.SetPitch(XMConvertToRadians(-45.0f));
 	light2.SetIntensity(1.5f);
 	light2.EnableShadows();
@@ -176,12 +198,14 @@ bool App1::render()
 	// Generate the view matrix based on the camera's position.
 	camera->update();
 
+	renderer->getDeviceContext()->RSSetState(m_ShadowRasterizerState);
 	for (auto light : m_Lights)
 	{
 		if (light->IsShadowsEnabled())
 			depthPass(light);
 	}
 	renderer->resetViewport();
+	renderer->setWireframeMode(wireframeToggle);
 
 
 	m_DstRenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
@@ -260,19 +284,15 @@ void App1::depthPass(SceneLight* light)
 	XMMATRIX lightProjectionMatrix = light->GetProjectionMatrix();
 
 	// render world with an unlit shader
-	XMMATRIX w = worldMatrix * XMMatrixTranslation(2.0f, 1.0f, 5.0f);
-	m_Cube->sendData(renderer->getDeviceContext());
-	m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrix, lightProjectionMatrix);
-	m_UnlitShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
+	for (auto& go : m_GameObjects)
+	{
+		if (!go.castsShadows) continue;
 
-	w = worldMatrix * XMMatrixTranslation(6.0f, 1.0f, 5.0f);
-	m_Sphere->sendData(renderer->getDeviceContext());
-	m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrix, lightProjectionMatrix);
-	m_UnlitShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
-
-	m_Plane->sendData(renderer->getDeviceContext());
-	m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, lightViewMatrix, lightProjectionMatrix);
-	m_UnlitShader->render(renderer->getDeviceContext(), m_Plane->getIndexCount());
+		XMMATRIX w = worldMatrix * go.transform.GetMatrix();
+		go.mesh->sendData(renderer->getDeviceContext());
+		m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrix, lightProjectionMatrix);
+		m_UnlitShader->render(renderer->getDeviceContext(), go.mesh->getIndexCount());
+	}
 }
 
 void App1::worldPass()
@@ -294,22 +314,15 @@ void App1::worldPass()
 
 	if (true)
 	{
-		XMMATRIX w = worldMatrix * XMMatrixTranslation(2.0f, 1.0f, 5.0f);
+		for (auto& go : m_GameObjects)
+		{
+			if (!go.castsShadows) continue;
 
-		m_Cube->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat1);
-		m_LightShader->render(renderer->getDeviceContext(), m_Cube->getIndexCount());
-
-
-		w = worldMatrix * XMMatrixTranslation(6.0f, 1.0f, 5.0f);
-
-		m_Sphere->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat2);
-		m_LightShader->render(renderer->getDeviceContext(), m_Sphere->getIndexCount());
-
-		m_Plane->sendData(renderer->getDeviceContext());
-		m_LightShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, &mat3);
-		m_LightShader->render(renderer->getDeviceContext(), m_Plane->getIndexCount());
+			XMMATRIX w = worldMatrix * go.transform.GetMatrix();
+			go.mesh->sendData(renderer->getDeviceContext());
+			m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, go.material);
+			m_LightShader->render(renderer->getDeviceContext(), go.mesh->getIndexCount());
+		}
 	}
 
 	// draw skybox
@@ -342,7 +355,6 @@ void App1::waterPass()
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
 	{
-
 		renderer->setZBuffer(false);
 		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV(), nullptr, camera, m_Time);
 		m_WaterShader->Render(renderer->getDeviceContext());
@@ -356,7 +368,7 @@ void App1::renderLightDebugSpheres()
 	XMMATRIX viewMatrix = camera->getViewMatrix();
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
-	m_LightDebugSphereMesh->sendData(renderer->getDeviceContext());
+	m_SphereMesh->sendData(renderer->getDeviceContext());
 
 	for (auto& light : m_Lights)
 	{
@@ -366,7 +378,7 @@ void App1::renderLightDebugSpheres()
 		XMMATRIX w = worldMatrix * XMMatrixTranslation(p.x, p.y, p.z);
 
 		m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix);
-		m_UnlitShader->render(renderer->getDeviceContext(), m_LightDebugSphereMesh->getIndexCount());
+		m_UnlitShader->render(renderer->getDeviceContext(), m_SphereMesh->getIndexCount());
 	}
 }
 

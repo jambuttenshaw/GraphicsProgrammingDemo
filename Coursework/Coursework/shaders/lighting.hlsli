@@ -142,21 +142,41 @@ float spotAttenuation(float3 toLight, float3 lightDir, float2 spotAngles)
 
 
 // shadows
-float calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMapIndex, SamplerState shadowSampler, float4 lightViewPos, float bias)
+float2 calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMapIndex, SamplerComparisonState shadowSampler, float4 lightViewPos, float bias)
 {
+    const float SMAP_SIZE = 1024.0f;
+    const float dx = 1.0f / SMAP_SIZE;
+    
     float2 uv = remap01_noclamp(lightViewPos.xy / lightViewPos.w);
     uv.y = 1.0f - uv.y;
     
     if (abs(uv.x) > 1.0f || abs(uv.y) > 1.0f)
         return 1.0f;
     
-    float depthValue = SampleTexture2D(texBuffer, shadowMapIndex, shadowSampler, uv).r;
     float distFromLight = lightViewPos.z / lightViewPos.w;
-    distFromLight -= bias;
+    //distFromLight -= bias;
     
-	// 0 -> in shadow
-	// 1 -> not in shadow
-    return depthValue >= distFromLight;
+    const float2 offsets[9] =
+    {
+        { -dx, -dx },
+        { 0.0f, -dx },
+        { dx, -dx },
+        { -dx, 0.0f },
+        { 0.0f, 0.0f },
+        { dx, 0.0f },
+        { -dx, dx },
+        { 0.0f, dx },
+        { dx, dx }
+    };
+    
+    float percentLit = 0.0f;
+    
+    for (int i = 0; i < 9; i++)
+    {
+        percentLit += SampleTexture2DComp(texBuffer, shadowMapIndex, shadowSampler, uv + offsets[i], distFromLight);
+    }
+    
+    return percentLit / 9.0f;
 }
 
 
@@ -201,12 +221,11 @@ float3 calculateLighting(
     Texture2D texture2DBuffer[TEX_BUFFER_SIZE],
     TextureCube textureCubeBuffer[TEX_BUFFER_SIZE],
     SamplerState materialSampler,
-    SamplerState shadowSampler,
+    SamplerComparisonState shadowSampler,
     SamplerState irradianceMapSampler,
     SamplerState brdfIntegrationSampler
 )
 {
-    
     if (material.normalMapIndex > -1)
     {
         float3 map = SampleTexture2D(texture2DBuffer, material.normalMapIndex, materialSampler, uv).rgb;

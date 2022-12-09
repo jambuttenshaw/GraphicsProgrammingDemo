@@ -306,6 +306,7 @@
     <ClInclude Include="BaseFullScreenShader.h" />
     <ClInclude Include="BaseHeightmapFilter.h" />
     <ClInclude Include="Cubemap.h" />
+    <ClInclude Include="GameObject.h" />
     <ClInclude Include="ToneMappingShader.h" />
     <ClInclude Include="GlobalLighting.h" />
     <ClInclude Include="HeightmapFilters.h" />

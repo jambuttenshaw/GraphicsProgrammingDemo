@@ -13,6 +13,7 @@
 #include "TerrainMesh.h"
 
 #include "Transform.h"
+#include "GameObject.h"
 
 #include <array>
 
@@ -76,10 +77,12 @@ private:
 	TextureShader* m_TextureShader = nullptr;
 	ToneMappingShader* m_ToneMappingShader = nullptr;
 
+	// render targets
 	RenderTarget* m_SrcRenderTarget = nullptr;
 	RenderTarget* m_DstRenderTarget = nullptr;
 	OrthoMesh* m_OutputMesh = nullptr;
 
+	// environment
 	GlobalLighting* m_GlobalLighting = nullptr;
 	Cubemap* m_EnvironmentMap = nullptr;
 	Skybox* m_Skybox = nullptr;
@@ -88,15 +91,19 @@ private:
 	Transform m_TerrainTransform;
 	TerrainMesh* m_Terrain = nullptr;
 	
-	CubeMesh* m_Cube = nullptr;
-	SphereMesh* m_Sphere = nullptr;
-	PlaneMesh* m_Plane = nullptr;
+	// meshes
+	CubeMesh* m_CubeMesh = nullptr;
+	SphereMesh* m_SphereMesh = nullptr;
+	PlaneMesh* m_PlaneMesh = nullptr;
+
+	// game objects
+	std::vector<GameObject> m_GameObjects;
 
 	std::array<SceneLight*, 4> m_Lights;
 
 	bool m_LightDebugSpheres = true;
-	SphereMesh* m_LightDebugSphereMesh = nullptr;
 
+	ID3D11RasterizerState* m_ShadowRasterizerState = nullptr;
 	bool m_ShowShadowMap = false;
 	int m_SelectedShadowMap = 0;
 	OrthoMesh* m_ShadowMapMesh = nullptr;

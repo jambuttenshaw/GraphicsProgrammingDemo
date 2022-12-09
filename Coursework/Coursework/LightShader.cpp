@@ -45,6 +45,8 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	loadVertexShader(vsFilename);
 	loadPixelShader(psFilename);
 
+	HRESULT hr;
+
 	// Setup the description of the dynamic matrix constant buffer that is in the vertex shader.
 	matrixBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	matrixBufferDesc.ByteWidth = sizeof(MatrixBufferType);
@@ -52,7 +54,8 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	matrixBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	matrixBufferDesc.MiscFlags = 0;
 	matrixBufferDesc.StructureByteStride = 0;
-	renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+	hr = renderer->CreateBuffer(&matrixBufferDesc, NULL, &matrixBuffer);
+	assert(hr == S_OK);
 
 	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
@@ -60,7 +63,8 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	cameraBufferDesc.MiscFlags = 0;
 	cameraBufferDesc.StructureByteStride = 0;
-	renderer->CreateBuffer(&cameraBufferDesc, NULL, &cameraBuffer);
+	hr = renderer->CreateBuffer(&cameraBufferDesc, NULL, &cameraBuffer);
+	assert(hr == S_OK);
 
 	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
@@ -68,7 +72,8 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	lightBufferDesc.MiscFlags = 0;
 	lightBufferDesc.StructureByteStride = 0;
-	renderer->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
+	hr = renderer->CreateBuffer(&lightBufferDesc, NULL, &lightBuffer);
+	assert(hr == S_OK);
 
 	materialBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
 	materialBufferDesc.ByteWidth = sizeof(MaterialBufferType);
@@ -76,7 +81,8 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	materialBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 	materialBufferDesc.MiscFlags = 0;
 	materialBufferDesc.StructureByteStride = 0;
-	renderer->CreateBuffer(&materialBufferDesc, NULL, &materialBuffer);
+	hr = renderer->CreateBuffer(&materialBufferDesc, NULL, &materialBuffer);
+	assert(hr == S_OK);
 
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -88,18 +94,25 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
 	samplerDesc.MinLOD = 0;
 	samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
-	renderer->CreateSamplerState(&samplerDesc, &materialSampler);
+	hr = renderer->CreateSamplerState(&samplerDesc, &materialSampler);
+	assert(hr == S_OK);
 
 	D3D11_SAMPLER_DESC shadowSamplerDesc;
-	shadowSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	shadowSamplerDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
 	shadowSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
+	shadowSamplerDesc.MinLOD = 0;
+	shadowSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	shadowSamplerDesc.MipLODBias = 0;
+	shadowSamplerDesc.MaxAnisotropy = 1;
 	shadowSamplerDesc.BorderColor[0] = 1.0f;
 	shadowSamplerDesc.BorderColor[1] = 1.0f;
 	shadowSamplerDesc.BorderColor[2] = 1.0f;
 	shadowSamplerDesc.BorderColor[3] = 1.0f;
-	renderer->CreateSamplerState(&shadowSamplerDesc, &shadowSampler);
+	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
+	hr = renderer->CreateSamplerState(&shadowSamplerDesc, &shadowSampler);
+	assert(hr == S_OK);
 }
 
 

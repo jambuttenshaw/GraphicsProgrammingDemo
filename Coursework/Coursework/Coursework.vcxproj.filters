@@ -200,6 +200,9 @@
     <ClInclude Include="ToneMappingShader.h">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Utility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Shaders">

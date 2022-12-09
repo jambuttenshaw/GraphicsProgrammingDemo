@@ -5,7 +5,7 @@
 Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
 TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t8);
 
-SamplerState shadowSampler : register(s0);
+SamplerComparisonState shadowSampler : register(s0);
 
 SamplerState irradianceMapSampler : register(s1);
 SamplerState brdfIntegrationSampler : register(s2);
