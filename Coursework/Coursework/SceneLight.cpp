@@ -119,7 +119,7 @@ void SceneLight::GenerateOrthoMatrix(float screenWidth, float screenHeight, floa
 
 void SceneLight::GeneratePerspectiveMatrix(float nearPlane)
 {
-	m_PerspectiveMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, nearPlane, 2.0f * m_Range);
+	m_PerspectiveMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, 2.0f, 50.0f);
 }
 
 void SceneLight::GetPointLightViewMatrices(XMMATRIX* matArray)

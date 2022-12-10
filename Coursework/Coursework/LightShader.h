@@ -21,7 +21,8 @@ private:
 
 	struct CameraBufferType
 	{
-		XMMATRIX lightViewProj[MAX_LIGHTS];
+		XMMATRIX lightMatrix[MAX_LIGHTS];
+		XMFLOAT4 lightPosAndType[MAX_LIGHTS];
 		XMFLOAT3 cameraPos;
 		float padding;
 	};

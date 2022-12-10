@@ -1,6 +1,7 @@
 #include "LightShader.h"
 
 #include "GlobalLighting.h"
+#include "ShadowCubemap.h"
 #include "imGUI/imgui.h"
 
 
@@ -144,8 +145,15 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	{
 		if (!lights[i]->IsEnabled()) continue;
 
-		XMMATRIX tlightViewProj = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetProjectionMatrix());
-		cameraPtr->lightViewProj[index] = tlightViewProj;
+		XMMATRIX tlightMatrix;
+		if (lights[i]->GetType() == SceneLight::LightType::Point)
+			tlightMatrix = XMMatrixTranspose(lights[i]->GetProjectionMatrix());
+		else
+			tlightMatrix = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetProjectionMatrix());
+		cameraPtr->lightMatrix[index] = tlightMatrix;
+
+		XMFLOAT3 p = lights[i]->GetPosition();
+		cameraPtr->lightPosAndType[index] = { p.x, p.y, p.z, static_cast<float>(lights[i]->GetType()) };
 
 		index++;
 	}
@@ -185,11 +193,20 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		lightData.type = static_cast<float>(light->GetType());
 		lightData.range = light->GetRange();
 		lightData.spotAngles = { cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()) };
-		if (light->IsShadowsEnabled() && light->GetType() != SceneLight::LightType::Point)
+		if (light->IsShadowsEnabled())
 		{
-			lightData.shadowMapIndex = tex2DCount;
-			tex2DBuffer[tex2DCount] = light->GetShadowMap()->getDepthMapSRV();
-			tex2DCount++;
+			if (light->GetType() == SceneLight::LightType::Point)
+			{
+				lightData.shadowMapIndex = texCubeCount;
+				texCubeBuffer[texCubeCount] = light->GetShadowCubemap()->GetSRV();
+				texCubeCount++;
+			}
+			else
+			{
+				lightData.shadowMapIndex = tex2DCount;
+				tex2DBuffer[tex2DCount] = light->GetShadowMap()->getDepthMapSRV();
+				tex2DCount++;
+			}
 		}
 		else
 			lightData.shadowMapIndex = -1;

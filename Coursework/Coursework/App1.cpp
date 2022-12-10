@@ -91,18 +91,17 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 40);
 	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
 
-	D3D11_RASTERIZER_DESC shadowRasterDesc;
-	shadowRasterDesc.FillMode = D3D11_FILL_SOLID;
-	shadowRasterDesc.CullMode = D3D11_CULL_BACK;
-	shadowRasterDesc.FrontCounterClockwise = true;
-	shadowRasterDesc.DepthBias = 100000;
-	shadowRasterDesc.DepthBiasClamp = 0.0f;
-	shadowRasterDesc.SlopeScaledDepthBias = 1.0f;
-	shadowRasterDesc.DepthClipEnable = true;
-	shadowRasterDesc.ScissorEnable = false;
-	shadowRasterDesc.MultisampleEnable = false;
-	shadowRasterDesc.AntialiasedLineEnable = false;
-	renderer->getDevice()->CreateRasterizerState(&shadowRasterDesc, &m_ShadowRasterizerState);
+	m_ShadowRasterDesc.FillMode = D3D11_FILL_SOLID;
+	m_ShadowRasterDesc.CullMode = D3D11_CULL_BACK;
+	m_ShadowRasterDesc.FrontCounterClockwise = true;
+	m_ShadowRasterDesc.DepthBias = 200000;
+	m_ShadowRasterDesc.DepthBiasClamp = 0.0f;
+	m_ShadowRasterDesc.SlopeScaledDepthBias = 1.0f;
+	m_ShadowRasterDesc.DepthClipEnable = true;
+	m_ShadowRasterDesc.ScissorEnable = false;
+	m_ShadowRasterDesc.MultisampleEnable = false;
+	m_ShadowRasterDesc.AntialiasedLineEnable = false;
+	renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
 
 	camera->setPosition(0.0f, 5.0f, -5.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
@@ -464,6 +463,15 @@ void App1::gui()
 				if (m_Lights[m_SelectedShadowMap]->GetType() == SceneLight::LightType::Point)
 					ImGui::SliderInt("Cubemap face", &m_SelectedShadowCubemapFace, 0, 5);
 			}
+
+			int bias = m_ShadowRasterDesc.DepthBias;
+			if (ImGui::DragInt("Bias", &bias, 1000))
+			{
+				m_ShadowRasterDesc.DepthBias = bias;
+				m_ShadowRasterizerState->Release();
+				renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
+			}
+
 
 			ImGui::TreePop();
 		}

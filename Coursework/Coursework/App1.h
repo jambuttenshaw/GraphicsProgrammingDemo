@@ -103,7 +103,9 @@ private:
 
 	bool m_LightDebugSpheres = true;
 
+	D3D11_RASTERIZER_DESC m_ShadowRasterDesc;
 	ID3D11RasterizerState* m_ShadowRasterizerState = nullptr;
+
 	bool m_ShowShadowMap = false;
 	int m_SelectedShadowMap = 0;
 	int m_SelectedShadowCubemapFace = 0;

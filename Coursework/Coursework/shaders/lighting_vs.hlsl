@@ -9,7 +9,8 @@ cbuffer MatrixBuffer : register(b0)
 
 cbuffer CameraBuffer : register(b1)
 {
-    matrix lightViewProjection[MAX_LIGHTS];
+    matrix lightMatrix[MAX_LIGHTS];
+    float4 lightPosAndType[MAX_LIGHTS];
 	float3 cameraPos;
 	float padding;
 };
@@ -42,7 +43,14 @@ OutputType main(InputType input)
     
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
-        output.lightViewPos[i] = mul(worldPos, lightViewProjection[i]);
+        if (lightPosAndType[i].w == LIGHT_TYPE_POINT)
+        {
+            float distToLight = length(lightPosAndType[i].xyz - output.worldPos);
+            float4 viewPos = float4(0.0f, 0.0f, distToLight, 1.0f);
+            output.lightViewPos[i] = mul(viewPos, lightMatrix[i]);
+        }
+        else
+            output.lightViewPos[i] = mul(worldPos, lightMatrix[i]);
     }
     
 	// Store the texture coordinates for the pixel shader.
