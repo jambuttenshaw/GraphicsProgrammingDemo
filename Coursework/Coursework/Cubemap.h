@@ -22,12 +22,13 @@ Convention for order of faces in memory:
 class Cubemap
 {
 public:
-	Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels = 1, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT srvFormat = DXGI_FORMAT_R8G8B8A8_UNORM);
+	Cubemap(ID3D11Device* device, unsigned int size, bool readOnly, unsigned int mipLevels = 1, DXGI_FORMAT format = DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT srvFormat = DXGI_FORMAT_R8G8B8A8_UNORM, UINT bindFlags = 0);
 	Cubemap(ID3D11Device* device, const char* right, const char* left, const char* top, const char* bottom, const char* front, const char* back);
 	Cubemap(ID3D11Device* device, const char* faces[6]);
 	~Cubemap();
 
 	inline ID3D11ShaderResourceView* GetSRV() const { return m_SRV; }
+	inline ID3D11ShaderResourceView* GetSRV(int face) const { return m_FaceSRVs[face]; }
 	ID3D11UnorderedAccessView* GetUAV(int face, int mip = 0) const;
 
 public:
@@ -40,13 +41,18 @@ protected:
 	void Load(ID3D11Device* device, const char* faces[6]);
 
 	void CreateUAVs(ID3D11Device* device, unsigned int mipSlice = 0);
+	void CreateFaceSRVs(ID3D11Device* device);
 
 protected:
 	bool m_ReadOnly = true;
 	bool m_HasMips = false;
 
+	DXGI_FORMAT m_TextureFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	DXGI_FORMAT m_SRVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+
 	ID3D11Texture2D* m_CubemapTexture = nullptr;
 	ID3D11ShaderResourceView* m_SRV = nullptr;
+	ID3D11ShaderResourceView* m_FaceSRVs[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 
 	// for rendering to the cubemap
 	std::vector<ID3D11UnorderedAccessView*> m_UAVs;

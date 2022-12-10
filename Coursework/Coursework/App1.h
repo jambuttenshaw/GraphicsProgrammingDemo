@@ -106,6 +106,7 @@ private:
 	ID3D11RasterizerState* m_ShadowRasterizerState = nullptr;
 	bool m_ShowShadowMap = false;
 	int m_SelectedShadowMap = 0;
+	int m_SelectedShadowCubemapFace = 0;
 	OrthoMesh* m_ShadowMapMesh = nullptr;
 
 	Material mat1, mat2, mat3;

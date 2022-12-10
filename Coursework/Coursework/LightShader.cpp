@@ -185,7 +185,7 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		lightData.type = static_cast<float>(light->GetType());
 		lightData.range = light->GetRange();
 		lightData.spotAngles = { cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()) };
-		if (light->IsShadowsEnabled())
+		if (light->IsShadowsEnabled() && light->GetType() != SceneLight::LightType::Point)
 		{
 			lightData.shadowMapIndex = tex2DCount;
 			tex2DBuffer[tex2DCount] = light->GetShadowMap()->getDepthMapSRV();
@@ -262,6 +262,6 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	deviceContext->PSSetShaderResources(0, TEX_BUFFER_SIZE, tex2DBuffer);
 	deviceContext->PSSetShaderResources(TEX_BUFFER_SIZE, TEX_BUFFER_SIZE, texCubeBuffer);
 
-	ID3D11SamplerState* samplers[4] = { shadowSampler, m_GlobalLighting->GetCubemapSampler(), m_GlobalLighting->GetBRDFIntegrationSampler(), materialSampler };
+	ID3D11SamplerState* samplers[4] = { m_GlobalLighting->GetBRDFIntegrationSampler(), m_GlobalLighting->GetCubemapSampler(), materialSampler, shadowSampler };
 	deviceContext->PSSetSamplers(0, 4, samplers);
 }

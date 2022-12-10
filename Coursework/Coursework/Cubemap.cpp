@@ -29,26 +29,28 @@ XMFLOAT3 Cubemap::s_FaceBitangents[6] = {
 };
 
 
-Cubemap::Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels, DXGI_FORMAT format, DXGI_FORMAT srvFormat)
+Cubemap::Cubemap(ID3D11Device* device, unsigned int size, bool readOnly, unsigned int mipLevels, DXGI_FORMAT format, DXGI_FORMAT srvFormat, UINT bindFlags)
 {
-	m_ReadOnly = false;
+	m_ReadOnly = readOnly;
 	m_HasMips = mipLevels != 1;
+	m_TextureFormat = format;
+	m_SRVFormat = srvFormat;
 
 	D3D11_TEXTURE2D_DESC texDesc;
 	texDesc.Width = size;
 	texDesc.Height = size;
 	texDesc.MipLevels = mipLevels;
 	texDesc.ArraySize = 6;
-	texDesc.Format = format;
+	texDesc.Format = m_TextureFormat;
 	texDesc.SampleDesc.Count = 1;
 	texDesc.SampleDesc.Quality = 0;
 	texDesc.Usage = D3D11_USAGE_DEFAULT;
-	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+	texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | ((!m_ReadOnly) ? D3D11_BIND_UNORDERED_ACCESS : 0) | bindFlags;
 	texDesc.CPUAccessFlags = 0;
 	texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	srvDesc.Format = srvFormat;
+	srvDesc.Format = m_SRVFormat;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 	srvDesc.TextureCube.MipLevels = m_HasMips ? -1 : texDesc.MipLevels;
 	srvDesc.TextureCube.MostDetailedMip = 0;
@@ -59,16 +61,17 @@ Cubemap::Cubemap(ID3D11Device* device, unsigned int size, unsigned int mipLevels
 	hr = device->CreateShaderResourceView(m_CubemapTexture, &srvDesc, &m_SRV);
 	assert(hr == S_OK);
 
+	if (!m_ReadOnly)
 	{
 		if (m_HasMips)
 		{
 			for (unsigned int mip = 0; mip < mipLevels; mip++) CreateUAVs(device, mip);
 		}
 		else
-		{
 			CreateUAVs(device);
-		}
 	}
+
+	CreateFaceSRVs(device);
 }
 
 Cubemap::Cubemap(ID3D11Device* device, const char* right, const char* left, const char* top, const char* bottom, const char* front, const char* back)
@@ -137,7 +140,7 @@ void Cubemap::Load(ID3D11Device* device, const char* faces[6])
 		texDesc.Height = height;
 		texDesc.MipLevels = 1;
 		texDesc.ArraySize = 6;
-		texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+		texDesc.Format = m_TextureFormat;
 		texDesc.SampleDesc.Count = 1;
 		texDesc.SampleDesc.Quality = 0;
 		texDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -146,7 +149,7 @@ void Cubemap::Load(ID3D11Device* device, const char* faces[6])
 		texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
 		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		srvDesc.Format = texDesc.Format;
+		srvDesc.Format = m_SRVFormat;
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 		srvDesc.TextureCube.MipLevels = texDesc.MipLevels;
 		srvDesc.TextureCube.MostDetailedMip = 0;
@@ -165,6 +168,8 @@ void Cubemap::Load(ID3D11Device* device, const char* faces[6])
 
 		hr = device->CreateShaderResourceView(m_CubemapTexture, &srvDesc, &m_SRV);
 		assert(hr == S_OK);
+
+		CreateFaceSRVs(device);
 
 		// free loaded image data
 		for (int i = 0; i < 6; i++)
@@ -193,5 +198,27 @@ void Cubemap::CreateUAVs(ID3D11Device* device, unsigned int mipSlice)
 		assert(hr == S_OK);
 
 		m_UAVs.push_back(uav);
+	}
+}
+
+void Cubemap::CreateFaceSRVs(ID3D11Device* device)
+{
+	HRESULT hr;
+
+	D3D11_TEXTURE2D_DESC texDesc;
+	m_CubemapTexture->GetDesc(&texDesc);
+
+	for (int i = 0; i < 6; i++)
+	{
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = m_SRVFormat;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
+		srvDesc.Texture2DArray.ArraySize = 1;
+		srvDesc.Texture2DArray.FirstArraySlice = i;
+		srvDesc.Texture2DArray.MostDetailedMip = 0;
+		srvDesc.Texture2DArray.MipLevels = texDesc.MipLevels;
+
+		hr = device->CreateShaderResourceView(m_CubemapTexture, &srvDesc, &m_FaceSRVs[i]);
+		assert(hr == S_OK);
 	}
 }

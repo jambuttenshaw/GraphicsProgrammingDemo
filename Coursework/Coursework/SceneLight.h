@@ -57,6 +57,8 @@ public:
 	void GenerateViewMatrix();
 	void GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane);
 	void GeneratePerspectiveMatrix(float nearPlane);
+
+	void GetPointLightViewMatrices(XMMATRIX* matArray);
 	
 	// shadow mapping
 	void EnableShadows();
@@ -64,6 +66,7 @@ public:
 	inline bool IsShadowsEnabled() const { return m_ShadowsEnabled; }
 	
 	inline ShadowMap* GetShadowMap() const { return m_ShadowMap; }
+	inline ShadowCubemap* GetShadowCubemap() const { return m_ShadowCubeMap; }
 
 
 private:

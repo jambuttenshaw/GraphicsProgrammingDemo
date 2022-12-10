@@ -13,6 +13,8 @@
 #include "Cubemap.h"
 #include "Skybox.h"
 
+#include "ShadowCubemap.h"
+
 #include "HeightmapFilters.h"
 #include "SerializationHelper.h"
 
@@ -124,15 +126,13 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	SceneLight& light = *(m_Lights[0]);
 	light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
-	light.SetType(SceneLight::LightType::Directional);
-	light.SetPosition({ 0, 10, 0 });
-	light.SetPitch(XMConvertToRadians(-37.0f));
-	light.SetYaw(XMConvertToRadians(-14.0f));
-	light.SetIntensity(2.0f);
+	light.SetType(SceneLight::LightType::Point);
+	light.SetPosition({ 1, 2, -3 });
+	light.SetIntensity(4.0f);
 	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
-	light2.SetEnbled(true);
+	//light2.SetEnbled(true);
 	light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 10, 0 });
 	light2.SetType(SceneLight::LightType::Directional);
@@ -203,7 +203,7 @@ bool App1::render()
 	renderer->getDeviceContext()->RSSetState(m_ShadowRasterizerState);
 	for (auto light : m_Lights)
 	{
-		if (light->IsShadowsEnabled())
+		if (light->IsEnabled() && light->IsShadowsEnabled())
 			depthPass(light);
 	}
 	renderer->resetViewport();
@@ -244,10 +244,15 @@ bool App1::render()
 	}
 
 	// Render ortho mesh
-	if (m_ShowShadowMap && m_Lights[m_SelectedShadowMap]->GetShadowMap() != nullptr)
+	if (m_ShowShadowMap && m_Lights[m_SelectedShadowMap]->IsShadowsEnabled())
 	{
 		m_ShadowMapMesh->sendData(renderer->getDeviceContext());
-		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV());
+		ID3D11ShaderResourceView* shadowmapSRV = nullptr;
+		if (m_Lights[m_SelectedShadowMap]->GetType() == SceneLight::LightType::Point)
+			shadowmapSRV = m_Lights[m_SelectedShadowMap]->GetShadowCubemap()->GetSRV(m_SelectedShadowCubemapFace);
+		else
+			m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV();
+		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowmapSRV);
 		m_TextureShader->render(renderer->getDeviceContext(), m_ShadowMapMesh->getIndexCount());
 	}
 	renderer->setZBuffer(true);
@@ -275,25 +280,43 @@ bool App1::render()
 void App1::depthPass(SceneLight* light)
 {
 	// bind shadow map
-	assert(light->GetShadowMap() && "Light doesnt have a shadow map!");
-	light->GetShadowMap()->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
+	assert(light->GetShadowMap() || light->GetShadowCubemap() && "Light doesnt have a shadow map!");
 
 	// get world view projection matrices
 	XMMATRIX worldMatrix = renderer->getWorldMatrix();
 
-	light->GenerateViewMatrix();
-	XMMATRIX lightViewMatrix = light->GetViewMatrix();
+	XMMATRIX lightViewMatrices[6];
+	int matrixCount = 0;
+	if (light->GetType() == SceneLight::LightType::Point)
+	{
+		light->GetPointLightViewMatrices(lightViewMatrices);
+		matrixCount = 6;
+	}
+	else
+	{
+		light->GenerateViewMatrix();
+		lightViewMatrices[0] = light->GetViewMatrix();
+		matrixCount = 1;
+	}
 	XMMATRIX lightProjectionMatrix = light->GetProjectionMatrix();
 
-	// render world with an unlit shader
-	for (auto& go : m_GameObjects)
+	for (int m = 0; m < matrixCount; m++)
 	{
-		if (!go.castsShadows) continue;
+		if (light->GetType() == SceneLight::LightType::Point)
+			light->GetShadowCubemap()->BindDSV(renderer->getDeviceContext(), m);
+		else
+			light->GetShadowMap()->BindDsvAndSetNullRenderTarget(renderer->getDeviceContext());
 
-		XMMATRIX w = worldMatrix * go.transform.GetMatrix();
-		go.mesh->sendData(renderer->getDeviceContext());
-		m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrix, lightProjectionMatrix);
-		m_UnlitShader->render(renderer->getDeviceContext(), go.mesh->getIndexCount());
+		// render world with an unlit shader
+		for (auto& go : m_GameObjects)
+		{
+			if (!go.castsShadows) continue;
+
+			XMMATRIX w = worldMatrix * go.transform.GetMatrix();
+			go.mesh->sendData(renderer->getDeviceContext());
+			m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix);
+			m_UnlitShader->render(renderer->getDeviceContext(), go.mesh->getIndexCount());
+		}
 	}
 }
 
@@ -436,7 +459,11 @@ void App1::gui()
 			ImGui::Checkbox("Debug Spheres", &m_LightDebugSpheres);
 			ImGui::Checkbox("Display Shadow Map", &m_ShowShadowMap);
 			if (m_ShowShadowMap)
+			{
 				ImGui::SliderInt("Shadow map", &m_SelectedShadowMap, 0, static_cast<int>(m_Lights.size() - 1));
+				if (m_Lights[m_SelectedShadowMap]->GetType() == SceneLight::LightType::Point)
+					ImGui::SliderInt("Cubemap face", &m_SelectedShadowCubemapFace, 0, 5);
+			}
 
 			ImGui::TreePop();
 		}

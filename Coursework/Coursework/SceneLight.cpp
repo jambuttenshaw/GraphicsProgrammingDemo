@@ -87,7 +87,7 @@ const XMMATRIX& SceneLight::GetProjectionMatrix() const
 	switch (m_Type)
 	{
 	case SceneLight::LightType::Directional:	return m_OrthoMatrix; break;
-	case SceneLight::LightType::Point:			return XMMatrixIdentity(); break;
+	case SceneLight::LightType::Point:			return m_PerspectiveMatrix; break;
 	case SceneLight::LightType::Spot:			return m_PerspectiveMatrix; break;
 	default:									return XMMatrixIdentity(); break;
 	}
@@ -122,12 +122,28 @@ void SceneLight::GeneratePerspectiveMatrix(float nearPlane)
 	m_PerspectiveMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, nearPlane, 2.0f * m_Range);
 }
 
+void SceneLight::GetPointLightViewMatrices(XMMATRIX* matArray)
+{
+	static const XMVECTOR px = XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+	static const XMVECTOR py = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+	static const XMVECTOR pz = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+
+	const XMVECTOR pos = XMVectorSet(m_Position.x, m_Position.y, m_Position.z, 1.0f);
+
+	matArray[0] = XMMatrixLookAtLH(pos, pos + px, py);
+	matArray[1] = XMMatrixLookAtLH(pos, pos - px, py);
+	matArray[2] = XMMatrixLookAtLH(pos, pos + py, pz);
+	matArray[3] = XMMatrixLookAtLH(pos, pos - py, pz);
+	matArray[4] = XMMatrixLookAtLH(pos, pos + pz, py);
+	matArray[5] = XMMatrixLookAtLH(pos, pos - pz, py);
+}
+
 void SceneLight::EnableShadows()
 {
 	if (m_ShadowsEnabled) return;
 	m_ShadowsEnabled = true;
 
-	if (!m_ShadowMap && !m_ShadowCubeMap) CreateShadowMap();
+	if (!m_ShadowMap || !m_ShadowCubeMap) CreateShadowMap();
 }
 
 void SceneLight::DisableShadows()

@@ -103,7 +103,7 @@ void GlobalLighting::CreateIrradianceMap(ID3D11DeviceContext* deviceContext)
 {
 	// create irradiance map
 	if (m_IrradianceMap) delete m_IrradianceMap;
-	m_IrradianceMap = new Cubemap(m_Device, m_IrradianceMapResolutuion);
+	m_IrradianceMap = new Cubemap(m_Device, m_IrradianceMapResolutuion, false);
 
 	ID3D11ShaderResourceView* environmentMapSRV = m_EnvironmentMap->GetSRV();
 	deviceContext->CSSetShaderResources(0, 1, &environmentMapSRV);
@@ -200,7 +200,7 @@ void GlobalLighting::CreatePrefilteredEnvironmentMap(ID3D11DeviceContext* device
 {
 	// create prefiltered environment map
 	if (m_PrefilteredEnvironmentMap) delete m_PrefilteredEnvironmentMap;
-	m_PrefilteredEnvironmentMap = new Cubemap(m_Device, m_PEMResolution, m_PEMRoughnessBins);
+	m_PrefilteredEnvironmentMap = new Cubemap(m_Device, m_PEMResolution, false, m_PEMRoughnessBins);
 
 	// set shader and shader resources that are constant for all faces and mips
 	ID3D11ShaderResourceView* environmentMapSRV = m_EnvironmentMap->GetSRV();

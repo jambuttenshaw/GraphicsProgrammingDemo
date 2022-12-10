@@ -5,11 +5,10 @@
 Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
 TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t8);
 
-SamplerComparisonState shadowSampler : register(s0);
-
-SamplerState irradianceMapSampler : register(s1);
-SamplerState brdfIntegrationSampler : register(s2);
-SamplerState materialSampler : register(s3);
+SamplerState bilinearSampler : register(s0);
+SamplerState trilinearSampler : register(s1);
+SamplerState anisotropicSampler : register(s2);
+SamplerComparisonState shadowSampler : register(s3);
 
 // lighting
 cbuffer LightBuffer : register(b0)
@@ -43,6 +42,6 @@ float4 main(InputType input) : SV_TARGET
                                      materialData,
                                      lighting,
                                      texture2DBuffer, textureCubeBuffer,
-                                     materialSampler, shadowSampler, irradianceMapSampler, brdfIntegrationSampler);
+                                     bilinearSampler, trilinearSampler, anisotropicSampler, shadowSampler);
     return float4(color, 1.0f);
 }
