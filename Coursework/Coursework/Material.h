@@ -4,6 +4,9 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
+#include "DXF.h"
+#include <stringr>
+
 
 class Material
 {
@@ -12,6 +15,8 @@ public:
 	~Material() = default;
 
 	void SettingsGUI();
+
+	void LoadFromDirectory(TextureManager* texManager, const std::string& dir);
 
 	// getters and setters
 	inline void SetAlbedo(const XMFLOAT3& albedo) { m_Albedo = albedo; }
@@ -34,7 +39,6 @@ public:
 	inline bool UseNormalMap() const { return m_UseNormalMap && m_NormalMap; }
 	inline void SetNormalMap(ID3D11ShaderResourceView* map) { m_NormalMap = map; }
 	inline ID3D11ShaderResourceView* GetNormalMap() const { return m_NormalMap; }
-
 
 private:
 	XMFLOAT3 m_Albedo{ 1.0f, 1.0f, 1.0f };

@@ -21,3 +21,8 @@ void Material::SettingsGUI()
 	ImGui::SliderFloat("Metalness", &m_Metalness, 0.0f, 1.0f);
 
 }
+
+void Material::LoadFromDirectory(TextureManager* texManager, const std::string& dir)
+{
+
+}
