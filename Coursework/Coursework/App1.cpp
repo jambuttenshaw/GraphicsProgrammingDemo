@@ -38,29 +38,53 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	textureMgr->loadTexture(L"asphalt_albedo", L"res/pbr/cracking_painted_asphalt_albedo.png");
-	textureMgr->loadTexture(L"asphalt_roughness", L"res/pbr/cracking_painted_asphalt_roughness.png");
-	textureMgr->loadTexture(L"asphalt_normal", L"res/pbr/cracking_painted_asphalt_normal.png");
+	textureMgr->loadTexture(L"grass_albedo", L"res/pbr/grass/albedo.png");
+	textureMgr->loadTexture(L"grass_normal", L"res/pbr/grass/normal.png");
+	textureMgr->loadTexture(L"grass_roughness", L"res/pbr/grass/roughness.png");
 
-	textureMgr->loadTexture(L"worn_metal_albedo", L"res/pbr/worn-shiny-metal-albedo.png");
-	textureMgr->loadTexture(L"worn_metal_roughness", L"res/pbr/worn-shiny-metal-roughness.png");
+	textureMgr->loadTexture(L"dirt_albedo", L"res/pbr/dirt/albedo.png");
+	textureMgr->loadTexture(L"dirt_normal", L"res/pbr/dirt/normal.png");
+	textureMgr->loadTexture(L"dirt_roughness", L"res/pbr/dirt/roughness.png");
 
-	textureMgr->loadTexture(L"armor_albedo", L"res/pbr/armor-plating1_albedo.png");
-	textureMgr->loadTexture(L"armor_roughness", L"res/pbr/armor-plating1_roughness.png");
-	textureMgr->loadTexture(L"armor_normal", L"res/pbr/armor-plating1_normal.png");
+	textureMgr->loadTexture(L"sand_albedo", L"res/pbr/sand/albedo.png");
+	textureMgr->loadTexture(L"sand_normal", L"res/pbr/sand/normal.png");
+	textureMgr->loadTexture(L"sand_roughness", L"res/pbr/sand/roughness.png");
 
-	mat1.SetAlbedoMap(textureMgr->getTexture(L"asphalt_albedo"));
-	mat1.SetRoughnessMap(textureMgr->getTexture(L"asphalt_roughness"));
-	mat1.SetNormalMap(textureMgr->getTexture(L"asphalt_normal"));
+	textureMgr->loadTexture(L"rock_albedo", L"res/pbr/rock/albedo.png");
+	textureMgr->loadTexture(L"rock_normal", L"res/pbr/rock/normal.png");
+	textureMgr->loadTexture(L"rock_roughness", L"res/pbr/rock/roughness.png");
 
-	mat2.SetAlbedoMap(textureMgr->getTexture(L"worn_metal_albedo"));
-	mat2.SetRoughnessMap(textureMgr->getTexture(L"worn_metal_roughness"));
-	mat2.SetMetalness(1.0f);
+	textureMgr->loadTexture(L"snow_albedo", L"res/pbr/snow/albedo.png");
+	textureMgr->loadTexture(L"snow_normal", L"res/pbr/snow/normal.png");
+	textureMgr->loadTexture(L"snow_roughness", L"res/pbr/snow/roughness.png");
 
-	mat3.SetAlbedoMap(textureMgr->getTexture(L"armor_albedo"));
-	mat3.SetRoughnessMap(textureMgr->getTexture(L"armor_roughness"));
-	mat3.SetNormalMap(textureMgr->getTexture(L"armor_normal"));
-	mat3.SetMetalness(1.0f);
+	textureMgr->loadTexture(L"shiny_metal_albedo", L"res/pbr/worn_shiny_metal/albedo.png");
+	textureMgr->loadTexture(L"shiny_metal_roughness", L"res/pbr/worn_shiny_metal/roughness.png");
+
+	grassMat.SetAlbedoMap(textureMgr->getTexture(L"grass_albedo"));
+	grassMat.SetNormalMap(textureMgr->getTexture(L"grass_normal"));
+	grassMat.SetRoughnessMap(textureMgr->getTexture(L"grass_roughness"));
+
+	dirtMat.SetAlbedoMap(textureMgr->getTexture(L"dirt_albedo"));
+	dirtMat.SetNormalMap(textureMgr->getTexture(L"dirt_normal"));
+	dirtMat.SetRoughnessMap(textureMgr->getTexture(L"dirt_roughness"));
+
+	sandMat.SetAlbedoMap(textureMgr->getTexture(L"sand_albedo"));
+	sandMat.SetNormalMap(textureMgr->getTexture(L"sand_normal"));
+	sandMat.SetRoughnessMap(textureMgr->getTexture(L"sand_roughness"));
+
+	rockMat.SetAlbedoMap(textureMgr->getTexture(L"rock_albedo"));
+	rockMat.SetNormalMap(textureMgr->getTexture(L"rock_normal"));
+	rockMat.SetRoughnessMap(textureMgr->getTexture(L"rock_roughness"));
+
+	snowMat.SetAlbedoMap(textureMgr->getTexture(L"snow_albedo"));
+	snowMat.SetNormalMap(textureMgr->getTexture(L"snow_normal"));
+	snowMat.SetRoughnessMap(textureMgr->getTexture(L"snow_roughness"));
+
+	shinyMetalMat.SetAlbedoMap(textureMgr->getTexture(L"shiny_metal_albedo"));
+	shinyMetalMat.SetRoughnessMap(textureMgr->getTexture(L"shiny_metal_roughness"));
+	shinyMetalMat.SetMetalness(1.0f);
+
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
@@ -107,12 +131,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// create game objects
-	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &mat3 });
-	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &mat2 });
-	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &mat2 });
-	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &mat2 });
-	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &mat1 });
-	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &mat1 });
+	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &snowMat });
+	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &sandMat });
+	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &shinyMetalMat });
+	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &rockMat });
+	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &dirtMat });
+	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &grassMat });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -123,7 +147,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// setup default light settings
 	SceneLight& light = *(m_Lights[0]);
-	light.SetEnbled(true);
+	//light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
 	light.SetPosition({ 1, 2, -3 });
@@ -131,7 +155,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
-	//light2.SetEnbled(true);
+	light2.SetEnbled(true);
 	light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 10, 0 });
 	light2.SetType(SceneLight::LightType::Directional);
@@ -532,6 +556,7 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Materials"))
 	{
+		/*
 		if (ImGui::TreeNode("Material 1"))
 		{
 			mat1.SettingsGUI();
@@ -547,6 +572,7 @@ void App1::gui()
 			mat3.SettingsGUI();
 			ImGui::TreePop();
 		}
+		*/
 	}
 	ImGui::Separator();
 

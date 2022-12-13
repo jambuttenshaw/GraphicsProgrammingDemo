@@ -111,7 +111,7 @@ private:
 	int m_SelectedShadowCubemapFace = 0;
 	OrthoMesh* m_ShadowMapMesh = nullptr;
 
-	Material mat1, mat2, mat3;
+	Material grassMat, sandMat, dirtMat, rockMat, snowMat, shinyMetalMat;
 
 	// post processing
 	bool m_EnablePostProcessing = true;

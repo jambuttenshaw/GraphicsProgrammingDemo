@@ -233,9 +233,6 @@ float3 calculateLighting(
     SamplerComparisonState shadowSampler
 )
 {
-    float c = calculateShadowFactor(textureCubeBuffer, lights.lights[0].shadowMapIndex, shadowSampler, l_p[0], p - lights.lights[0].position.xyz);
-    return c;
-    /*
     if (material.normalMapIndex > -1)
     {
         float3 map = SampleTexture2D(texture2DBuffer, material.normalMapIndex, bilinearSampler, uv).rgb;
@@ -302,5 +299,4 @@ float3 calculateLighting(
     }
     
     return ambient + lo;
-    */
 }

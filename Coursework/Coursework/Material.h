@@ -4,9 +4,6 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
-#include "DXF.h"
-#include <stringr>
-
 
 class Material
 {
@@ -15,8 +12,6 @@ public:
 	~Material() = default;
 
 	void SettingsGUI();
-
-	void LoadFromDirectory(TextureManager* texManager, const std::string& dir);
 
 	// getters and setters
 	inline void SetAlbedo(const XMFLOAT3& albedo) { m_Albedo = albedo; }
