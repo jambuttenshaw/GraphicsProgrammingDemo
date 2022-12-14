@@ -38,52 +38,52 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	textureMgr->loadTexture(L"grass_albedo", L"res/pbr/grass/albedo.png");
-	textureMgr->loadTexture(L"grass_normal", L"res/pbr/grass/normal.png");
-	textureMgr->loadTexture(L"grass_roughness", L"res/pbr/grass/roughness.png");
-
-	textureMgr->loadTexture(L"dirt_albedo", L"res/pbr/dirt/albedo.png");
-	textureMgr->loadTexture(L"dirt_normal", L"res/pbr/dirt/normal.png");
-	textureMgr->loadTexture(L"dirt_roughness", L"res/pbr/dirt/roughness.png");
-
-	textureMgr->loadTexture(L"sand_albedo", L"res/pbr/sand/albedo.png");
-	textureMgr->loadTexture(L"sand_normal", L"res/pbr/sand/normal.png");
-	textureMgr->loadTexture(L"sand_roughness", L"res/pbr/sand/roughness.png");
+	//textureMgr->loadTexture(L"grass_albedo", L"res/pbr/grass/albedo.png");
+	//textureMgr->loadTexture(L"grass_normal", L"res/pbr/grass/normal.png");
+	//textureMgr->loadTexture(L"grass_roughness", L"res/pbr/grass/roughness.png");
+	//
+	//textureMgr->loadTexture(L"dirt_albedo", L"res/pbr/dirt/albedo.png");
+	//textureMgr->loadTexture(L"dirt_normal", L"res/pbr/dirt/normal.png");
+	//textureMgr->loadTexture(L"dirt_roughness", L"res/pbr/dirt/roughness.png");
+	//
+	//textureMgr->loadTexture(L"sand_albedo", L"res/pbr/sand/albedo.png");
+	//textureMgr->loadTexture(L"sand_normal", L"res/pbr/sand/normal.png");
+	//textureMgr->loadTexture(L"sand_roughness", L"res/pbr/sand/roughness.png");
 
 	textureMgr->loadTexture(L"rock_albedo", L"res/pbr/rock/albedo.png");
 	textureMgr->loadTexture(L"rock_normal", L"res/pbr/rock/normal.png");
 	textureMgr->loadTexture(L"rock_roughness", L"res/pbr/rock/roughness.png");
 
-	textureMgr->loadTexture(L"snow_albedo", L"res/pbr/snow/albedo.png");
-	textureMgr->loadTexture(L"snow_normal", L"res/pbr/snow/normal.png");
-	textureMgr->loadTexture(L"snow_roughness", L"res/pbr/snow/roughness.png");
+	//textureMgr->loadTexture(L"snow_albedo", L"res/pbr/snow/albedo.png");
+	//textureMgr->loadTexture(L"snow_normal", L"res/pbr/snow/normal.png");
+	//textureMgr->loadTexture(L"snow_roughness", L"res/pbr/snow/roughness.png");
+	//
+	//textureMgr->loadTexture(L"shiny_metal_albedo", L"res/pbr/worn_shiny_metal/albedo.png");
+	//textureMgr->loadTexture(L"shiny_metal_roughness", L"res/pbr/worn_shiny_metal/roughness.png");
 
-	textureMgr->loadTexture(L"shiny_metal_albedo", L"res/pbr/worn_shiny_metal/albedo.png");
-	textureMgr->loadTexture(L"shiny_metal_roughness", L"res/pbr/worn_shiny_metal/roughness.png");
-
-	grassMat.SetAlbedoMap(textureMgr->getTexture(L"grass_albedo"));
-	grassMat.SetNormalMap(textureMgr->getTexture(L"grass_normal"));
-	grassMat.SetRoughnessMap(textureMgr->getTexture(L"grass_roughness"));
-
-	dirtMat.SetAlbedoMap(textureMgr->getTexture(L"dirt_albedo"));
-	dirtMat.SetNormalMap(textureMgr->getTexture(L"dirt_normal"));
-	dirtMat.SetRoughnessMap(textureMgr->getTexture(L"dirt_roughness"));
-
-	sandMat.SetAlbedoMap(textureMgr->getTexture(L"sand_albedo"));
-	sandMat.SetNormalMap(textureMgr->getTexture(L"sand_normal"));
-	sandMat.SetRoughnessMap(textureMgr->getTexture(L"sand_roughness"));
+	//grassMat.SetAlbedoMap(textureMgr->getTexture(L"grass_albedo"));
+	//grassMat.SetNormalMap(textureMgr->getTexture(L"grass_normal"));
+	//grassMat.SetRoughnessMap(textureMgr->getTexture(L"grass_roughness"));
+	//
+	//dirtMat.SetAlbedoMap(textureMgr->getTexture(L"dirt_albedo"));
+	//dirtMat.SetNormalMap(textureMgr->getTexture(L"dirt_normal"));
+	//dirtMat.SetRoughnessMap(textureMgr->getTexture(L"dirt_roughness"));
+	//
+	//sandMat.SetAlbedoMap(textureMgr->getTexture(L"sand_albedo"));
+	//sandMat.SetNormalMap(textureMgr->getTexture(L"sand_normal"));
+	//sandMat.SetRoughnessMap(textureMgr->getTexture(L"sand_roughness"));
 
 	rockMat.SetAlbedoMap(textureMgr->getTexture(L"rock_albedo"));
 	rockMat.SetNormalMap(textureMgr->getTexture(L"rock_normal"));
 	rockMat.SetRoughnessMap(textureMgr->getTexture(L"rock_roughness"));
 
-	snowMat.SetAlbedoMap(textureMgr->getTexture(L"snow_albedo"));
-	snowMat.SetNormalMap(textureMgr->getTexture(L"snow_normal"));
-	snowMat.SetRoughnessMap(textureMgr->getTexture(L"snow_roughness"));
-
-	shinyMetalMat.SetAlbedoMap(textureMgr->getTexture(L"shiny_metal_albedo"));
-	shinyMetalMat.SetRoughnessMap(textureMgr->getTexture(L"shiny_metal_roughness"));
-	shinyMetalMat.SetMetalness(1.0f);
+	//snowMat.SetAlbedoMap(textureMgr->getTexture(L"snow_albedo"));
+	//snowMat.SetNormalMap(textureMgr->getTexture(L"snow_normal"));
+	//snowMat.SetRoughnessMap(textureMgr->getTexture(L"snow_roughness"));
+	//
+	//shinyMetalMat.SetAlbedoMap(textureMgr->getTexture(L"shiny_metal_albedo"));
+	//shinyMetalMat.SetRoughnessMap(textureMgr->getTexture(L"shiny_metal_roughness"));
+	//shinyMetalMat.SetMetalness(1.0f);
 
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
@@ -131,12 +131,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// create game objects
-	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &snowMat });
-	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &sandMat });
-	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &shinyMetalMat });
+	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &rockMat });
+	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &rockMat });
+	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &rockMat });
 	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &rockMat });
-	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &dirtMat });
-	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &grassMat });
+	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &rockMat });
+	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &rockMat });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -156,11 +156,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
-	light2.SetColour({ 0.352f, 0.791f, 0.946f });
+	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 10, 0 });
 	light2.SetType(SceneLight::LightType::Directional);
-	light2.SetYaw(XMConvertToRadians(-88.0f));
-	light2.SetPitch(XMConvertToRadians(-45.0f));
+	light2.SetYaw(XMConvertToRadians(-10.0f));
+	light2.SetPitch(XMConvertToRadians(-70.0f));
 	light2.SetIntensity(1.5f);
 	light2.EnableShadows();
 	
@@ -556,12 +556,12 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Materials"))
 	{
-		/*
-		if (ImGui::TreeNode("Material 1"))
+		if (ImGui::TreeNode("Rock"))
 		{
-			mat1.SettingsGUI();
+			rockMat.SettingsGUI();
 			ImGui::TreePop();
 		}
+		/*
 		if (ImGui::TreeNode("Material 2"))
 		{
 			mat2.SettingsGUI();

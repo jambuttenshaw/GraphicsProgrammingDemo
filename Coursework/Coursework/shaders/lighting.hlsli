@@ -208,10 +208,12 @@ float3 calculateAmbientLighting(float3 n, float3 v, float3 albedo, float3 f0, fl
     float3 r = normalize(reflect(-v, n));
     
     float3 prefilteredColor = SampleTextureCubeLOD(texCubeBuffer, prefilterMapIndex, trilinearSampler, r, roughness * MAX_REFLECTION_LOD).rgb;
-    float2 brdf = SampleTexture2D(tex2dBuffer, brdfMapIndex, bilinearClampSampler, float2(abs(dot(n, v)), roughness)).rg;
+    // +0.01f fixes visual artifact on flat geometry with normal maps applied where small unlit cracks would appear
+    float2 brdf = SampleTexture2D(tex2dBuffer, brdfMapIndex, bilinearClampSampler, float2(abs(dot(n, v)) + 0.01f, roughness)).rg;
     float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    return kD * diffuse + specular;
+    //return kD * diffuse + specular;
+    return specular;
 }
 
 
