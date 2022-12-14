@@ -24,7 +24,8 @@ class WaterShader;
 class TerrainShader;
 class UnlitShader;
 class TextureShader;
-class ToneMappingShader;
+class FinalPassShader;
+class MeasureLuminanceShader;
 
 class GlobalLighting;
 class Cubemap;
@@ -72,10 +73,12 @@ private:
 	// Shaders
 	LightShader* m_LightShader = nullptr;
 	TerrainShader* m_TerrainShader = nullptr;
-	WaterShader* m_WaterShader = nullptr;
 	UnlitShader* m_UnlitShader = nullptr;
 	TextureShader* m_TextureShader = nullptr;
-	ToneMappingShader* m_ToneMappingShader = nullptr;
+
+	WaterShader* m_WaterShader = nullptr;
+	MeasureLuminanceShader* m_MeasureLuminenceShader = nullptr;
+	FinalPassShader* m_FinalPassShader = nullptr;
 
 	// render targets
 	RenderTarget* m_SrcRenderTarget = nullptr;

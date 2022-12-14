@@ -5,12 +5,12 @@
 
 using namespace DirectX;
 
-class ToneMappingShader : public BaseFullScreenShader
+class FinalPassShader : public BaseFullScreenShader
 {
 private:
 	struct ParamsBufferType
 	{
-		float avgL;
+		float avgLumFactor;
 		float whitePoint;
 		float blackPoint;
 		float toe;
@@ -20,10 +20,11 @@ private:
 	};
 
 public:
-	ToneMappingShader(ID3D11Device* device);
-	~ToneMappingShader();
+	FinalPassShader(ID3D11Device* device);
+	~FinalPassShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth,
+		ID3D11ShaderResourceView* luminance, unsigned int w, unsigned int h);
 
 	void SettingsGUI();
 
@@ -35,7 +36,6 @@ protected:
 private:
 	ID3D11Buffer* m_ParamsBuffer = nullptr;
 
-	float m_AvgL = 1.0f;
 	float m_WhitePoint = 1.5f;
 	float m_BlackPoint = 0.0f;
 	float m_Toe = 0.1f;

@@ -1,10 +1,11 @@
 
 Texture2D renderTextureColour : register(t0);
 Texture2D renderTextureDepth : register(t1);
+StructuredBuffer<float> lum : register(t2);
 
 cbuffer Params : register(b0)
 {
-	float avgL; // average luminance of scene
+    float avgLumFactor; // avgLum = lum[0] * avgLumFactor
 	float w;	// white point
 	float b;	// black point
 	float t;	// toe amount
@@ -35,13 +36,16 @@ float Remap(float x, float cross_over_point, float4 toe_coeffs, float4 shoulder_
 	return fraction.x / fraction.y;
 }
 
+static const float MIDDLE_GRAY = 0.72f;
+static const float LUM_WHITE = 1.5f;
 
 float4 main(InputType input) : SV_TARGET
 {
     float3 color = renderTextureColour[input.position.xy].rgb;
 	
-	color /= avgL;
+    float fLum = lum[0] * avgLumFactor;
 	
+	/*
 	float k = CalculateK();
 	
 	float4 toe_coeffs =
@@ -63,6 +67,12 @@ float4 main(InputType input) : SV_TARGET
 	color.g = Remap(color.g, c, toe_coeffs, shoulder_coeffs);
 	color.b = Remap(color.b, c, toe_coeffs, shoulder_coeffs);
 	
+    color *= MIDDLE_GRAY / (fLum + 0.001f);
+    color *= (1.0f + color / LUM_WHITE);
+    color /= (1.0f + color);
 	
 	return float4(color, 1.0f);
+	*/
+    float c = lum[0] * avgLumFactor;
+    return float4(c, c, c, 1.0f);
 }

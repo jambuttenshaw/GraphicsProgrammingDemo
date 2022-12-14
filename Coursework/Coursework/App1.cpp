@@ -4,10 +4,12 @@
 
 #include "LightShader.h"
 #include "TerrainShader.h"
-#include "WaterShader.h"
 #include "UnlitShader.h"
 #include "TextureShader.h"
-#include "ToneMappingShader.h"
+
+#include "WaterShader.h"
+#include "MeasureLuminanceShader.h"
+#include "FinalPassShader.h"
 
 #include "GlobalLighting.h"
 #include "Cubemap.h"
@@ -90,10 +92,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
 	m_TerrainShader = new TerrainShader(renderer->getDevice());
-	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 	m_TextureShader = new TextureShader(renderer->getDevice(), hwnd);
-	m_ToneMappingShader = new ToneMappingShader(renderer->getDevice());
+	
+	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
+	m_MeasureLuminenceShader = new MeasureLuminanceShader(renderer->getDevice(), screenWidth, screenHeight);
+	m_FinalPassShader = new FinalPassShader(renderer->getDevice());
 
 	m_SrcRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 	m_DstRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
@@ -249,8 +253,10 @@ bool App1::render()
 		
 		SwitchRenderTarget();
 
-		m_ToneMappingShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV());
-		m_ToneMappingShader->Render(renderer->getDeviceContext());
+		m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetWidth(), m_SrcRenderTarget->GetHeight());
+
+		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), m_SrcRenderTarget->GetWidth(), m_SrcRenderTarget->GetHeight());
+		m_FinalPassShader->Render(renderer->getDeviceContext());
 
 	}
 
@@ -582,7 +588,7 @@ void App1::gui()
 
 		if (ImGui::TreeNode("Tone mapping"))
 		{
-			m_ToneMappingShader->SettingsGUI();
+			m_FinalPassShader->SettingsGUI();
 			ImGui::TreePop();
 		}
 	}

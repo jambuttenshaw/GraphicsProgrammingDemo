@@ -16,6 +16,9 @@ public:
 	inline ID3D11ShaderResourceView* GetColourSRV() const { return m_ColourSRV; }
 	inline ID3D11ShaderResourceView* GetDepthSRV() const { return m_DepthSRV; }
 
+	inline unsigned int GetWidth() const { return m_Width; }
+	inline unsigned int GetHeight() const { return m_Height; }
+
 private:
 	unsigned int m_Width = 0, m_Height = 0;
 

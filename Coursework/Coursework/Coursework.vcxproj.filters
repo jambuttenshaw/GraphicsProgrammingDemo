@@ -46,7 +46,7 @@
     <FxCompile Include="Shaders\brdfintegration_cs.hlsl">
       <Filter>Shaders\compute</Filter>
     </FxCompile>
-    <FxCompile Include="Shaders\tonemapping_ps.hlsl">
+    <FxCompile Include="Shaders\finalpass_ps.hlsl">
       <Filter>Shaders\postprocess</Filter>
     </FxCompile>
     <FxCompile Include="shaders\fullscreen_vs.hlsl">
@@ -66,6 +66,12 @@
     </FxCompile>
     <FxCompile Include="shaders\terrainNoise_cs.hlsl">
       <Filter>Shaders\compute\heightmap</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\reduceto1d_cs.hlsl">
+      <Filter>Shaders\compute\postprocess</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\reducetosingle_cs.hlsl">
+      <Filter>Shaders\compute\postprocess</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -138,11 +144,14 @@
     <ClCompile Include="WaterShader.cpp">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
-    <ClCompile Include="ToneMappingShader.cpp">
+    <ClCompile Include="FinalPassShader.cpp">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
     <ClCompile Include="ShadowCubemap.cpp">
       <Filter>Rendering</Filter>
+    </ClCompile>
+    <ClCompile Include="MeasureLuminanceShader.cpp">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -200,7 +209,7 @@
     <ClInclude Include="WaterShader.h">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
-    <ClInclude Include="ToneMappingShader.h">
+    <ClInclude Include="FinalPassShader.h">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
     <ClInclude Include="GameObject.h">
@@ -208,6 +217,9 @@
     </ClInclude>
     <ClInclude Include="ShadowCubemap.h">
       <Filter>Rendering</Filter>
+    </ClInclude>
+    <ClInclude Include="MeasureLuminanceShader.h">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -246,6 +258,9 @@
     </Filter>
     <Filter Include="Shaders\compute\heightmap">
       <UniqueIdentifier>{0cd92b72-d808-4eb5-a2fd-b5d66ea18687}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\compute\postprocess">
+      <UniqueIdentifier>{fc660dc0-1e3a-4971-997e-d5f0c24994cb}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
