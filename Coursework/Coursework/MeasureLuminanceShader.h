@@ -16,6 +16,7 @@ private:
 
 public:
 	MeasureLuminanceShader(ID3D11Device* device, unsigned int backBufferW, unsigned int backBufferH);
+	~MeasureLuminanceShader();
 
 	void Run(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* input, unsigned int inputW, unsigned int inputH);
 
@@ -27,8 +28,6 @@ private:
 	void RunCS(ID3D11DeviceContext* deviceContext, ID3D11ComputeShader* cs, ID3D11ShaderResourceView** input, ID3D11UnorderedAccessView** output, XMUINT2 inputDims, XMUINT2 groupCount);
 
 private:
-	ID3D11Device* m_Device = nullptr;
-
 	ID3D11ComputeShader* m_ReduceTo1DShader = nullptr;
 	ID3D11ComputeShader* m_ReduceToSingleShader = nullptr;
 	ID3D11Buffer* m_CSBuffer = nullptr;

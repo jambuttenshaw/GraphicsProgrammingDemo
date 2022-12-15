@@ -10,13 +10,18 @@ class FinalPassShader : public BaseFullScreenShader
 private:
 	struct ParamsBufferType
 	{
+		// tone mapping
 		float avgLumFactor;
 		float whitePoint;
 		float blackPoint;
 		float toe;
+
 		float shoulder;
 		float crossPoint;
-		XMFLOAT2 padding;
+
+		// bloom
+		int bloomLevels;
+		float bloomStrength;
 	};
 
 public:
@@ -24,7 +29,7 @@ public:
 	~FinalPassShader();
 
 	void setShaderParameters(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth,
-		ID3D11ShaderResourceView* luminance, unsigned int w, unsigned int h);
+		ID3D11ShaderResourceView* luminance, unsigned int w, unsigned int h, ID3D11ShaderResourceView* bloom, int bloomLevels, float bloomStrength);
 
 	void SettingsGUI();
 
@@ -35,11 +40,11 @@ protected:
 
 private:
 	ID3D11Buffer* m_ParamsBuffer = nullptr;
+	ID3D11SamplerState* m_TrilinearSampler = nullptr;
 
 	float m_WhitePoint = 2.0f;
 	float m_BlackPoint = 0.0f;
 	float m_Toe = 0.1f;
 	float m_Shoulder = 0.1f;
-	float m_CrossPoint = 0.0f;
-
+	float m_CrossPoint = 0.15f;
 };

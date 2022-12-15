@@ -20,12 +20,14 @@
 class IHeightmapFilter;
 
 class LightShader;
-class WaterShader;
 class TerrainShader;
 class UnlitShader;
 class TextureShader;
+
 class FinalPassShader;
+class WaterShader;
 class MeasureLuminanceShader;
+class BloomShader;
 
 class GlobalLighting;
 class Cubemap;
@@ -78,6 +80,7 @@ private:
 
 	WaterShader* m_WaterShader = nullptr;
 	MeasureLuminanceShader* m_MeasureLuminenceShader = nullptr;
+	BloomShader* m_BloomShader = nullptr;
 	FinalPassShader* m_FinalPassShader = nullptr;
 
 	// render targets

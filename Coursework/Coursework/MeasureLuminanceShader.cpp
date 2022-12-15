@@ -8,7 +8,6 @@
 
 
 MeasureLuminanceShader::MeasureLuminanceShader(ID3D11Device* device, unsigned int backBufferW, unsigned int backBufferH)
-	: m_Device(device)
 {
 	LoadCS(device, L"reduceto1d_cs.cso", &m_ReduceTo1DShader);
 	LoadCS(device, L"reducetosingle_cs.cso", &m_ReduceToSingleShader);
@@ -62,6 +61,22 @@ MeasureLuminanceShader::MeasureLuminanceShader(ID3D11Device* device, unsigned in
 	hr = device->CreateShaderResourceView(m_ReductionBuffer1, &srvDesc, &m_ReductionSRV1);
 	assert(hr == S_OK);
 
+}
+
+MeasureLuminanceShader::~MeasureLuminanceShader()
+{
+	m_ReduceTo1DShader->Release();
+	m_ReduceToSingleShader->Release();
+	m_CSBuffer->Release();
+
+	m_ReductionBuffer0->Release();
+	m_ReductionBuffer1->Release();
+
+	m_ReductionUAV0->Release();
+	m_ReductionUAV1->Release();
+
+	m_ReductionSRV0->Release();
+	m_ReductionSRV1->Release();
 }
 
 void MeasureLuminanceShader::Run(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* input, unsigned int inputW, unsigned int inputH)

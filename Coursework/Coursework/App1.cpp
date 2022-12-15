@@ -9,6 +9,7 @@
 
 #include "WaterShader.h"
 #include "MeasureLuminanceShader.h"
+#include "BloomShader.h"
 #include "FinalPassShader.h"
 
 #include "GlobalLighting.h"
@@ -97,6 +98,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	
 	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_MeasureLuminenceShader = new MeasureLuminanceShader(renderer->getDevice(), screenWidth, screenHeight);
+	m_BloomShader = new BloomShader(renderer->getDevice(), screenWidth / 2, screenHeight / 2, 5);
 	m_FinalPassShader = new FinalPassShader(renderer->getDevice());
 
 	m_SrcRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
@@ -255,8 +257,9 @@ bool App1::render()
 		SwitchRenderTarget();
 
 		m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetWidth(), m_SrcRenderTarget->GetHeight());
+		m_BloomShader->Run(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV());
 
-		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), m_SrcRenderTarget->GetWidth(), m_SrcRenderTarget->GetHeight());
+		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), m_SrcRenderTarget->GetWidth(), m_SrcRenderTarget->GetHeight(), m_BloomShader->GetSRV(), m_BloomShader->GetLevels(), m_BloomShader->GetStrength());
 		m_FinalPassShader->Render(renderer->getDeviceContext());
 
 	}
@@ -587,6 +590,11 @@ void App1::gui()
 	{
 		ImGui::Checkbox("Enable", &m_EnablePostProcessing);
 
+		if (ImGui::TreeNode("Bloom"))
+		{
+			m_BloomShader->SettingsGUI();
+			ImGui::TreePop();
+		}
 		if (ImGui::TreeNode("Tone mapping"))
 		{
 			m_FinalPassShader->SettingsGUI();

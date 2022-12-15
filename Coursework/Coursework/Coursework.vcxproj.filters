@@ -73,6 +73,9 @@
     <FxCompile Include="shaders\reducetosingle_cs.hlsl">
       <Filter>Shaders\compute\postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\bloom_cs.hlsl">
+      <Filter>Shaders\compute\postprocess</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">
@@ -153,6 +156,9 @@
     <ClCompile Include="MeasureLuminanceShader.cpp">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
+    <ClCompile Include="BloomShader.cpp">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -219,6 +225,9 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="MeasureLuminanceShader.h">
+      <Filter>Rendering\Shaders\PostProcesing</Filter>
+    </ClInclude>
+    <ClInclude Include="BloomShader.h">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClInclude>
   </ItemGroup>

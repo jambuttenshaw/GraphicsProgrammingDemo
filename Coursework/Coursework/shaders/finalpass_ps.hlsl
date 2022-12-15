@@ -3,6 +3,9 @@
 Texture2D renderTextureColour : register(t0);
 Texture2D renderTextureDepth : register(t1);
 StructuredBuffer<float> lum : register(t2);
+Texture2D bloomTex : register(t3);
+
+SamplerState trilinearSampler;
 
 cbuffer Params : register(b0)
 {
@@ -12,8 +15,10 @@ cbuffer Params : register(b0)
 	float t;	// toe amount
 	float s;	// shoulder amount
 	float c;	// cross over point
-	
-	float2 padding;
+
+	// bloom
+    int bloomLevels;
+    float bloomStrength;
 }
 
 struct InputType
@@ -44,6 +49,14 @@ float4 main(InputType input) : SV_TARGET
 {
     float3 color = renderTextureColour[input.position.xy].rgb;
     
+	// apply bloom
+    float3 bloom = float3(0.0f, 0.0f, 0.0f);
+    for (int i = 0; i < bloomLevels; i++)
+    {
+        bloom += bloomTex.SampleLevel(trilinearSampler, input.tex, i).rgb;
+    }
+    color += bloom * bloomStrength;
+	
 	float luminance = dot(color, LUM_VECTOR.rgb);
     float fLum = lum[0] * avgLumFactor;
 	
