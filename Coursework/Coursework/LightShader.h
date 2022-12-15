@@ -47,8 +47,9 @@ private:
 		XMFLOAT2 spotAngles;
 
 		int shadowMapIndex;
+		XMFLOAT2 shadowBiasCoeffs;
 
-		XMFLOAT3 padding;
+		float padding;
 	};
 	struct LightBufferType
 	{

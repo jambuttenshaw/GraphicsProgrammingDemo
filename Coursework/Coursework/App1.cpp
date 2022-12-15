@@ -154,7 +154,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
-	light.SetPosition({ 1, 2, -5 });
+	light.SetPosition({ 1, 4, -5 });
 	light.SetIntensity(4.0f);
 	light.SetRange(20.0f);
 	light.EnableShadows();

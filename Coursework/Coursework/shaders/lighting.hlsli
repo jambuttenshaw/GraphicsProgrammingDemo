@@ -172,7 +172,7 @@ float calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMapI
     return percentLit / 9.0f;
 }
 
-float calculateShadowFactor(TextureCube texBuffer[TEX_BUFFER_SIZE], int shadowMapIndex, SamplerComparisonState shadowSampler, float4 lightViewPos, float3 lightToFrag)
+float calculateShadowFactor(TextureCube texBuffer[TEX_BUFFER_SIZE], int shadowMapIndex, SamplerComparisonState shadowSampler, float4 lightViewPos, float3 lightToFrag, float2 biasCoeffs)
 {
     const float SMAP_SIZE = 1024.0f;
     const float dx = 1.0f / SMAP_SIZE;
@@ -180,6 +180,8 @@ float calculateShadowFactor(TextureCube texBuffer[TEX_BUFFER_SIZE], int shadowMa
     float3 uvw = normalize(lightToFrag);
         
     float distFromLight = lightViewPos.z / lightViewPos.w;
+    float bias = biasCoeffs.x * exp(-biasCoeffs.y * distFromLight);
+    distFromLight -= bias;
 
     float percentLit = SampleTextureCubeComp(texBuffer, shadowMapIndex, shadowSampler, uvw, distFromLight).r;
     
@@ -282,7 +284,7 @@ float3 calculateLighting(
         if (light.shadowMapIndex > -1)
         {
             if (light.type == LIGHT_TYPE_POINT)
-                shadowFactor = calculateShadowFactor(textureCubeBuffer, light.shadowMapIndex, shadowSampler, l_p[i], p - light.position.xyz);
+                shadowFactor = calculateShadowFactor(textureCubeBuffer, light.shadowMapIndex, shadowSampler, l_p[i], p - light.position.xyz, light.shadowBiasCoeffs);
             else
                 shadowFactor = calculateShadowFactor(texture2DBuffer, light.shadowMapIndex, shadowSampler, l_p[i]);
         }

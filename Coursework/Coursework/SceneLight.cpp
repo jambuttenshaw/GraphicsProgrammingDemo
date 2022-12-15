@@ -74,6 +74,11 @@ void SceneLight::SettingsGUI()
 	{
 		s ? EnableShadows() : DisableShadows();
 	}
+	if (m_ShadowsEnabled)
+	{
+		ImGui::SliderFloat("Shadow Bias Amount", &m_ShadowBiasCoeffs.x, 0.0f, 0.05f);
+		ImGui::SliderFloat("Shadow Bias Attenuation", &m_ShadowBiasCoeffs.y, 0.0f, 5.0f);
+	}
 }
 
 XMFLOAT3 SceneLight::GetIrradiance() const

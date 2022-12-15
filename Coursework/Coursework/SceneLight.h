@@ -68,6 +68,9 @@ public:
 	inline ShadowMap* GetShadowMap() const { return m_ShadowMap; }
 	inline ShadowCubemap* GetShadowCubemap() const { return m_ShadowCubeMap; }
 
+	inline XMFLOAT2 GetShadowBiasCoeffs() const { return m_ShadowBiasCoeffs; }
+	inline void SetShadowBiasCoeffs(const XMFLOAT2& c) { m_ShadowBiasCoeffs = c; }
+
 
 private:
 	void CalculateDirectionFromEulerAngles();
@@ -100,6 +103,7 @@ private:
 	bool m_ShadowsEnabled = false;
 	ShadowMap* m_ShadowMap = nullptr;
 	ShadowCubemap* m_ShadowCubeMap = nullptr;
+	XMFLOAT2 m_ShadowBiasCoeffs = { 0.0f, 0.0f };
 
 	XMMATRIX m_ViewMatrix, m_OrthoMatrix, m_PerspectiveMatrix;
 };
