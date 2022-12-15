@@ -212,8 +212,7 @@ float3 calculateAmbientLighting(float3 n, float3 v, float3 albedo, float3 f0, fl
     float2 brdf = SampleTexture2D(tex2dBuffer, brdfMapIndex, bilinearClampSampler, float2(abs(dot(n, v)) + 0.01f, roughness)).rg;
     float3 specular = prefilteredColor * (F * brdf.x + brdf.y);
 
-    //return kD * diffuse + specular;
-    return specular;
+    return kD * diffuse + specular;
 }
 
 

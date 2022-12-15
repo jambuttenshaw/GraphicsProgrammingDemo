@@ -39,6 +39,7 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 {
 	D3D11_BUFFER_DESC matrixBufferDesc;
 	D3D11_BUFFER_DESC cameraBufferDesc;
+	D3D11_BUFFER_DESC plmBufferDesc;
 	D3D11_BUFFER_DESC lightBufferDesc;
 	D3D11_BUFFER_DESC materialBufferDesc;
 
@@ -65,6 +66,15 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 	cameraBufferDesc.MiscFlags = 0;
 	cameraBufferDesc.StructureByteStride = 0;
 	hr = renderer->CreateBuffer(&cameraBufferDesc, NULL, &cameraBuffer);
+	assert(hr == S_OK);
+
+	plmBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
+	plmBufferDesc.ByteWidth = sizeof(PointLightMatrixBufferType);
+	plmBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	plmBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	plmBufferDesc.MiscFlags = 0;
+	plmBufferDesc.StructureByteStride = 0;
+	hr = renderer->CreateBuffer(&plmBufferDesc, NULL, &pointLightMatrixBuffer);
 	assert(hr == S_OK);
 
 	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
@@ -140,6 +150,8 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	CameraBufferType* cameraPtr;
 	deviceContext->Map(cameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	cameraPtr = (CameraBufferType*)mappedResource.pData;
+
+	PointLightMatrixBufferType plmb{};
 	int index = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
 	{
@@ -147,7 +159,19 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 
 		XMMATRIX tlightMatrix;
 		if (lights[i]->GetType() == SceneLight::LightType::Point)
+		{
 			tlightMatrix = XMMatrixTranspose(lights[i]->GetProjectionMatrix());
+
+			XMMATRIX viewMats[6];
+			lights[i]->GetPointLightViewMatrices(viewMats);
+
+			plmb.rightMatrix[index] = XMMatrixTranspose(viewMats[0]);
+			plmb.leftMatrix[index] = XMMatrixTranspose(viewMats[1]);
+			plmb.upMatrix[index] = XMMatrixTranspose(viewMats[2]);
+			plmb.downMatrix[index] = XMMatrixTranspose(viewMats[3]);
+			plmb.forwardMatrix[index] = XMMatrixTranspose(viewMats[4]);
+			plmb.backMatrix[index] = XMMatrixTranspose(viewMats[5]);
+		}
 		else
 			tlightMatrix = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetProjectionMatrix());
 		cameraPtr->lightMatrix[index] = tlightMatrix;
@@ -160,6 +184,10 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	cameraPtr->cameraPos = camera->getPosition();
 	cameraPtr->padding = 0.0f;
 	deviceContext->Unmap(cameraBuffer, 0);
+
+	deviceContext->Map(pointLightMatrixBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+	memcpy(mappedResource.pData, &plmb, sizeof(plmb));
+	deviceContext->Unmap(pointLightMatrixBuffer, 0);
 
 
 	ID3D11ShaderResourceView* tex2DBuffer[TEX_BUFFER_SIZE];
@@ -270,8 +298,8 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	matPtr->material = matData;
 	deviceContext->Unmap(materialBuffer, 0);
 
-	ID3D11Buffer* vsBuffers[2] = { matrixBuffer, cameraBuffer };
-	deviceContext->VSSetConstantBuffers(0, 2, vsBuffers);
+	ID3D11Buffer* vsBuffers[3] = { matrixBuffer, cameraBuffer, pointLightMatrixBuffer };
+	deviceContext->VSSetConstantBuffers(0, 3, vsBuffers);
 
 	ID3D11Buffer* psBuffers[2] = { lightBuffer, materialBuffer };
 	deviceContext->PSSetConstantBuffers(0, 2, psBuffers);

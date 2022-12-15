@@ -122,7 +122,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_ShadowRasterDesc.FillMode = D3D11_FILL_SOLID;
 	m_ShadowRasterDesc.CullMode = D3D11_CULL_BACK;
 	m_ShadowRasterDesc.FrontCounterClockwise = true;
-	m_ShadowRasterDesc.DepthBias = 200000;
+	m_ShadowRasterDesc.DepthBias = 50000;
 	m_ShadowRasterDesc.DepthBiasClamp = 0.0f;
 	m_ShadowRasterDesc.SlopeScaledDepthBias = 1.0f;
 	m_ShadowRasterDesc.DepthClipEnable = true;
@@ -151,7 +151,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// setup default light settings
 	SceneLight& light = *(m_Lights[0]);
-	//light.SetEnbled(true);
+	light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
 	light.SetPosition({ 1, 2, -3 });
@@ -159,7 +159,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
-	light2.SetEnbled(true);
+	//light2.SetEnbled(true);
 	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 10, 0 });
 	light2.SetType(SceneLight::LightType::Directional);

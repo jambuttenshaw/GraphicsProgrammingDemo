@@ -26,6 +26,15 @@ private:
 		XMFLOAT3 cameraPos;
 		float padding;
 	};
+	struct PointLightMatrixBufferType
+	{
+		XMMATRIX rightMatrix[MAX_LIGHTS];
+		XMMATRIX leftMatrix[MAX_LIGHTS];
+		XMMATRIX upMatrix[MAX_LIGHTS];
+		XMMATRIX downMatrix[MAX_LIGHTS];
+		XMMATRIX forwardMatrix[MAX_LIGHTS];
+		XMMATRIX backMatrix[MAX_LIGHTS];
+	};
 
 	struct LightDataType
 	{
@@ -80,6 +89,7 @@ private:
 private:
 	ID3D11Buffer* matrixBuffer = nullptr;
 	ID3D11Buffer* cameraBuffer = nullptr;
+	ID3D11Buffer* pointLightMatrixBuffer = nullptr;
 	ID3D11Buffer* lightBuffer = nullptr;
 	ID3D11Buffer* materialBuffer = nullptr;
 

@@ -43,8 +43,6 @@ float4 main(InputType input) : SV_TARGET
 {
     float3 color = renderTextureColour[input.position.xy].rgb;
 	
-    float fLum = lum[0] * avgLumFactor;
-	
 	/*
 	float k = CalculateK();
 	
@@ -66,13 +64,13 @@ float4 main(InputType input) : SV_TARGET
 	color.r = Remap(color.r, c, toe_coeffs, shoulder_coeffs);
 	color.g = Remap(color.g, c, toe_coeffs, shoulder_coeffs);
 	color.b = Remap(color.b, c, toe_coeffs, shoulder_coeffs);
+	*/
 	
-    color *= MIDDLE_GRAY / (fLum + 0.001f);
-    color *= (1.0f + color / LUM_WHITE);
-    color /= (1.0f + color);
+    //float fLum = lum[0] * avgLumFactor;
+	//
+    //color *= MIDDLE_GRAY / (fLum + 0.001f);
+    //color *= (1.0f + color / LUM_WHITE);
+    //color /= (1.0f + color);
 	
 	return float4(color, 1.0f);
-	*/
-    float c = lum[0] * avgLumFactor;
-    return float4(c, c, c, 1.0f);
 }

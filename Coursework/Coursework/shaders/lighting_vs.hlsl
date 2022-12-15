@@ -15,6 +15,16 @@ cbuffer CameraBuffer : register(b1)
 	float padding;
 };
 
+cbuffer PointLightViewMatrices : register(b2)
+{
+    matrix viewRight[MAX_LIGHTS];
+    matrix viewLeft[MAX_LIGHTS];
+    matrix viewUp[MAX_LIGHTS];
+    matrix viewDown[MAX_LIGHTS];
+    matrix viewForward[MAX_LIGHTS];
+    matrix viewBack[MAX_LIGHTS];
+}
+
 struct InputType
 {
     float4 position : POSITION;
@@ -32,6 +42,35 @@ struct OutputType
     float4 lightViewPos[MAX_LIGHTS] : POSITION2;
 };
 
+
+matrix GetPointLightViewMatrix(int i, float3 toFrag)
+{
+    float3 absL = abs(toFrag);
+    float maxComponent = max(absL.x, max(absL.y, absL.z));
+    if (maxComponent == absL.x)
+    {
+        if (toFrag.x > 0)
+            return viewRight[i];
+        else
+            return viewLeft[i];
+    }
+    else if (maxComponent == absL.y)
+    {
+        if (toFrag.y > 0)
+            return viewUp[i];
+        else
+            return viewDown[i];
+    }
+    else
+    {
+        if (toFrag.z > 0)
+            return viewForward[i];
+        else
+            return viewBack[i];
+    }
+}
+
+
 OutputType main(InputType input)
 {
     OutputType output;
@@ -45,8 +84,8 @@ OutputType main(InputType input)
     {
         if (lightPosAndType[i].w == LIGHT_TYPE_POINT)
         {
-            float distToLight = length(lightPosAndType[i].xyz - output.worldPos);
-            float4 viewPos = float4(0.0f, 0.0f, distToLight, 1.0f);
+            float3 toFrag = normalize(output.worldPos - lightPosAndType[i].xyz);
+            float4 viewPos = mul(worldPos, GetPointLightViewMatrix(i, toFrag));
             output.lightViewPos[i] = mul(viewPos, lightMatrix[i]);
         }
         else
