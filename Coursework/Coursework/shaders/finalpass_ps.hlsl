@@ -66,11 +66,11 @@ float4 main(InputType input) : SV_TARGET
 	color.b = Remap(color.b, c, toe_coeffs, shoulder_coeffs);
 	*/
 	
-    //float fLum = lum[0] * avgLumFactor;
-	//
-    //color *= MIDDLE_GRAY / (fLum + 0.001f);
-    //color *= (1.0f + color / LUM_WHITE);
-    //color /= (1.0f + color);
+    float fLum = lum[0] * avgLumFactor;
+	
+    color *= MIDDLE_GRAY / (fLum + 0.001f);
+    color *= (1.0f + color / LUM_WHITE);
+    color /= (1.0f + color);
 	
 	return float4(color, 1.0f);
 }

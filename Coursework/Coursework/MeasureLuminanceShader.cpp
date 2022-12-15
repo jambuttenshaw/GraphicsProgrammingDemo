@@ -8,6 +8,7 @@
 
 
 MeasureLuminanceShader::MeasureLuminanceShader(ID3D11Device* device, unsigned int backBufferW, unsigned int backBufferH)
+	: m_Device(device)
 {
 	LoadCS(device, L"reduceto1d_cs.cso", &m_ReduceTo1DShader);
 	LoadCS(device, L"reducetosingle_cs.cso", &m_ReduceToSingleShader);
@@ -84,7 +85,7 @@ void MeasureLuminanceShader::Run(ID3D11DeviceContext* deviceContext, ID3D11Shade
 		while (true)
 		{
 			// run reduction pass
-			RunCS(deviceContext, m_ReduceToSingleShader, &m_ReductionSRV0, &m_ReductionUAV1, XMUINT2{ numToReduce, 0 }, XMUINT2{ dim, 0 });
+			RunCS(deviceContext, m_ReduceToSingleShader, &m_ReductionSRV0, &m_ReductionUAV1, XMUINT2{ numToReduce, 0 }, XMUINT2{ dim, 1 });
 
 			// update num thread groups
 			numToReduce = dim;
