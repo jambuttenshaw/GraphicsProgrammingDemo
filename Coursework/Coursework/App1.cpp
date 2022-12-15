@@ -154,18 +154,19 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
-	light.SetPosition({ 1, 2, -3 });
+	light.SetPosition({ 1, 2, -5 });
 	light.SetIntensity(4.0f);
+	light.SetRange(20.0f);
 	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
-	//light2.SetEnbled(true);
+	light2.SetEnbled(true);
 	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 10, 0 });
 	light2.SetType(SceneLight::LightType::Directional);
 	light2.SetYaw(XMConvertToRadians(-10.0f));
 	light2.SetPitch(XMConvertToRadians(-70.0f));
-	light2.SetIntensity(1.5f);
+	light2.SetIntensity(3.5f);
 	light2.EnableShadows();
 	
 	if (m_LoadOnOpen)

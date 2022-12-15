@@ -1,3 +1,4 @@
+#include "defines.hlsli"
 
 Texture2D renderTextureColour : register(t0);
 Texture2D renderTextureDepth : register(t1);
@@ -36,14 +37,16 @@ float Remap(float x, float cross_over_point, float4 toe_coeffs, float4 shoulder_
 	return fraction.x / fraction.y;
 }
 
-static const float MIDDLE_GRAY = 0.72f;
-static const float LUM_WHITE = 1.5f;
+// static const float MIDDLE_GRAY = 0.72f;
+// static const float LUM_WHITE = 1.5f;
 
 float4 main(InputType input) : SV_TARGET
 {
     float3 color = renderTextureColour[input.position.xy].rgb;
+    
+	float luminance = dot(color, LUM_VECTOR.rgb);
+    float fLum = lum[0] * avgLumFactor;
 	
-	/*
 	float k = CalculateK();
 	
 	float4 toe_coeffs =
@@ -61,16 +64,13 @@ float4 main(InputType input) : SV_TARGET
 		w * (1.0f - s) - c
 	};
 	
-	color.r = Remap(color.r, c, toe_coeffs, shoulder_coeffs);
-	color.g = Remap(color.g, c, toe_coeffs, shoulder_coeffs);
-	color.b = Remap(color.b, c, toe_coeffs, shoulder_coeffs);
-	*/
+    float newLuminance = Remap(luminance / fLum, c, toe_coeffs, shoulder_coeffs);
 	
-    float fLum = lum[0] * avgLumFactor;
+    color *= newLuminance / luminance;
 	
-    color *= MIDDLE_GRAY / (fLum + 0.001f);
-    color *= (1.0f + color / LUM_WHITE);
-    color /= (1.0f + color);
+    // color *= MIDDLE_GRAY / (fLum + 0.001f);
+    // color *= (1.0f + color / LUM_WHITE);
+    // color /= (1.0f + color);
 	
 	return float4(color, 1.0f);
 }

@@ -36,10 +36,10 @@ protected:
 private:
 	ID3D11Buffer* m_ParamsBuffer = nullptr;
 
-	float m_WhitePoint = 1.5f;
+	float m_WhitePoint = 2.0f;
 	float m_BlackPoint = 0.0f;
 	float m_Toe = 0.1f;
-	float m_Shoulder = 0.15f;
+	float m_Shoulder = 0.1f;
 	float m_CrossPoint = 0.0f;
 
 };

@@ -7,6 +7,9 @@
 #define LIGHT_TYPE_POINT 1.0f
 #define LIGHT_TYPE_SPOT 2.0f
 
+// for calculating luminance of a colour
+static const float4 LUM_VECTOR = float4(0.299f, 0.587f, 0.114f, 0.0f);
+
 struct LightData
 {
     float4 irradiance;

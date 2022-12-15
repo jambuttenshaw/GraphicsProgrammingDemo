@@ -1,4 +1,7 @@
 
+#include "defines.hlsli"
+
+
 Texture2D input : register(t0);
 RWStructuredBuffer<float> output : register(u0);
 
@@ -13,9 +16,6 @@ cbuffer CSBuffer : register(b0)
 #define groupthreads (groupthreadsX * groupthreadsY)
 
 groupshared float accum[groupthreads];
-
-// for calculating luminance of a colour
-static const float4 LUM_VECTOR = float4(0.299f, 0.587f, 0.114f, 0.0f);
 
 [numthreads(groupthreadsX, groupthreadsY, 1)]
 void main( uint3 Gid : SV_GroupID, uint3 DTid : SV_DispatchThreadID, uint GI : SV_GroupIndex )
