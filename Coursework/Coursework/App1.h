@@ -91,6 +91,7 @@ private:
 	Cubemap* m_EnvironmentMap = nullptr;
 	Skybox* m_Skybox = nullptr;
 	int m_SelectedSkybox = 0;
+	bool m_DrawSkybox = true;
 
 	Transform m_TerrainTransform;
 	TerrainMesh* m_Terrain = nullptr;
@@ -118,7 +119,7 @@ private:
 	std::array<Material, 6> m_Materials;
 
 	// post processing
-	bool m_EnablePostProcessing = true;
+	bool m_EnablePostProcessing = false;
 
 	std::vector<IHeightmapFilter*> m_HeightmapFilters;
 	int m_SelectedHeightmapFilter = -1;

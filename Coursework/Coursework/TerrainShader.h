@@ -3,6 +3,8 @@
 #include "DXF.h"
 #include <nlohmann/json.hpp>
 
+#include "SceneLight.h"
+
 using namespace std;
 using namespace DirectX;
 
@@ -47,7 +49,7 @@ public:
 
 	void SetShaderParameters(ID3D11DeviceContext* deviceContext,
 								const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection,
-								ID3D11ShaderResourceView* heightmap, Light* light, Camera* camera);
+								ID3D11ShaderResourceView* heightmap, SceneLight* light, Camera* camera);
 	void Render(ID3D11DeviceContext* deviceContext, unsigned int indexCount);
 
 	void GUI();
@@ -89,7 +91,7 @@ private:
 	float m_SteepnessSmoothing = 0.1f;
 
 	// tessellation params
-	XMFLOAT2 m_MinMaxDistance{ 0.0f, 50.0f };
-	XMFLOAT2 m_MinMaxLOD{ 1.0f, 16.0f };
+	XMFLOAT2 m_MinMaxDistance{ 10.0f, 40.0f };
+	XMFLOAT2 m_MinMaxLOD{ 1.0f, 10.0f };
 };
 

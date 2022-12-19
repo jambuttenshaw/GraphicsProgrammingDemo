@@ -39,24 +39,24 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	m_Materials[0].SetName("Grass");
-	m_Materials[0].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
-	
-	m_Materials[1].SetName("Dirt");
-	m_Materials[1].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/dirt");
-	
-	m_Materials[2].SetName("Sand");
-	m_Materials[2].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/sand");
-	
-	m_Materials[3].SetName("Rock");
-	m_Materials[3].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/rock");
-	
-	m_Materials[4].SetName("Snow");
-	m_Materials[4].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/snow");
-	
-	m_Materials[5].SetName("Worn Shiny Metal");
-	m_Materials[5].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
-	m_Materials[5].SetMetalness(1.0f);
+	//m_Materials[0].SetName("Grass");
+	//m_Materials[0].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
+	//
+	//m_Materials[1].SetName("Dirt");
+	//m_Materials[1].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/dirt");
+	//
+	//m_Materials[2].SetName("Sand");
+	//m_Materials[2].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/sand");
+	//
+	//m_Materials[3].SetName("Rock");
+	//m_Materials[3].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/rock");
+	//
+	//m_Materials[4].SetName("Snow");
+	//m_Materials[4].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/snow");
+	//
+	//m_Materials[5].SetName("Worn Shiny Metal");
+	//m_Materials[5].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
+	//m_Materials[5].SetMetalness(1.0f);
 
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
@@ -100,7 +100,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_ShadowRasterDesc.AntialiasedLineEnable = false;
 	renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
 
-	camera->setPosition(0.0f, 5.0f, -5.0f);
+	camera->setPosition(33.0f, 6.0f, -9.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// create game objects
@@ -330,16 +330,16 @@ void App1::worldPass()
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
 
-	if (false) {
+	if (true) {
 		XMMATRIX w = worldMatrix * m_TerrainTransform.GetMatrix();
 
 		// Send geometry data, set shader parameters, render object with shader
 		m_Terrain->SendData(renderer->getDeviceContext());
-		m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Terrain->GetSRV(), nullptr, camera);
+		m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Terrain->GetSRV(), m_Lights[0], camera);
 		m_TerrainShader->Render(renderer->getDeviceContext(), m_Terrain->GetIndexCount());
 	}
 
-	if (true)
+	if (false)
 	{
 		for (auto& go : m_GameObjects)
 		{
@@ -353,7 +353,7 @@ void App1::worldPass()
 	}
 
 	// draw skybox
-	if (true)
+	if (m_DrawSkybox)
 	{
 		XMFLOAT3 eye = camera->getPosition();
 		XMMATRIX w = worldMatrix * XMMatrixTranslation(eye.x, eye.y, eye.z);
@@ -405,14 +405,6 @@ void App1::gui()
 {
 	if (ImGui::CollapsingHeader("General"))
 	{
-		static bool showDemo = false;
-		ImGui::Checkbox("Show demo", &showDemo);
-		if (showDemo)
-		{
-			ImGui::ShowDemoWindow();
-			return;
-		}
-
 		ImGui::Text("FPS: %.2f", timer->getFPS());
 		ImGui::Checkbox("Wireframe mode", &wireframeToggle);
 		ImGui::Separator();
@@ -423,6 +415,8 @@ void App1::gui()
 		XMFLOAT3 camRot = camera->getRotation();
 		if (ImGui::DragFloat3("Camera Rot", &camRot.x, 0.5f))
 			camera->setRotation(camRot.x, camRot.y, camRot.z);
+
+		ImGui::Checkbox("Draw Skybox", &m_DrawSkybox);
 	}
 	ImGui::Separator();
 

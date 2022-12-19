@@ -137,7 +137,7 @@ void TerrainShader::CreateBuffer(UINT byteWidth, ID3D11Buffer** ppBuffer)
 
 void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix,
-	ID3D11ShaderResourceView* heightmap, Light* light, Camera* camera)
+	ID3D11ShaderResourceView* heightmap, SceneLight* light, Camera* camera)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -173,9 +173,10 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	{
 		deviceContext->Map(m_LightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		LightBufferType* dataPtr = (LightBufferType*)mappedResource.pData;
-		dataPtr->diffuse = light->getDiffuseColour();
-		dataPtr->ambient = light->getAmbientColour();
-		dataPtr->direction = light->getDirection();
+		XMFLOAT3 c = light->GetColour();
+		dataPtr->diffuse = { c.x, c.y, c.z, 1.0f };
+		dataPtr->ambient = { 0.3f, 0.3f, 0.3f, 1.0f };
+		dataPtr->direction = light->GetDirection();
 		dataPtr->padding = 0.0f;
 		deviceContext->Unmap(m_LightBuffer, 0);
 	}

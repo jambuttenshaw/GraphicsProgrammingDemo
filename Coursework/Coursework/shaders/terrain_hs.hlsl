@@ -29,13 +29,14 @@ struct HSConstantOutput
 
 float3 ComputePatchMidpoint(float3 cp0, float3 cp1, float3 cp2, float3 cp3)
 {
-    return (cp0 + cp1 + cp2 + cp3) * 0.25f;
+    return (cp0 + cp1 + cp2 + cp3) / 4.0f;
 }
 
 float ComputeScaledDistance(float3 from, float3 to)
 {
     float d = distance(from, to);
-    return saturate((d - minMaxDistance.x) / (minMaxDistance.y - minMaxDistance.x));
+    //return (d - minMaxDistance.x) / (minMaxDistance.y - minMaxDistance.x);
+    return smoothstep(minMaxDistance.x, minMaxDistance.y, d);
 }
 
 float ComputePatchLOD(float3 midpoint)
@@ -89,7 +90,7 @@ HSConstantOutput PatchConstantFunction(InputPatch<VSOutputType, 12> ip, uint pat
 }
 
 [domain("quad")]
-[partitioning("fractional_even")]
+[partitioning("fractional_odd")]
 [outputtopology("triangle_cw")]
 [outputcontrolpoints(4)]
 [patchconstantfunc("PatchConstantFunction")]

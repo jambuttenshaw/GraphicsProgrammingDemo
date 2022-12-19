@@ -1,6 +1,6 @@
 #include "TerrainMesh.h"
 
-#define clamp(v, minimum, maximum) (max(min(v, maximum), minimum))
+#define clamp(v, minimum, maximum) (max(min((v), (maximum)), (minimum)))
 
 
 TerrainMesh::TerrainMesh(ID3D11Device* device)
@@ -83,19 +83,19 @@ void TerrainMesh::BuildMesh(ID3D11Device* device, unsigned int resolution, float
 
 			// 4-5 are +x   
 			indices[i + 4] = clamp(z + 0, 0, resolution) + clamp(x + 2, 0, resolution) * (resolution + 1);
-			indices[i + 5] = clamp(z + 0, 0, resolution) + clamp(x + 2, 0, resolution) * (resolution + 1);
+			indices[i + 5] = clamp(z + 1, 0, resolution) + clamp(x + 2, 0, resolution) * (resolution + 1);
 
 			// 6-7 are +z   
 			indices[i + 6] = clamp(z + 2, 0, resolution) + clamp(x + 0, 0, resolution) * (resolution + 1);
-			indices[i + 7] = clamp(z + 2, 0, resolution) + clamp(x + 0, 0, resolution) * (resolution + 1);
+			indices[i + 7] = clamp(z + 2, 0, resolution) + clamp(x + 1, 0, resolution) * (resolution + 1);
 
 			// 8-9 are -x   
 			indices[i + 8] = clamp(z + 0, 0, resolution) + clamp(x - 1, 0, resolution) * (resolution + 1);
-			indices[i + 9] = clamp(z + 0, 0, resolution) + clamp(x - 1, 0, resolution) * (resolution + 1);
+			indices[i + 9] = clamp(z + 1, 0, resolution) + clamp(x - 1, 0, resolution) * (resolution + 1);
 
 			// 10-11 are -z
 			indices[i + 10] = clamp(z - 1, 0, resolution) + clamp(x + 0, 0, resolution) * (resolution + 1);
-			indices[i + 11] = clamp(z - 1, 0, resolution) + clamp(x + 0, 0, resolution) * (resolution + 1);
+			indices[i + 11] = clamp(z - 1, 0, resolution) + clamp(x + 1, 0, resolution) * (resolution + 1);
 
 			i += 12;
 		}

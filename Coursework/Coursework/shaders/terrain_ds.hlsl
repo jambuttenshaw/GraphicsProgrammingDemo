@@ -39,7 +39,7 @@ float GetHeight(float2 pos)
 DSOutput main(HSConstantOutput input, float2 domainUV : SV_DomainLocation, const OutputPatch<HSControlPointOutput, 4> patch)
 {
 	DSOutput output;
-
+    
     output.worldPosition = lerp(lerp(patch[0].position, patch[1].position, domainUV.x),
                                 lerp(patch[2].position, patch[3].position, domainUV.x),
                                 domainUV.y);
