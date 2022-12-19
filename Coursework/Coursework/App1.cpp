@@ -36,57 +36,27 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	BaseApplication::init(hinstance, hwnd, screenWidth, screenHeight, in, VSYNC, FULL_SCREEN);
 
 	// Load textures
-	textureMgr->loadTexture(L"grass", L"res/grass.png");
-	textureMgr->loadTexture(L"dirt", L"res/dirt.png");
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	//textureMgr->loadTexture(L"grass_albedo", L"res/pbr/grass/albedo.png");
-	//textureMgr->loadTexture(L"grass_normal", L"res/pbr/grass/normal.png");
-	//textureMgr->loadTexture(L"grass_roughness", L"res/pbr/grass/roughness.png");
-	//
-	//textureMgr->loadTexture(L"dirt_albedo", L"res/pbr/dirt/albedo.png");
-	//textureMgr->loadTexture(L"dirt_normal", L"res/pbr/dirt/normal.png");
-	//textureMgr->loadTexture(L"dirt_roughness", L"res/pbr/dirt/roughness.png");
-	//
-	//textureMgr->loadTexture(L"sand_albedo", L"res/pbr/sand/albedo.png");
-	//textureMgr->loadTexture(L"sand_normal", L"res/pbr/sand/normal.png");
-	//textureMgr->loadTexture(L"sand_roughness", L"res/pbr/sand/roughness.png");
-
-	textureMgr->loadTexture(L"rock_albedo", L"res/pbr/rock/albedo.png");
-	textureMgr->loadTexture(L"rock_normal", L"res/pbr/rock/normal.png");
-	textureMgr->loadTexture(L"rock_roughness", L"res/pbr/rock/roughness.png");
-
-	//textureMgr->loadTexture(L"snow_albedo", L"res/pbr/snow/albedo.png");
-	//textureMgr->loadTexture(L"snow_normal", L"res/pbr/snow/normal.png");
-	//textureMgr->loadTexture(L"snow_roughness", L"res/pbr/snow/roughness.png");
-	//
-	textureMgr->loadTexture(L"shiny_metal_albedo", L"res/pbr/worn_shiny_metal/albedo.png");
-	textureMgr->loadTexture(L"shiny_metal_roughness", L"res/pbr/worn_shiny_metal/roughness.png");
-
-	//grassMat.SetAlbedoMap(textureMgr->getTexture(L"grass_albedo"));
-	//grassMat.SetNormalMap(textureMgr->getTexture(L"grass_normal"));
-	//grassMat.SetRoughnessMap(textureMgr->getTexture(L"grass_roughness"));
-	//
-	//dirtMat.SetAlbedoMap(textureMgr->getTexture(L"dirt_albedo"));
-	//dirtMat.SetNormalMap(textureMgr->getTexture(L"dirt_normal"));
-	//dirtMat.SetRoughnessMap(textureMgr->getTexture(L"dirt_roughness"));
-	//
-	//sandMat.SetAlbedoMap(textureMgr->getTexture(L"sand_albedo"));
-	//sandMat.SetNormalMap(textureMgr->getTexture(L"sand_normal"));
-	//sandMat.SetRoughnessMap(textureMgr->getTexture(L"sand_roughness"));
-
-	rockMat.SetAlbedoMap(textureMgr->getTexture(L"rock_albedo"));
-	rockMat.SetNormalMap(textureMgr->getTexture(L"rock_normal"));
-	rockMat.SetRoughnessMap(textureMgr->getTexture(L"rock_roughness"));
-
-	//snowMat.SetAlbedoMap(textureMgr->getTexture(L"snow_albedo"));
-	//snowMat.SetNormalMap(textureMgr->getTexture(L"snow_normal"));
-	//snowMat.SetRoughnessMap(textureMgr->getTexture(L"snow_roughness"));
-	//
-	shinyMetalMat.SetAlbedoMap(textureMgr->getTexture(L"shiny_metal_albedo"));
-	shinyMetalMat.SetRoughnessMap(textureMgr->getTexture(L"shiny_metal_roughness"));
-	shinyMetalMat.SetMetalness(1.0f);
+	m_Materials[0].SetName("Grass");
+	m_Materials[0].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
+	
+	m_Materials[1].SetName("Dirt");
+	m_Materials[1].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/dirt");
+	
+	m_Materials[2].SetName("Sand");
+	m_Materials[2].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/sand");
+	
+	m_Materials[3].SetName("Rock");
+	m_Materials[3].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/rock");
+	
+	m_Materials[4].SetName("Snow");
+	m_Materials[4].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/snow");
+	
+	m_Materials[5].SetName("Worn Shiny Metal");
+	m_Materials[5].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
+	m_Materials[5].SetMetalness(1.0f);
 
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
@@ -101,10 +71,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_BloomShader = new BloomShader(renderer->getDevice(), screenWidth / 2, screenHeight / 2, 5);
 	m_FinalPassShader = new FinalPassShader(renderer->getDevice());
 
-	m_SrcRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
-	m_DstRenderTarget = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
-
-	m_OutputMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), screenWidth, screenHeight);
+	m_SceneRenderTexture = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 
 	m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
 		"res/skybox/right.png", "res/skybox/left.png", 
@@ -137,12 +104,14 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// create game objects
-	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &shinyMetalMat });
-	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &shinyMetalMat });
-	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &shinyMetalMat });
-	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &shinyMetalMat });
-	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &shinyMetalMat });
-	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &shinyMetalMat });
+	Material* rockMat = GetMaterialByName("Rock");
+	Material* shinyMetalMat = GetMaterialByName("Worn Shiny Metal");
+	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
+	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
+	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
+	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
+	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
+	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -189,8 +158,7 @@ App1::~App1()
 	if (m_TerrainShader) delete m_TerrainShader;
 	if (m_LightShader) delete m_LightShader;
 
-	if (m_SrcRenderTarget) delete m_SrcRenderTarget;
-	if (m_DstRenderTarget) delete m_DstRenderTarget;
+	if (m_SceneRenderTexture) delete m_SceneRenderTexture;
 
 	for (auto filter : m_HeightmapFilters)
 	{
@@ -224,12 +192,10 @@ bool App1::frame()
 
 bool App1::render()
 {
-	// Clear the scene. (default blue colour)
-	renderer->beginScene(0.39f, 0.58f, 0.92f, 1.0f);
-
 	// Generate the view matrix based on the camera's position.
 	camera->update();
 
+	// shadow passes
 	renderer->getDeviceContext()->RSSetState(m_ShadowRasterizerState);
 	for (auto light : m_Lights)
 	{
@@ -237,46 +203,44 @@ bool App1::render()
 			depthPass(light);
 	}
 	renderer->resetViewport();
-	renderer->setWireframeMode(wireframeToggle);
+	renderer->setWireframeMode(wireframeToggle); // resets raster state
 
+	// render to a texture if post processing is enabled
+	if (m_EnablePostProcessing)
+	{
+		m_SceneRenderTexture->Clear(renderer->getDeviceContext(), m_ClearColour);
+		m_SceneRenderTexture->Set(renderer->getDeviceContext());
+	}
+	else
+	{
+		renderer->beginScene(m_ClearColour.x, m_ClearColour.y, m_ClearColour.z, m_ClearColour.w);
+		renderer->setBackBufferRenderTarget();
+	}
 
-	m_DstRenderTarget->Clear(renderer->getDeviceContext(), { 0.39f, 0.58f, 0.92f, 1.0f });
-	m_DstRenderTarget->Set(renderer->getDeviceContext());
-
+	// draw everything in the world
 	worldPass();
 
 	if (m_LightDebugSpheres) renderLightDebugSpheres();
 
+
 	// post processing
 	renderer->setZBuffer(false);
-	if (!wireframeToggle && m_EnablePostProcessing)
+	if (m_EnablePostProcessing)
 	{
+		// output to backbuffer
+		renderer->setBackBufferRenderTarget();
+
 		// water is a post-processing effect and rendered afterwards
 		//waterPass();
 		
-		SwitchRenderTarget();
+		m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetWidth(), m_SceneRenderTexture->GetHeight());
+		m_BloomShader->Run(renderer->getDeviceContext(), m_SceneRenderTexture->GetColourSRV());
 
-		m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetWidth(), m_SrcRenderTarget->GetHeight());
-		m_BloomShader->Run(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV());
-
-		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), m_SrcRenderTarget->GetWidth(), m_SrcRenderTarget->GetHeight(), m_BloomShader->GetSRV(), m_BloomShader->GetLevels(), m_BloomShader->GetStrength());
+		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), m_SceneRenderTexture->GetWidth(), m_SceneRenderTexture->GetHeight(), m_BloomShader->GetSRV(), m_BloomShader->GetLevels(), m_BloomShader->GetStrength());
 		m_FinalPassShader->Render(renderer->getDeviceContext());
-
 	}
 
-	XMMATRIX worldMatrix = renderer->getWorldMatrix();
-	XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	// Default camera position for orthographic rendering
-	XMMATRIX orthoMatrix = renderer->getOrthoMatrix();			// ortho matrix for 2D rendering
-
-	// output to backbuffer
-	renderer->setBackBufferRenderTarget();
-	{
-		m_OutputMesh->sendData(renderer->getDeviceContext());
-		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, m_DstRenderTarget->GetColourSRV());
-		m_TextureShader->render(renderer->getDeviceContext(), m_OutputMesh->getIndexCount());
-	}
-
-	// Render ortho mesh
+	// Debug: draw shadow map on the screen
 	if (m_ShowShadowMap && m_Lights[m_SelectedShadowMap]->IsShadowsEnabled())
 	{
 		m_ShadowMapMesh->sendData(renderer->getDeviceContext());
@@ -285,6 +249,11 @@ bool App1::render()
 			shadowmapSRV = m_Lights[m_SelectedShadowMap]->GetShadowCubemap()->GetSRV(m_SelectedShadowCubemapFace);
 		else
 			m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV();
+
+		XMMATRIX worldMatrix = renderer->getWorldMatrix();
+		XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	
+		XMMATRIX orthoMatrix = renderer->getOrthoMatrix();			
+
 		m_TextureShader->setShaderParameters(renderer->getDeviceContext(), worldMatrix, orthoViewMatrix, orthoMatrix, shadowmapSRV);
 		m_TextureShader->render(renderer->getDeviceContext(), m_ShadowMapMesh->getIndexCount());
 	}
@@ -396,14 +365,6 @@ void App1::worldPass()
 	}
 }
 
-void App1::SwitchRenderTarget()
-{
-	RenderTarget* temp = m_SrcRenderTarget;
-	m_SrcRenderTarget = m_DstRenderTarget;
-	m_DstRenderTarget = temp;
-
-	m_DstRenderTarget->Set(renderer->getDeviceContext());
-}
 
 void App1::waterPass()
 {
@@ -414,7 +375,7 @@ void App1::waterPass()
 
 	{
 		renderer->setZBuffer(false);
-		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SrcRenderTarget->GetColourSRV(), m_SrcRenderTarget->GetDepthSRV(), nullptr, camera, m_Time);
+		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetDepthSRV(), nullptr, camera, m_Time);
 		m_WaterShader->Render(renderer->getDeviceContext());
 		renderer->setZBuffer(true);
 	}
@@ -566,23 +527,14 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Materials"))
 	{
-		if (ImGui::TreeNode("Rock"))
+		for (auto& material : m_Materials)
 		{
-			rockMat.SettingsGUI();
-			ImGui::TreePop();
+			if (ImGui::TreeNode(material.GetName().c_str()))
+			{
+				material.SettingsGUI();
+				ImGui::TreePop();
+			}
 		}
-		/*
-		if (ImGui::TreeNode("Material 2"))
-		{
-			mat2.SettingsGUI();
-			ImGui::TreePop();
-		}
-		if (ImGui::TreeNode("Material 3"))
-		{
-			mat3.SettingsGUI();
-			ImGui::TreePop();
-		}
-		*/
 	}
 	ImGui::Separator();
 
@@ -806,4 +758,14 @@ void App1::loadSettings(const std::string& file)
 
 	if (data.contains("waterSettings")) m_WaterShader->LoadFromJson(data["waterSettings"]);
 	if (data.contains("terrainSettings")) m_TerrainShader->LoadFromJson(data["terrainSettings"]);
+}
+
+Material* App1::GetMaterialByName(const std::string& name)
+{
+	for (auto& mat : m_Materials)
+	{
+		if (mat.GetName() == name)
+			return &mat;
+	}
+	return nullptr;
 }

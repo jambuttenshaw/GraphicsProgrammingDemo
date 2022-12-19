@@ -42,8 +42,6 @@ float Remap(float x, float cross_over_point, float4 toe_coeffs, float4 shoulder_
 	return fraction.x / fraction.y;
 }
 
-// static const float MIDDLE_GRAY = 0.72f;
-// static const float LUM_WHITE = 1.5f;
 
 float4 main(InputType input) : SV_TARGET
 {
@@ -60,7 +58,7 @@ float4 main(InputType input) : SV_TARGET
     color += bloom * bloomStrength;
 	
 	float luminance = dot(color, LUM_VECTOR.rgb);
-    float fLum = lum[0] * avgLumFactor;
+	float fLum = lum[0] * avgLumFactor;
 	
 	float k = CalculateK();
 	
@@ -78,14 +76,10 @@ float4 main(InputType input) : SV_TARGET
 		s,
 		w * (1.0f - s) - c
 	};
-	
-    float newLuminance = Remap(luminance / fLum, c, toe_coeffs, shoulder_coeffs);
-	
-    color *= newLuminance / luminance;
-	
-    // color *= MIDDLE_GRAY / (fLum + 0.001f);
-    // color *= (1.0f + color / LUM_WHITE);
-    // color /= (1.0f + color);
+
+	float newLuminance = Remap(luminance / fLum, c, toe_coeffs, shoulder_coeffs);
+
+	color *= newLuminance / luminance;
 	
 	return float4(color, 1.0f);
 }

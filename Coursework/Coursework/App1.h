@@ -51,10 +51,7 @@ protected:
 	// passes
 	void depthPass(SceneLight* light);
 	void worldPass();
-
-	// post processing
-	void SwitchRenderTarget();
-
+	
 	void waterPass();
 
 	void renderLightDebugSpheres();
@@ -68,6 +65,8 @@ protected:
 
 	void saveSettings(const std::string& file);
 	void loadSettings(const std::string& file);
+
+	Material* GetMaterialByName(const std::string& name);
 
 private:
 	float m_Time = 0.0f;
@@ -84,9 +83,8 @@ private:
 	FinalPassShader* m_FinalPassShader = nullptr;
 
 	// render targets
-	RenderTarget* m_SrcRenderTarget = nullptr;
-	RenderTarget* m_DstRenderTarget = nullptr;
-	OrthoMesh* m_OutputMesh = nullptr;
+	RenderTarget* m_SceneRenderTexture = nullptr;
+	const XMFLOAT4 m_ClearColour{ 1.0f, 0.0f, 1.0f, 1.0f };
 
 	// environment
 	GlobalLighting* m_GlobalLighting = nullptr;
@@ -117,7 +115,7 @@ private:
 	int m_SelectedShadowCubemapFace = 0;
 	OrthoMesh* m_ShadowMapMesh = nullptr;
 
-	Material grassMat, sandMat, dirtMat, rockMat, snowMat, shinyMetalMat;
+	std::array<Material, 6> m_Materials;
 
 	// post processing
 	bool m_EnablePostProcessing = true;

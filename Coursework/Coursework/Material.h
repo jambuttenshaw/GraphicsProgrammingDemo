@@ -4,6 +4,8 @@
 #include <DirectXMath.h>
 using namespace DirectX;
 
+#include <string>
+
 
 class Material
 {
@@ -13,7 +15,12 @@ public:
 
 	void SettingsGUI();
 
+	void LoadPBRFromDir(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::wstring& dir);
+
 	// getters and setters
+	inline void SetName(const std::string& s) { m_Name = s; }
+	inline const std::string& GetName() const { return m_Name; }
+
 	inline void SetAlbedo(const XMFLOAT3& albedo) { m_Albedo = albedo; }
 	inline const XMFLOAT3 GetAlbedo() const { return m_Albedo; }
 
@@ -36,6 +43,14 @@ public:
 	inline ID3D11ShaderResourceView* GetNormalMap() const { return m_NormalMap; }
 
 private:
+
+	bool DoesFileExist(const wchar_t* filename) const;
+	// loads texture at filename and stores a pointer to it in srv
+	void LoadTexture(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const wchar_t* filename, ID3D11ShaderResourceView** srv);
+
+private:
+	std::string m_Name = "Unnamed Material";
+
 	XMFLOAT3 m_Albedo{ 1.0f, 1.0f, 1.0f };
 	ID3D11ShaderResourceView* m_AlbedoMap = nullptr;
 	bool m_UseAlbedoMap = true;
