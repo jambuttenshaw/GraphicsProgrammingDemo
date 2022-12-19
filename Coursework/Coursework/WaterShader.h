@@ -2,6 +2,7 @@
 
 #include "DXF.h"
 #include "BaseFullScreenShader.h"
+#include "SceneLight.h"
 
 #include <nlohmann/json.hpp>
 
@@ -46,7 +47,7 @@ public:
 	WaterShader(ID3D11Device* device, ID3D11ShaderResourceView* normalMapA, ID3D11ShaderResourceView* normalMapB);
 	~WaterShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& view, const XMMATRIX& projection, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth, Light* light, Camera* camera, float time);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& view, const XMMATRIX& projection, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth, SceneLight* light, Camera* camera, float time);
 
 	void SettingsGUI();
 

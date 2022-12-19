@@ -39,30 +39,30 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	//m_Materials[0].SetName("Grass");
-	//m_Materials[0].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
-	//
-	//m_Materials[1].SetName("Dirt");
-	//m_Materials[1].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/dirt");
-	//
-	//m_Materials[2].SetName("Sand");
-	//m_Materials[2].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/sand");
-	//
-	//m_Materials[3].SetName("Rock");
-	//m_Materials[3].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/rock");
-	//
-	//m_Materials[4].SetName("Snow");
-	//m_Materials[4].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/snow");
-	//
-	//m_Materials[5].SetName("Worn Shiny Metal");
-	//m_Materials[5].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
-	//m_Materials[5].SetMetalness(1.0f);
+	m_Materials[0].SetName("Grass");
+	m_Materials[0].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
+	
+	m_Materials[1].SetName("Dirt");
+	m_Materials[1].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/dirt");
+	
+	m_Materials[2].SetName("Sand");
+	m_Materials[2].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/sand");
+	
+	m_Materials[3].SetName("Rock");
+	m_Materials[3].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/rock");
+	
+	m_Materials[4].SetName("Snow");
+	m_Materials[4].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/snow");
+	
+	m_Materials[5].SetName("Worn Shiny Metal");
+	m_Materials[5].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
+	m_Materials[5].SetMetalness(1.0f);
 
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
-	m_TerrainShader = new TerrainShader(renderer->getDevice());
+	m_TerrainShader = new TerrainShader(renderer->getDevice(), m_GlobalLighting);
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 	m_TextureShader = new TextureShader(renderer->getDevice(), hwnd);
 	
@@ -72,6 +72,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_FinalPassShader = new FinalPassShader(renderer->getDevice());
 
 	m_SceneRenderTexture = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
+	m_WaterRenderTexture = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 
 	m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
 		"res/skybox/right.png", "res/skybox/left.png", 
@@ -128,7 +129,6 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.SetPosition({ 1, 4, -5 });
 	light.SetIntensity(2.0f);
 	light.SetRange(20.0f);
-	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
@@ -138,7 +138,6 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetYaw(XMConvertToRadians(-10.0f));
 	light2.SetPitch(XMConvertToRadians(-40.0f));
 	light2.SetIntensity(0.8f);
-	light2.EnableShadows();
 	
 	if (m_LoadOnOpen)
 	{
@@ -159,6 +158,7 @@ App1::~App1()
 	if (m_LightShader) delete m_LightShader;
 
 	if (m_SceneRenderTexture) delete m_SceneRenderTexture;
+	if (m_WaterRenderTexture) delete m_WaterRenderTexture;
 
 	for (auto filter : m_HeightmapFilters)
 	{
@@ -222,21 +222,21 @@ bool App1::render()
 
 	if (m_LightDebugSpheres) renderLightDebugSpheres();
 
-
 	// post processing
 	renderer->setZBuffer(false);
 	if (m_EnablePostProcessing)
 	{
-		// output to backbuffer
+		// water is a post-processing effect and rendered afterwards
+		waterPass();
+
+		RenderTarget* outputRT = m_WaterRenderTexture;
+		// output to backbuffer for final pass
 		renderer->setBackBufferRenderTarget();
 
-		// water is a post-processing effect and rendered afterwards
-		//waterPass();
-		
-		m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetWidth(), m_SceneRenderTexture->GetHeight());
-		m_BloomShader->Run(renderer->getDeviceContext(), m_SceneRenderTexture->GetColourSRV());
+		m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), outputRT->GetColourSRV(), outputRT->GetWidth(), outputRT->GetHeight());
+		m_BloomShader->Run(renderer->getDeviceContext(), outputRT->GetColourSRV());
 
-		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), m_SceneRenderTexture->GetWidth(), m_SceneRenderTexture->GetHeight(), m_BloomShader->GetSRV(), m_BloomShader->GetLevels(), m_BloomShader->GetStrength());
+		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), outputRT->GetColourSRV(), outputRT->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), outputRT->GetWidth(), outputRT->GetHeight(), m_BloomShader->GetSRV(), m_BloomShader->GetLevels(), m_BloomShader->GetStrength());
 		m_FinalPassShader->Render(renderer->getDeviceContext());
 	}
 
@@ -335,7 +335,7 @@ void App1::worldPass()
 
 		// Send geometry data, set shader parameters, render object with shader
 		m_Terrain->SendData(renderer->getDeviceContext());
-		m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Terrain->GetSRV(), m_Lights[0], camera);
+		m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Terrain->GetSRV(), m_Lights.size(), m_Lights.data(), camera, GetMaterialByName("Snow"));
 		m_TerrainShader->Render(renderer->getDeviceContext(), m_Terrain->GetIndexCount());
 	}
 
@@ -373,12 +373,11 @@ void App1::waterPass()
 	XMMATRIX viewMatrix = camera->getViewMatrix();
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
-	{
-		renderer->setZBuffer(false);
-		m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetDepthSRV(), nullptr, camera, m_Time);
-		m_WaterShader->Render(renderer->getDeviceContext());
-		renderer->setZBuffer(true);
-	}
+	m_WaterRenderTexture->Clear(renderer->getDeviceContext(), m_ClearColour);
+	m_WaterRenderTexture->Set(renderer->getDeviceContext());
+
+	m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetDepthSRV(), m_Lights[1], camera, m_Time);
+	m_WaterShader->Render(renderer->getDeviceContext());
 }
 
 void App1::renderLightDebugSpheres()

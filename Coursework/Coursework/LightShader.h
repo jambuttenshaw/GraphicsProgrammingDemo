@@ -10,7 +10,7 @@ using namespace std;
 using namespace DirectX;
 
 #define MAX_LIGHTS 4
-#define TEX_BUFFER_SIZE 8
+#define TEX_BUFFER_SIZE 16
 
 class GlobalLighting;
 

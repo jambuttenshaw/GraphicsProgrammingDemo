@@ -71,7 +71,7 @@ void WaterShader::UnbindShaderResources(ID3D11DeviceContext* deviceContext)
 	deviceContext->PSSetSamplers(0, 1, &nullSampler);
 }
 
-void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth, Light* light, Camera* camera, float time)
+void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth, SceneLight* light, Camera* camera, float time)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -118,10 +118,11 @@ void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 	LightBufferType* lightPtr;
 	deviceContext->Map(m_LightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	lightPtr = (LightBufferType*)mappedResource.pData;
-	lightPtr->diffuse = light->getDiffuseColour();
-	lightPtr->ambient = light->getAmbientColour();
-	lightPtr->specular = light->getSpecularColour();
-	lightPtr->direction = light->getDirection();
+	auto c = light->GetColour();
+	lightPtr->diffuse = { c.x, c.y, c.z, 1.0f };
+	lightPtr->ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
+	lightPtr->specular = { c.x, c.y, c.z, 1.0f };
+	lightPtr->direction = light->GetDirection();
 	lightPtr->padding = 0.0f;
 	deviceContext->Unmap(m_LightBuffer, 0);
 	deviceContext->PSSetConstantBuffers(1, 1, &m_LightBuffer);

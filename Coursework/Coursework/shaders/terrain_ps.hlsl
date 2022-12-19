@@ -1,31 +1,44 @@
 // Terrain Pixel Shader
 
-#include "math.hlsli"
+#include "lighting.hlsli"
 
-Texture2D heightmap : register(t0);
-SamplerState heightmapSampler : register(s0);
+// textures
+Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
+TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t16);
 
+SamplerState bilinearSampler : register(s0);
+SamplerState trilinearSampler : register(s1);
+SamplerState anisotropicSampler : register(s2);
+SamplerComparisonState shadowSampler : register(s3);
+SamplerState heightmapSampler : register(s4);
+
+// lighting
 cbuffer LightBuffer : register(b0)
 {
-	float4 diffuseColour;
-	float4 ambientColour;
-	float3 lightDirection;
-	float padding0;
+    LightBuffer lighting;
 };
 
-cbuffer TerrainBuffer : register(b1)
+// materials
+cbuffer MaterialBuffer : register(b1)
 {
+    const MaterialData materialData;
+};
+
+cbuffer TerrainBuffer : register(b2)
+{
+    int heightmapIndex;
     float flatThreshold;
     float cliffThreshold;
     float steepnessSmoothing;
-    float padding1;
 };
 
 struct InputType
 {
 	float4 position : SV_POSITION;
 	float2 tex : TEXCOORD0;
-    float3 worldPosition : POSITION;
+    float3 worldPosition : POSITION0;
+    float3 viewDir : POSITION1;
+    float4 lightViewPos[MAX_LIGHTS] : POSITION2;
 };
 
 float3 calculateNormal(float2 pos)
@@ -41,34 +54,26 @@ float3 calculateNormal(float2 pos)
     float2 topTex = pos - float2(0.0f, gTexelCellSpaceV);
     float2 bottomTex = pos + float2(0.0f, gTexelCellSpaceV);
 	
-    float leftY = heightmap.SampleLevel(heightmapSampler, leftTex, 0).r;
-    float rightY = heightmap.SampleLevel(heightmapSampler, rightTex, 0).r;
-    float topY = heightmap.SampleLevel(heightmapSampler, topTex, 0).r;
-    float bottomY = heightmap.SampleLevel(heightmapSampler, bottomTex, 0).r;
+    
+    float leftY      = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, leftTex, 0).r;
+    float rightY     = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, rightTex, 0).r;
+    float topY       = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, topTex, 0).r;
+    float bottomY    = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, bottomTex, 0).r;
 	
     float3 tangent = normalize(float3(2.0f * gWorldCellSpace, rightY - leftY, 0.0f));
     float3 bitangent = normalize(float3(0.0f, bottomY - topY, -2.0f * gWorldCellSpace));
     return normalize(cross(tangent, bitangent));
 }
 
-// Calculate lighting intensity based on direction and normal. Combine with light colour.
-float4 calculateDiffuse(float3 lightDirection, float3 normal, float4 diffuse)
-{
-	float intensity = saturate(dot(normal, lightDirection));
-	float4 colour = saturate(diffuse * intensity);
-	return colour;
-}
-
 float4 main(InputType input) : SV_TARGET
 {
-    float3 normal = calculateNormal(input.tex);
-	
-    // lighting:
-    float4 lightColour = ambientColour + calculateDiffuse(-normalize(lightDirection), normal, diffuseColour);
+    float3 n = calculateNormal(input.tex);
+    float3 v = -normalize(input.viewDir);
     
+    /*
     // steepness:
     // global up is always (0, 1, 0), so dot(normal, worldNormal) simplifies to normal.y
-    float steepness = 1 - normal.y;
+    float steepness = 1 - n.y;
     
     float transitionA = steepnessSmoothing * (1 - flatThreshold);
     float transitionB = steepnessSmoothing * (1 - cliffThreshold);
@@ -102,9 +107,16 @@ float4 main(InputType input) : SV_TARGET
         groundColour = lerp(flatColour, slopeColour, remap01(steepnessStrength, 0.0f, 0.5f));
     else
         groundColour = lerp(slopeColour, cliffColour, remap01(steepnessStrength, 0.5f, 1.0f));
-    
-    return lightColour * float4(groundColour, 1.0f);
-}
+    */    
 
+    // lighting
+    float3 color = calculateLighting(input.worldPosition, input.lightViewPos, n, v, input.tex,
+        materialData,
+        lighting,
+        texture2DBuffer, textureCubeBuffer,
+        bilinearSampler, trilinearSampler, anisotropicSampler, shadowSampler);
+    
+    return float4(color, 1.0f);
+}
 
 
