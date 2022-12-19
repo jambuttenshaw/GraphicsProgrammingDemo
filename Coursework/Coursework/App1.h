@@ -21,13 +21,15 @@ class IHeightmapFilter;
 
 class LightShader;
 class TerrainShader;
-class UnlitShader;
 class TextureShader;
 
-class FinalPassShader;
+class UnlitShader;
+class UnlitTerrainShader;
+
 class WaterShader;
 class MeasureLuminanceShader;
 class BloomShader;
+class FinalPassShader;
 
 class GlobalLighting;
 class Cubemap;
@@ -74,8 +76,10 @@ private:
 	// Shaders
 	LightShader* m_LightShader = nullptr;
 	TerrainShader* m_TerrainShader = nullptr;
-	UnlitShader* m_UnlitShader = nullptr;
 	TextureShader* m_TextureShader = nullptr;
+	
+	UnlitShader* m_UnlitShader = nullptr;
+	UnlitTerrainShader* m_UnlitTerrainShader = nullptr;
 
 	WaterShader* m_WaterShader = nullptr;
 	MeasureLuminanceShader* m_MeasureLuminenceShader = nullptr;
@@ -94,13 +98,11 @@ private:
 	int m_SelectedSkybox = 0;
 	bool m_DrawSkybox = true;
 
-	Transform m_TerrainTransform;
-	TerrainMesh* m_Terrain = nullptr;
-	
 	// meshes
 	CubeMesh* m_CubeMesh = nullptr;
 	SphereMesh* m_SphereMesh = nullptr;
 	PlaneMesh* m_PlaneMesh = nullptr;
+	TerrainMesh* m_TerrainMesh = nullptr;
 
 	// game objects
 	std::vector<GameObject> m_GameObjects;

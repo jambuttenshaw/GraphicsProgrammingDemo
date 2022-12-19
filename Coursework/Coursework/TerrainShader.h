@@ -107,6 +107,9 @@ public:
 
 	void GUI();
 
+	inline const XMFLOAT2& GetMinMaxDist() const { return m_MinMaxDistance; }
+	inline const XMFLOAT2& GetMinMaxLOD() const { return m_MinMaxLOD; }
+
 	nlohmann::json Serialize() const;
 	void LoadFromJson(const nlohmann::json& data);
 

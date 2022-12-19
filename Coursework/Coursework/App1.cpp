@@ -4,8 +4,10 @@
 
 #include "LightShader.h"
 #include "TerrainShader.h"
-#include "UnlitShader.h"
 #include "TextureShader.h"
+
+#include "UnlitShader.h"
+#include "UnlitTerrainShader.h"
 
 #include "WaterShader.h"
 #include "MeasureLuminanceShader.h"
@@ -24,7 +26,7 @@
 
 App1::App1()
 {
-	m_Terrain = nullptr;
+	m_TerrainMesh = nullptr;
 	m_TerrainShader = nullptr;
 
 	strcpy_s(m_SaveFilePath, "res/settings/earth.json");
@@ -63,8 +65,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
 	m_TerrainShader = new TerrainShader(renderer->getDevice(), m_GlobalLighting);
-	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 	m_TextureShader = new TextureShader(renderer->getDevice(), hwnd);
+	
+	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
+	m_UnlitTerrainShader = new UnlitTerrainShader(renderer->getDevice());
 	
 	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_MeasureLuminenceShader = new MeasureLuminanceShader(renderer->getDevice(), screenWidth, screenHeight);
@@ -82,12 +86,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
 
-	m_Terrain = new TerrainMesh(renderer->getDevice());
-
 	m_CubeMesh = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_SphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 40);
 	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
+	m_TerrainMesh = new TerrainMesh(renderer->getDevice());
 
 	m_ShadowRasterDesc.FillMode = D3D11_FILL_SOLID;
 	m_ShadowRasterDesc.CullMode = D3D11_CULL_BACK;
@@ -105,6 +108,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// create game objects
+	/*
 	Material* rockMat = GetMaterialByName("Rock");
 	Material* shinyMetalMat = GetMaterialByName("Worn Shiny Metal");
 	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
@@ -113,6 +117,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
 	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
 	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
+	*/
+	m_GameObjects.push_back({ m_TerrainMesh, GetMaterialByName("Rock") });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -153,7 +159,7 @@ App1::~App1()
 	if (m_SaveOnExit) saveSettings(std::string(m_SaveFilePath));
 
 	// Release the Direct3D object.
-	if (m_Terrain) delete m_Terrain;
+	if (m_TerrainMesh) delete m_TerrainMesh;
 	if (m_TerrainShader) delete m_TerrainShader;
 	if (m_LightShader) delete m_LightShader;
 
@@ -315,9 +321,21 @@ void App1::depthPass(SceneLight* light)
 			if (!go.castsShadows) continue;
 
 			XMMATRIX w = worldMatrix * go.transform.GetMatrix();
-			go.mesh->sendData(renderer->getDeviceContext());
-			m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix);
-			m_UnlitShader->render(renderer->getDeviceContext(), go.mesh->getIndexCount());
+			switch (go.meshType)
+			{
+			case GameObject::MeshType::Regular:
+				go.mesh.regular->sendData(renderer->getDeviceContext());
+				m_UnlitShader->setShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix);
+				m_UnlitShader->render(renderer->getDeviceContext(), go.mesh.regular->getIndexCount());
+				break;
+			case GameObject::MeshType::Terrain:
+				go.mesh.terrain->SendData(renderer->getDeviceContext());
+				m_UnlitTerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix, go.mesh.terrain->GetSRV(), camera, m_TerrainShader->GetMinMaxDist(), m_TerrainShader->GetMinMaxLOD() );
+				m_UnlitTerrainShader->Render(renderer->getDeviceContext(), go.mesh.terrain->GetIndexCount());
+				break;
+			default:
+				break;
+			}
 		}
 	}
 }
@@ -330,25 +348,25 @@ void App1::worldPass()
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
 
-	if (true) {
-		XMMATRIX w = worldMatrix * m_TerrainTransform.GetMatrix();
-
-		// Send geometry data, set shader parameters, render object with shader
-		m_Terrain->SendData(renderer->getDeviceContext());
-		m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Terrain->GetSRV(), m_Lights.size(), m_Lights.data(), camera, GetMaterialByName("Snow"));
-		m_TerrainShader->Render(renderer->getDeviceContext(), m_Terrain->GetIndexCount());
-	}
-
-	if (false)
+	for (auto& go : m_GameObjects)
 	{
-		for (auto& go : m_GameObjects)
-		{
-			if (!go.castsShadows) continue;
+		if (!go.castsShadows) continue;
 
-			XMMATRIX w = worldMatrix * go.transform.GetMatrix();
-			go.mesh->sendData(renderer->getDeviceContext());
+		XMMATRIX w = worldMatrix * go.transform.GetMatrix();
+		switch (go.meshType)
+		{
+		case GameObject::MeshType::Regular:
+			go.mesh.regular->sendData(renderer->getDeviceContext());
 			m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, go.material);
-			m_LightShader->render(renderer->getDeviceContext(), go.mesh->getIndexCount());
+			m_LightShader->render(renderer->getDeviceContext(), go.mesh.regular->getIndexCount());
+			break;
+		case GameObject::MeshType::Terrain:
+			go.mesh.terrain->SendData(renderer->getDeviceContext());
+			m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, go.mesh.terrain->GetSRV(), m_Lights.size(), m_Lights.data(), camera, go.material);
+			m_TerrainShader->Render(renderer->getDeviceContext(), go.mesh.terrain->GetIndexCount());
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -672,7 +690,7 @@ void App1::applyFilterStack()
 {
 	for (auto filter : m_HeightmapFilters)
 	{
-		filter->Run(renderer->getDeviceContext(), m_Terrain->GetUAV(), m_Terrain->GetHeightmapResolution());
+		filter->Run(renderer->getDeviceContext(), m_TerrainMesh->GetUAV(), m_TerrainMesh->GetHeightmapResolution());
 	}
 }
 
