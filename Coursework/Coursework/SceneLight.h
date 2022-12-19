@@ -56,7 +56,7 @@ public:
 	const XMMATRIX& GetProjectionMatrix() const;
 	void GenerateViewMatrix();
 	void GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane);
-	void GeneratePerspectiveMatrix(float nearPlane);
+	void GeneratePerspectiveMatrix(float nearPlane, float farPlane);
 
 	void GetPointLightViewMatrices(XMMATRIX* matArray);
 	

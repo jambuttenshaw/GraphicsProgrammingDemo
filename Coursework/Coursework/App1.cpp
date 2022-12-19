@@ -90,7 +90,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_SphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 40);
 	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
-	m_TerrainMesh = new TerrainMesh(renderer->getDevice());
+	m_TerrainMesh = new TerrainMesh(renderer->getDevice(), 25, 50.0f);
 
 	m_ShadowRasterDesc.FillMode = D3D11_FILL_SOLID;
 	m_ShadowRasterDesc.CullMode = D3D11_CULL_BACK;
@@ -129,7 +129,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// setup default light settings
 	SceneLight& light = *(m_Lights[0]);
-	light.SetEnbled(true);
+	//light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
 	light.SetPosition({ 1, 4, -5 });
@@ -139,11 +139,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	SceneLight& light2 = *(m_Lights[1]);
 	light2.SetEnbled(true);
 	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
-	light2.SetPosition({ 0, 10, 0 });
+	light2.SetPosition({ 0, 15.5f, -15.5f });
 	light2.SetType(SceneLight::LightType::Directional);
-	light2.SetYaw(XMConvertToRadians(-10.0f));
-	light2.SetPitch(XMConvertToRadians(-40.0f));
-	light2.SetIntensity(0.8f);
+	light2.SetYaw(XMConvertToRadians(0.0f));
+	light2.SetPitch(XMConvertToRadians(-45.0f));
+	light2.SetIntensity(1.3f);
+	light2.EnableShadows();
 	
 	if (m_LoadOnOpen)
 	{
@@ -254,7 +255,7 @@ bool App1::render()
 		if (m_Lights[m_SelectedShadowMap]->GetType() == SceneLight::LightType::Point)
 			shadowmapSRV = m_Lights[m_SelectedShadowMap]->GetShadowCubemap()->GetSRV(m_SelectedShadowCubemapFace);
 		else
-			m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV();
+			shadowmapSRV = m_Lights[m_SelectedShadowMap]->GetShadowMap()->getDepthMapSRV();
 
 		XMMATRIX worldMatrix = renderer->getWorldMatrix();
 		XMMATRIX orthoViewMatrix = camera->getOrthoViewMatrix();	
@@ -330,7 +331,7 @@ void App1::depthPass(SceneLight* light)
 				break;
 			case GameObject::MeshType::Terrain:
 				go.mesh.terrain->SendData(renderer->getDeviceContext());
-				m_UnlitTerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix, go.mesh.terrain->GetSRV(), camera, m_TerrainShader->GetMinMaxDist(), m_TerrainShader->GetMinMaxLOD() );
+				m_UnlitTerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix, go.mesh.terrain->GetSRV(), camera->getPosition(), m_TerrainShader->GetMinMaxDist(), m_TerrainShader->GetMinMaxLOD() );
 				m_UnlitTerrainShader->Render(renderer->getDeviceContext(), go.mesh.terrain->GetIndexCount());
 				break;
 			default:
@@ -350,8 +351,6 @@ void App1::worldPass()
 
 	for (auto& go : m_GameObjects)
 	{
-		if (!go.castsShadows) continue;
-
 		XMMATRIX w = worldMatrix * go.transform.GetMatrix();
 		switch (go.meshType)
 		{
@@ -437,7 +436,7 @@ void App1::gui()
 	}
 	ImGui::Separator();
 
-	/*
+	
 	if (ImGui::CollapsingHeader("Save/Load Settings"))
 	{
 		ImGui::InputText("Save file", m_SaveFilePath, IM_ARRAYSIZE(m_SaveFilePath));
@@ -455,7 +454,7 @@ void App1::gui()
 		ImGui::Checkbox("Save On Exit", &m_SaveOnExit);
 	}
 	ImGui::Separator();
-	*/
+	
 
 	if (ImGui::CollapsingHeader("Lighting"))
 	{

@@ -32,7 +32,7 @@ public:
 
 	void SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection,
-		ID3D11ShaderResourceView* heightmap, Camera* camera, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD);
+		ID3D11ShaderResourceView* heightmap, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD);
 	void Render(ID3D11DeviceContext* deviceContext, unsigned int indexCount);
 
 private:

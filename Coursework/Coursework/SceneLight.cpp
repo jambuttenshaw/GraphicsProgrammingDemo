@@ -12,8 +12,8 @@ SceneLight::SceneLight(ID3D11Device* device)
 	m_OrthoMatrix = XMMatrixIdentity();
 	m_PerspectiveMatrix = XMMatrixIdentity();
 
-	GenerateOrthoMatrix(50, 50, 0.1f, 50.0f);
-	GeneratePerspectiveMatrix(0.1f);
+	GenerateOrthoMatrix(50, 50, 0.1f, 100.0f);
+	GeneratePerspectiveMatrix(0.1f, 100.0f);
 }
 
 SceneLight::~SceneLight()
@@ -46,8 +46,7 @@ void SceneLight::SettingsGUI()
 	if (m_Type != LightType::Directional)
 	{
 		ImGui::DragFloat3("Position", &m_Position.x, 0.1f);
-		if (ImGui::DragFloat("Range", &m_Range, 0.05f))
-			GeneratePerspectiveMatrix(0.1f);
+		ImGui::DragFloat("Range", &m_Range, 0.05f);
 	}
 
 	if (m_Type != LightType::Point)
@@ -76,6 +75,9 @@ void SceneLight::SettingsGUI()
 	}
 	if (m_ShadowsEnabled)
 	{
+		if (m_Type == LightType::Directional)
+			ImGui::DragFloat3("Position", &m_Position.x, 0.1f);
+
 		ImGui::SliderFloat("Shadow Bias Amount", &m_ShadowBiasCoeffs.x, 0.0f, 0.05f);
 		ImGui::SliderFloat("Shadow Bias Attenuation", &m_ShadowBiasCoeffs.y, 0.0f, 5.0f);
 	}
@@ -122,9 +124,9 @@ void SceneLight::GenerateOrthoMatrix(float screenWidth, float screenHeight, floa
 	m_OrthoMatrix = XMMatrixOrthographicLH(screenWidth, screenHeight, nearPlane, farPlane);
 }
 
-void SceneLight::GeneratePerspectiveMatrix(float nearPlane)
+void SceneLight::GeneratePerspectiveMatrix(float nearPlane, float farPlane)
 {
-	m_PerspectiveMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, nearPlane, 50.0f);
+	m_PerspectiveMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, nearPlane, farPlane);
 }
 
 void SceneLight::GetPointLightViewMatrices(XMMATRIX* matArray)

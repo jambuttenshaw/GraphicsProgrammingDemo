@@ -119,7 +119,7 @@ void UnlitTerrainShader::CreateBuffer(UINT byteWidth, ID3D11Buffer** ppBuffer)
 
 void UnlitTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection,
-	ID3D11ShaderResourceView* heightmap, Camera* camera, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD)
+	ID3D11ShaderResourceView* heightmap, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -138,7 +138,7 @@ void UnlitTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		TessellationBufferType* dataPtr = (TessellationBufferType*)mappedResource.pData;
 		dataPtr->minMaxDistance = minMaxDist;
 		dataPtr->minMaxLOD = minMaxLOD;
-		dataPtr->cameraPos = camera->getPosition();
+		dataPtr->cameraPos = tessPOV;
 		dataPtr->padding = 0.0f;
 		deviceContext->Unmap(m_TessellationBuffer, 0);
 	}
