@@ -76,6 +76,9 @@
     <FxCompile Include="shaders\bloom_cs.hlsl">
       <Filter>Shaders\compute\postprocess</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\unlitterrain_ds.hlsl">
+      <Filter>Shaders\terrain</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">
@@ -120,9 +123,6 @@
     <ClCompile Include="LightShader.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
-    <ClCompile Include="TerrainShader.cpp">
-      <Filter>Rendering\Shaders</Filter>
-    </ClCompile>
     <ClCompile Include="UnlitShader.cpp">
       <Filter>Rendering\Shaders</Filter>
     </ClCompile>
@@ -159,6 +159,12 @@
     <ClCompile Include="BloomShader.cpp">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
     </ClCompile>
+    <ClCompile Include="TerrainShader.cpp">
+      <Filter>Rendering\Shaders\Terrain</Filter>
+    </ClCompile>
+    <ClCompile Include="UnlitTerrainShader.cpp">
+      <Filter>Rendering\Shaders\Terrain</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -189,9 +195,6 @@
       <Filter>Rendering</Filter>
     </ClInclude>
     <ClInclude Include="LightShader.h">
-      <Filter>Rendering\Shaders</Filter>
-    </ClInclude>
-    <ClInclude Include="TerrainShader.h">
       <Filter>Rendering\Shaders</Filter>
     </ClInclude>
     <ClInclude Include="UnlitShader.h">
@@ -229,6 +232,12 @@
     </ClInclude>
     <ClInclude Include="BloomShader.h">
       <Filter>Rendering\Shaders\PostProcesing</Filter>
+    </ClInclude>
+    <ClInclude Include="TerrainShader.h">
+      <Filter>Rendering\Shaders\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="UnlitTerrainShader.h">
+      <Filter>Rendering\Shaders\Terrain</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -270,6 +279,9 @@
     </Filter>
     <Filter Include="Shaders\compute\postprocess">
       <UniqueIdentifier>{fc660dc0-1e3a-4971-997e-d5f0c24994cb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rendering\Shaders\Terrain">
+      <UniqueIdentifier>{2d8765e4-9298-41f4-87d3-7102fbeac8c1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
