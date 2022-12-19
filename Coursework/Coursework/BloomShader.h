@@ -55,7 +55,7 @@ private:
 	ID3D11SamplerState* m_TrilinearSampler = nullptr;
 
 	// params
-	float m_Threshold = 0.95f;
+	float m_Threshold = 1.0f;
 	float m_Smoothing = 0.15f;
-	float m_Strength = 0.2f;
+	float m_Strength = 0.7f;
 };

@@ -61,8 +61,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//textureMgr->loadTexture(L"snow_normal", L"res/pbr/snow/normal.png");
 	//textureMgr->loadTexture(L"snow_roughness", L"res/pbr/snow/roughness.png");
 	//
-	//textureMgr->loadTexture(L"shiny_metal_albedo", L"res/pbr/worn_shiny_metal/albedo.png");
-	//textureMgr->loadTexture(L"shiny_metal_roughness", L"res/pbr/worn_shiny_metal/roughness.png");
+	textureMgr->loadTexture(L"shiny_metal_albedo", L"res/pbr/worn_shiny_metal/albedo.png");
+	textureMgr->loadTexture(L"shiny_metal_roughness", L"res/pbr/worn_shiny_metal/roughness.png");
 
 	//grassMat.SetAlbedoMap(textureMgr->getTexture(L"grass_albedo"));
 	//grassMat.SetNormalMap(textureMgr->getTexture(L"grass_normal"));
@@ -84,9 +84,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//snowMat.SetNormalMap(textureMgr->getTexture(L"snow_normal"));
 	//snowMat.SetRoughnessMap(textureMgr->getTexture(L"snow_roughness"));
 	//
-	//shinyMetalMat.SetAlbedoMap(textureMgr->getTexture(L"shiny_metal_albedo"));
-	//shinyMetalMat.SetRoughnessMap(textureMgr->getTexture(L"shiny_metal_roughness"));
-	//shinyMetalMat.SetMetalness(1.0f);
+	shinyMetalMat.SetAlbedoMap(textureMgr->getTexture(L"shiny_metal_albedo"));
+	shinyMetalMat.SetRoughnessMap(textureMgr->getTexture(L"shiny_metal_roughness"));
+	shinyMetalMat.SetMetalness(1.0f);
 
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
@@ -137,12 +137,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// create game objects
-	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &rockMat });
-	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &rockMat });
-	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &rockMat });
-	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &rockMat });
-	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &rockMat });
-	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &rockMat });
+	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, &shinyMetalMat });
+	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, &shinyMetalMat });
+	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, &shinyMetalMat });
+	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, &shinyMetalMat });
+	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, &shinyMetalMat });
+	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, &shinyMetalMat });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -157,7 +157,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
 	light.SetPosition({ 1, 4, -5 });
-	light.SetIntensity(4.0f);
+	light.SetIntensity(2.0f);
 	light.SetRange(20.0f);
 	light.EnableShadows();
 
@@ -167,8 +167,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetPosition({ 0, 10, 0 });
 	light2.SetType(SceneLight::LightType::Directional);
 	light2.SetYaw(XMConvertToRadians(-10.0f));
-	light2.SetPitch(XMConvertToRadians(-70.0f));
-	light2.SetIntensity(3.5f);
+	light2.SetPitch(XMConvertToRadians(-40.0f));
+	light2.SetIntensity(0.8f);
 	light2.EnableShadows();
 	
 	if (m_LoadOnOpen)

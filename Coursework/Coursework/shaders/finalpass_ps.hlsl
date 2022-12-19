@@ -51,9 +51,11 @@ float4 main(InputType input) : SV_TARGET
     
 	// apply bloom
     float3 bloom = float3(0.0f, 0.0f, 0.0f);
+    float levelStrength = 1.0f;
     for (int i = 0; i < bloomLevels; i++)
     {
-        bloom += bloomTex.SampleLevel(trilinearSampler, input.tex, i).rgb;
+        bloom += levelStrength * bloomTex.SampleLevel(trilinearSampler, input.tex, i).rgb;
+        levelStrength *= 0.5f;
     }
     color += bloom * bloomStrength;
 	

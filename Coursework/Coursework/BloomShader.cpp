@@ -99,7 +99,7 @@ void BloomShader::SettingsGUI()
 {
 	ImGui::DragFloat("Strength", &m_Strength, 0.01f);
 	ImGui::DragFloat("Threshold", &m_Threshold, 0.005f);
-	ImGui::DragFloat("Smoothing", &m_Smoothing, 0.001f);
+	ImGui::SliderFloat("Smoothing", &m_Smoothing, 0.0f, 0.5f);
 }
 
 void BloomShader::Run(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* input)
