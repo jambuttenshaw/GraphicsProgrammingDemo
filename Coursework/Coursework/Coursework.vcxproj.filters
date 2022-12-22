@@ -165,6 +165,9 @@
     <ClCompile Include="UnlitTerrainShader.cpp">
       <Filter>Rendering\Shaders\Terrain</Filter>
     </ClCompile>
+    <ClCompile Include="ShaderUtility.cpp">
+      <Filter>Rendering\Shaders</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App1.h">
@@ -238,6 +241,9 @@
     </ClInclude>
     <ClInclude Include="UnlitTerrainShader.h">
       <Filter>Rendering\Shaders\Terrain</Filter>
+    </ClInclude>
+    <ClInclude Include="ShaderUtility.h">
+      <Filter>Rendering\Shaders</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -1,5 +1,7 @@
 #include "TerrainShader.h"
 
+#include "SceneLight.h"
+#include "Material.h"
 #include "GlobalLighting.h"
 #include "ShadowCubemap.h"
 
@@ -46,8 +48,8 @@ void TerrainShader::InitShader()
 	CreateBuffer(sizeof(DSMatrixBufferType), &m_DSMatrixBuffer);
 	CreateBuffer(sizeof(DSCameraBufferType), &m_DSCameraBuffer);
 	CreateBuffer(sizeof(DSPointLightMatrixBufferType), &m_DSPointLightMatBuffer);
-	CreateBuffer(sizeof(PSLightBufferType), &m_LightBuffer);
-	CreateBuffer(sizeof(PSMaterialBufferType), &m_MaterialBuffer);
+	CreateBuffer(sizeof(ShaderUtility::LightBufferType), &m_LightBuffer);
+	CreateBuffer(sizeof(ShaderUtility::MaterialBufferType), &m_MaterialBuffer);
 	CreateBuffer(sizeof(TerrainBufferType), &m_TerrainBuffer);
 
 	// create sampler state
@@ -181,14 +183,7 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	
-	
-	// create texture buffers
-	ID3D11ShaderResourceView* tex2DBuffer[TEX_BUFFER_SIZE];
-	int tex2DCount = 0;
-	ID3D11ShaderResourceView* texCubeBuffer[TEX_BUFFER_SIZE];
-	int texCubeCount = 0;
-	for (int i = 0; i < TEX_BUFFER_SIZE; i++) { tex2DBuffer[i] = nullptr; texCubeBuffer[i] = nullptr; }
-
+	ResourceBuffer tex2DBuffer, texCubeBuffer;
 
 	// update data in buffers
 	{
@@ -258,114 +253,21 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	}
 	{
 		deviceContext->Map(m_LightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		PSLightBufferType* dataPtr = (PSLightBufferType*)mappedResource.pData;
-
-		int count = 0;
-		for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
-		{
-			SceneLight* light = lights[i];
-
-			if (!light->IsEnabled()) continue;
-
-			LightDataType lightData;
-
-			XMFLOAT3 irradiance = light->GetIrradiance();
-			lightData.irradiance = { irradiance.x, irradiance.y, irradiance.z, 1.0f };
-
-			XMFLOAT3 p = light->GetPosition();
-			lightData.position = XMFLOAT4{ p.x, p.y, p.z, 1.0f };
-
-			XMFLOAT3 d = light->GetDirection();
-			lightData.direction = XMFLOAT4{ d.x, d.y, d.z, 0.0f };
-
-			lightData.type = static_cast<float>(light->GetType());
-			lightData.range = light->GetRange();
-			lightData.spotAngles = { cosf(light->GetInnerAngle()), cosf(light->GetOuterAngle()) };
-			if (light->IsShadowsEnabled())
-			{
-				if (light->GetType() == SceneLight::LightType::Point)
-				{
-					lightData.shadowMapIndex = texCubeCount;
-					texCubeBuffer[texCubeCount] = light->GetShadowCubemap()->GetSRV();
-					texCubeCount++;
-				}
-				else
-				{
-					lightData.shadowMapIndex = tex2DCount;
-					tex2DBuffer[tex2DCount] = light->GetShadowMap()->getDepthMapSRV();
-					tex2DCount++;
-				}
-			}
-			else
-				lightData.shadowMapIndex = -1;
-			lightData.shadowBiasCoeffs = light->GetShadowBiasCoeffs();
-
-			dataPtr->lights[count] = lightData;
-
-			count++;
-		}
-		dataPtr->lightCount = count;
-		if (m_GlobalLighting->IsIBLEnabled())
-		{
-			dataPtr->enableEnvironmentalLighting = true;
-
-			dataPtr->irradianceMapIndex = texCubeCount;
-			texCubeBuffer[texCubeCount] = m_GlobalLighting->GetIrradianceMap();
-			texCubeCount++;
-
-			dataPtr->prefilterMapIndex = texCubeCount;
-			texCubeBuffer[texCubeCount] = m_GlobalLighting->GetPrefilterMap();
-			texCubeCount++;
-
-			dataPtr->brdfIntegrationMapIndex = tex2DCount;
-			tex2DBuffer[tex2DCount] = m_GlobalLighting->GetBRDFIntegrationMap();
-			tex2DCount++;
-		}
-
-		dataPtr->padding = { 0.0f, 0.0f, 0.0f };
-
+		ShaderUtility::LightBufferType* dataPtr = (ShaderUtility::LightBufferType*)mappedResource.pData;
+		ShaderUtility::ConstructLightBuffer(dataPtr, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
 		deviceContext->Unmap(m_LightBuffer, 0);
 	}
 	{
 		deviceContext->Map(m_MaterialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		PSMaterialBufferType* dataPtr = (PSMaterialBufferType*)mappedResource.pData;
-
-		MaterialDataType matData;
-		matData.albedo = mat->GetAlbedo();
-		if (mat->UseAlbedoMap())
-		{
-			matData.albedoMapIndex = tex2DCount;
-			tex2DBuffer[tex2DCount++] = mat->GetAlbedoMap();
-		}
-		else matData.albedoMapIndex = -1;
-
-		matData.roughness = mat->GetRoughness();
-		if (mat->UseRoughnessMap())
-		{
-			matData.roughnessMapIndex = tex2DCount;
-			tex2DBuffer[tex2DCount++] = mat->GetRoughnessMap();
-		}
-		else matData.roughnessMapIndex = -1;
-
-		if (mat->UseNormalMap())
-		{
-			matData.normalMapIndex = tex2DCount;
-			tex2DBuffer[tex2DCount++] = mat->GetNormalMap();
-		}
-		else matData.normalMapIndex = -1;
-
-		matData.metallic = mat->GetMetalness();
-
-		dataPtr->material = matData;
-
+		ShaderUtility::MaterialBufferType* dataPtr = (ShaderUtility::MaterialBufferType*)mappedResource.pData;
+		ShaderUtility::ConstructMaterialData(&dataPtr->material, mat, &tex2DBuffer);
 		deviceContext->Unmap(m_MaterialBuffer, 0);
 	}
 	{
 		deviceContext->Map(m_TerrainBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		TerrainBufferType* dataPtr = (TerrainBufferType*)mappedResource.pData;
 		
-		dataPtr->heightmapIndex = tex2DCount;
-		tex2DBuffer[tex2DCount++] = heightmap;
+		dataPtr->heightmapIndex = tex2DBuffer.AddResource(heightmap);
 
 		dataPtr->flatThreshold = m_FlatThreshold;
 		dataPtr->cliffThreshold = m_CliffThreshold;
@@ -385,8 +287,8 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	ID3D11Buffer* psCBs[] = { m_LightBuffer, m_MaterialBuffer, m_TerrainBuffer };
 	deviceContext->PSSetConstantBuffers(0, 3, psCBs);
 
-	deviceContext->PSSetShaderResources(0, TEX_BUFFER_SIZE, tex2DBuffer);
-	deviceContext->PSSetShaderResources(TEX_BUFFER_SIZE, TEX_BUFFER_SIZE, texCubeBuffer);
+	deviceContext->PSSetShaderResources(0, RESOURCE_BUFFER_SIZE, tex2DBuffer.GetResourcePtr());
+	deviceContext->PSSetShaderResources(RESOURCE_BUFFER_SIZE, RESOURCE_BUFFER_SIZE, texCubeBuffer.GetResourcePtr());
 
 	ID3D11SamplerState* psSamplers[5] = { m_GlobalLighting->GetBRDFIntegrationSampler(), m_GlobalLighting->GetCubemapSampler(), m_MaterialSampler, m_ShadowSampler, m_HeightmapSampleState };
 	deviceContext->PSSetSamplers(0, 5, psSamplers);

@@ -3,11 +3,13 @@
 #include "DXF.h"
 #include <nlohmann/json.hpp>
 
-#include "SceneLight.h"
-#include "LightShader.h"
-
-using namespace std;
 using namespace DirectX;
+
+#include "ShaderUtility.h"
+
+class SceneLight;
+class Material;
+class GlobalLighting;
 
 
 class TerrainShader
@@ -37,48 +39,6 @@ private:
 		XMMATRIX downMatrix[MAX_LIGHTS];
 		XMMATRIX forwardMatrix[MAX_LIGHTS];
 		XMMATRIX backMatrix[MAX_LIGHTS];
-	};
-
-	struct LightDataType
-	{
-		XMFLOAT4 irradiance;
-		XMFLOAT4 position;
-		XMFLOAT4 direction;
-
-		float type;
-		float range;
-		XMFLOAT2 spotAngles;
-
-		int shadowMapIndex;
-		XMFLOAT2 shadowBiasCoeffs;
-
-		float padding;
-	};
-	struct PSLightBufferType
-	{
-		LightDataType lights[MAX_LIGHTS];
-
-		int lightCount;
-		bool enableEnvironmentalLighting;
-		int irradianceMapIndex;
-		int prefilterMapIndex;
-
-		int brdfIntegrationMapIndex;
-		XMFLOAT3 padding;
-	};
-
-	struct MaterialDataType
-	{
-		XMFLOAT3 albedo;
-		int albedoMapIndex;
-		float roughness;
-		int roughnessMapIndex;
-		float metallic;
-		int normalMapIndex;
-	};
-	struct PSMaterialBufferType
-	{
-		MaterialDataType material;
 	};
 	struct TerrainBufferType
 	{

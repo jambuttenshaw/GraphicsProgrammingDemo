@@ -2,16 +2,13 @@
 
 #include "DXF.h"
 
-#include "SceneLight.h"
-#include "Material.h"
-#include "Cubemap.h"
-
-using namespace std;
 using namespace DirectX;
 
-#define MAX_LIGHTS 4
-#define TEX_BUFFER_SIZE 16
+#include "ShaderUtility.h"
 
+
+class SceneLight;
+class Material;
 class GlobalLighting;
 
 
@@ -36,47 +33,6 @@ private:
 		XMMATRIX backMatrix[MAX_LIGHTS];
 	};
 
-	struct LightDataType
-	{
-		XMFLOAT4 irradiance;
-		XMFLOAT4 position;
-		XMFLOAT4 direction;
-
-		float type;
-		float range;
-		XMFLOAT2 spotAngles;
-
-		int shadowMapIndex;
-		XMFLOAT2 shadowBiasCoeffs;
-
-		float padding;
-	};
-	struct LightBufferType
-	{
-		LightDataType lights[MAX_LIGHTS];
-
-		int lightCount;
-		bool enableEnvironmentalLighting;
-		int irradianceMapIndex;
-		int prefilterMapIndex;
-
-		int brdfIntegrationMapIndex;
-		XMFLOAT3 padding;
-	};
-
-	struct MaterialDataType
-	{
-		XMFLOAT3 albedo;
-		int albedoMapIndex;
-		float roughness;
-		int roughnessMapIndex;
-		float metallic;
-		int normalMapIndex;
-	};
-	struct MaterialBufferType
-	{
-		MaterialDataType material;
-	};
 
 public:
 	LightShader(ID3D11Device* device, HWND hwnd, GlobalLighting* globalLighing);

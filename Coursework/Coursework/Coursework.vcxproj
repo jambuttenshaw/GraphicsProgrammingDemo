@@ -326,6 +326,7 @@
     <ClCompile Include="BloomShader.cpp" />
     <ClCompile Include="Cubemap.cpp" />
     <ClCompile Include="MeasureLuminanceShader.cpp" />
+    <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="ShadowCubemap.cpp" />
     <ClCompile Include="FinalPassShader.cpp" />
     <ClCompile Include="GlobalLighting.cpp" />
@@ -353,6 +354,7 @@
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="MeasureLuminanceShader.h" />
+    <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="ShadowCubemap.h" />
     <ClInclude Include="FinalPassShader.h" />
     <ClInclude Include="GlobalLighting.h" />
