@@ -117,16 +117,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// create game objects
 	
-	//Material* rockMat = GetMaterialByName("Rock");
-	//Material* shinyMetalMat = GetMaterialByName("Worn Shiny Metal");
-	//m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
-	//m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
-	//m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
-	//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
-	//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
-	//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
+	Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
+	Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
+	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
+	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
+	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
+	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
+	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
+	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
 	
-	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Rock") });
+	//m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Rock") });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -529,7 +529,7 @@ void App1::gui()
 		int index = 0;
 		for (auto& light : m_Lights)
 		{
-			if (ImGui::TreeNode((void*)((intptr_t)index + &m_Lights), "Light %d", index))
+			if (ImGui::TreeNode((void*)((intptr_t)index + 14), "Light %d", index))
 			{
 				ImGui::Separator();
 
@@ -577,7 +577,14 @@ void App1::gui()
 		int index = 0;
 		for (auto& go : m_GameObjects)
 		{
-			if (ImGui::TreeNode((void*)((intptr_t)index + &m_GameObjects), "Game Object %d", index))
+			const char* typeStr;
+			switch (go.meshType)
+			{
+			case GameObject::MeshType::Regular: typeStr = typeid(*go.mesh.regular).name(); break;
+			case GameObject::MeshType::Terrain: typeStr = typeid(*go.mesh.terrain).name(); break;
+			default: typeStr = "class Unknown"; break;
+			}
+			if (ImGui::TreeNode((void*)((intptr_t)index + 537), "%s %d", typeStr + 6, index))
 			{
 				go.SettingsGUI(&m_MaterialLibrary);
 				ImGui::TreePop();
