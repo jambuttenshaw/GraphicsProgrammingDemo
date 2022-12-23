@@ -1,4 +1,4 @@
-#include "defines.hlsli"
+#include "common.hlsli"
 
 Texture2D input : register(t0);
 RWTexture2D<float4> output : register(u0);

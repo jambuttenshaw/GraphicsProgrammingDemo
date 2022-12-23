@@ -104,11 +104,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_ShadowRasterDesc.AntialiasedLineEnable = false;
 	renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
 
-	camera->setPosition(33.0f, 6.0f, -9.0f);
+	//camera->setPosition(33.0f, 6.0f, -9.0f);
+	camera->setPosition(0.0f, 3.0f, -2.0f);
 	camera->setRotation(0.0f, 0.0f, 0.0f);
 
 	// create game objects
-	/*
+	
 	Material* rockMat = GetMaterialByName("Rock");
 	Material* shinyMetalMat = GetMaterialByName("Worn Shiny Metal");
 	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
@@ -117,8 +118,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
 	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
 	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
-	*/
-	m_GameObjects.push_back({ m_TerrainMesh, GetMaterialByName("Rock") });
+	
+	//m_GameObjects.push_back({ m_TerrainMesh, GetMaterialByName("Rock") });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -129,15 +130,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// setup default light settings
 	SceneLight& light = *(m_Lights[0]);
-	//light.SetEnbled(true);
+	light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
 	light.SetPosition({ 1, 4, -5 });
 	light.SetIntensity(2.0f);
 	light.SetRange(20.0f);
+	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
-	light2.SetEnbled(true);
+	//light2.SetEnbled(true);
 	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 15.5f, -15.5f });
 	light2.SetType(SceneLight::LightType::Directional);
@@ -145,6 +147,9 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetPitch(XMConvertToRadians(-45.0f));
 	light2.SetIntensity(1.3f);
 	light2.EnableShadows();
+
+	m_GlobalLighting->SetIBLEnabled(false);
+	m_DrawSkybox = false;
 	
 	if (m_LoadOnOpen)
 	{

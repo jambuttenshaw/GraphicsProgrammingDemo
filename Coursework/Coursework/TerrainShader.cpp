@@ -24,9 +24,8 @@ TerrainShader::~TerrainShader()
 	
 	if (m_VSMatrixBuffer) m_VSMatrixBuffer->Release();
 	if (m_DSMatrixBuffer) m_DSMatrixBuffer->Release();
-	if (m_DSCameraBuffer) m_DSCameraBuffer->Release();
-	if (m_DSPointLightMatBuffer) m_DSPointLightMatBuffer->Release();
-	if (m_LightBuffer) m_LightBuffer->Release();
+	if (m_DSLightBuffer) m_DSLightBuffer->Release();
+	if (m_PSLightBuffer) m_PSLightBuffer->Release();
 	if (m_TerrainBuffer) m_TerrainBuffer->Release();
 	if (m_MaterialBuffer) m_MaterialBuffer->Release();
 	if (m_TessellationBuffer) m_TessellationBuffer->Release();
@@ -43,14 +42,13 @@ void TerrainShader::InitShader()
 	LoadPS(L"terrain_ps.cso");
 
 	// create constant buffers
-	CreateBuffer(sizeof(VSMatrixBufferType), &m_VSMatrixBuffer);
-	CreateBuffer(sizeof(TessellationBufferType), &m_TessellationBuffer);
-	CreateBuffer(sizeof(DSMatrixBufferType), &m_DSMatrixBuffer);
-	CreateBuffer(sizeof(DSCameraBufferType), &m_DSCameraBuffer);
-	CreateBuffer(sizeof(DSPointLightMatrixBufferType), &m_DSPointLightMatBuffer);
-	CreateBuffer(sizeof(ShaderUtility::LightBufferType), &m_LightBuffer);
-	CreateBuffer(sizeof(ShaderUtility::MaterialBufferType), &m_MaterialBuffer);
-	CreateBuffer(sizeof(TerrainBufferType), &m_TerrainBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(VSMatrixBufferType), &m_VSMatrixBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(TessellationBufferType), &m_TessellationBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(DSMatrixBufferType), &m_DSMatrixBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(ShaderUtility::VSLightBufferType), &m_DSLightBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(ShaderUtility::PSLightBufferType), &m_PSLightBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(ShaderUtility::MaterialBufferType), &m_MaterialBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(TerrainBufferType), &m_TerrainBuffer);
 
 	// create sampler state
 	D3D11_SAMPLER_DESC heightmapSamplerDesc;
@@ -160,20 +158,6 @@ void TerrainShader::LoadPS(const wchar_t* ps)
 	pixelShaderBuffer->Release();
 }
 
-void TerrainShader::CreateBuffer(UINT byteWidth, ID3D11Buffer** ppBuffer)
-{
-	assert(byteWidth % 16 == 0 && "Constant buffer byte width must be multiple of 16!");
-
-	D3D11_BUFFER_DESC desc;
-	desc.Usage = D3D11_USAGE_DYNAMIC;
-	desc.ByteWidth = byteWidth;
-	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	desc.MiscFlags = 0;
-	desc.StructureByteStride = 0;
-	m_Device->CreateBuffer(&desc, NULL, ppBuffer);
-}
-
 
 void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix,
@@ -210,52 +194,16 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		deviceContext->Unmap(m_DSMatrixBuffer, 0);
 	}
 	{
-		result = deviceContext->Map(m_DSCameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		DSCameraBufferType* dataPtr = (DSCameraBufferType*)mappedResource.pData;
-
-		DSPointLightMatrixBufferType plmb{};
-		int index = 0;
-		for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
-		{
-			if (!lights[i]->IsEnabled()) continue;
-
-			XMMATRIX tlightMatrix;
-			if (lights[i]->GetType() == SceneLight::LightType::Point)
-			{
-				tlightMatrix = XMMatrixTranspose(lights[i]->GetProjectionMatrix());
-
-				XMMATRIX viewMats[6];
-				lights[i]->GetPointLightViewMatrices(viewMats);
-
-				plmb.rightMatrix[index] = XMMatrixTranspose(viewMats[0]);
-				plmb.leftMatrix[index] = XMMatrixTranspose(viewMats[1]);
-				plmb.upMatrix[index] = XMMatrixTranspose(viewMats[2]);
-				plmb.downMatrix[index] = XMMatrixTranspose(viewMats[3]);
-				plmb.forwardMatrix[index] = XMMatrixTranspose(viewMats[4]);
-				plmb.backMatrix[index] = XMMatrixTranspose(viewMats[5]);
-			}
-			else
-				tlightMatrix = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetProjectionMatrix());
-			dataPtr->lightMatrix[index] = tlightMatrix;
-
-			XMFLOAT3 p = lights[i]->GetPosition();
-			dataPtr->lightPosAndType[index] = { p.x, p.y, p.z, static_cast<float>(lights[i]->GetType()) };
-
-			index++;
-		}
-		dataPtr->cameraPos = camera->getPosition();
-		dataPtr->padding = 0.0f;
-		deviceContext->Unmap(m_DSCameraBuffer, 0);
-
-		result = deviceContext->Map(m_DSPointLightMatBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		memcpy(mappedResource.pData, &plmb, sizeof(plmb));
-		deviceContext->Unmap(m_DSPointLightMatBuffer, 0);
+		result = deviceContext->Map(m_DSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		ShaderUtility::VSLightBufferType* dataPtr = (ShaderUtility::VSLightBufferType*)mappedResource.pData;
+		ShaderUtility::ConstructVSLightBuffer(dataPtr, lights, lightCount, camera);
+		deviceContext->Unmap(m_DSLightBuffer, 0);
 	}
 	{
-		deviceContext->Map(m_LightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::LightBufferType* dataPtr = (ShaderUtility::LightBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructLightBuffer(dataPtr, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
-		deviceContext->Unmap(m_LightBuffer, 0);
+		deviceContext->Map(m_PSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		ShaderUtility::PSLightBufferType* dataPtr = (ShaderUtility::PSLightBufferType*)mappedResource.pData;
+		ShaderUtility::ConstructPSLightBuffer(dataPtr, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
+		deviceContext->Unmap(m_PSLightBuffer, 0);
 	}
 	{
 		deviceContext->Map(m_MaterialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
@@ -279,18 +227,18 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	deviceContext->HSSetConstantBuffers(0, 1, &m_TessellationBuffer);
 
-	ID3D11Buffer* dsCBs[] = { m_DSMatrixBuffer, m_DSCameraBuffer, m_DSPointLightMatBuffer };
-	deviceContext->DSSetConstantBuffers(0, 3, dsCBs);
+	ID3D11Buffer* dsCBs[] = { m_DSMatrixBuffer, m_DSLightBuffer };
+	deviceContext->DSSetConstantBuffers(0, 2, dsCBs);
 	deviceContext->DSSetShaderResources(0, 1, &heightmap);
 	deviceContext->DSSetSamplers(0, 1, &m_HeightmapSampleState);
 
-	ID3D11Buffer* psCBs[] = { m_LightBuffer, m_MaterialBuffer, m_TerrainBuffer };
+	ID3D11Buffer* psCBs[] = { m_PSLightBuffer, m_MaterialBuffer, m_TerrainBuffer };
 	deviceContext->PSSetConstantBuffers(0, 3, psCBs);
 
 	deviceContext->PSSetShaderResources(0, RESOURCE_BUFFER_SIZE, tex2DBuffer.GetResourcePtr());
 	deviceContext->PSSetShaderResources(RESOURCE_BUFFER_SIZE, RESOURCE_BUFFER_SIZE, texCubeBuffer.GetResourcePtr());
 
-	ID3D11SamplerState* psSamplers[5] = { m_GlobalLighting->GetBRDFIntegrationSampler(), m_GlobalLighting->GetCubemapSampler(), m_MaterialSampler, m_ShadowSampler, m_HeightmapSampleState };
+	ID3D11SamplerState* psSamplers[] = { m_GlobalLighting->GetBRDFIntegrationSampler(), m_GlobalLighting->GetCubemapSampler(), m_MaterialSampler, m_ShadowSampler, m_HeightmapSampleState };
 	deviceContext->PSSetSamplers(0, 5, psSamplers);
 }
 

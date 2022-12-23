@@ -1,4 +1,4 @@
-#include "defines.hlsli"
+#include "common.hlsli"
 
 Texture2D heightmap : register(t0);
 SamplerState heightmapSampler : register(s0);
@@ -9,23 +9,10 @@ cbuffer MatrixBuffer : register(b0)
     matrix projectionMatrix;
 }
 
-cbuffer CameraBuffer : register(b1)
+cbuffer LightBuffer : register(b1)
 {
-    matrix lightMatrix[MAX_LIGHTS];
-    float4 lightPosAndType[MAX_LIGHTS];
-    float3 cameraPos;
-    float padding;
+    VSLightBuffer lightBuffer;
 };
-
-cbuffer PointLightViewMatrices : register(b2)
-{
-    matrix viewRight[MAX_LIGHTS];
-    matrix viewLeft[MAX_LIGHTS];
-    matrix viewUp[MAX_LIGHTS];
-    matrix viewDown[MAX_LIGHTS];
-    matrix viewForward[MAX_LIGHTS];
-    matrix viewBack[MAX_LIGHTS];
-}
 
 
 struct DSOutput
@@ -56,34 +43,6 @@ float GetHeight(float2 pos)
 }
 
 
-matrix GetPointLightViewMatrix(int i, float3 toFrag)
-{
-    float3 absL = abs(toFrag);
-    float maxComponent = max(absL.x, max(absL.y, absL.z));
-    if (maxComponent == absL.x)
-    {
-        if (toFrag.x > 0)
-            return viewRight[i];
-        else
-            return viewLeft[i];
-    }
-    else if (maxComponent == absL.y)
-    {
-        if (toFrag.y > 0)
-            return viewUp[i];
-        else
-            return viewDown[i];
-    }
-    else
-    {
-        if (toFrag.z > 0)
-            return viewForward[i];
-        else
-            return viewBack[i];
-    }
-}
-
-
 [domain("quad")]
 DSOutput main(HSConstantOutput input, float2 domainUV : SV_DomainLocation, const OutputPatch<HSControlPointOutput, 4> patch)
 {
@@ -107,18 +66,18 @@ DSOutput main(HSConstantOutput input, float2 domainUV : SV_DomainLocation, const
     // get position from pov of each light for shadow mapping
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
-        if (lightPosAndType[i].w == LIGHT_TYPE_POINT)
+        if (lightBuffer.lightPosAndType[i].w == LIGHT_TYPE_POINT)
         {
-            float3 toFrag = normalize(output.worldPosition - lightPosAndType[i].xyz);
-            float4 viewPos = mul(float4(output.worldPosition, 1.0f), GetPointLightViewMatrix(i, toFrag));
-            output.lightViewPos[i] = mul(viewPos, lightMatrix[i]);
+            float3 toFrag = normalize(output.worldPosition - lightBuffer.lightPosAndType[i].xyz);
+            float4 viewPos = mul(float4(output.worldPosition, 1.0f), GetPointLightViewMatrix(i, toFrag, lightBuffer.pointLightMatrices));
+            output.lightViewPos[i] = mul(viewPos, lightBuffer.lightMatrix[i]);
         }
         else
-            output.lightViewPos[i] = mul(float4(output.worldPosition, 1.0f), lightMatrix[i]);
+            output.lightViewPos[i] = mul(float4(output.worldPosition, 1.0f), lightBuffer.lightMatrix[i]);
     }
     
     // view dir is direction from camera to vertex
-    output.viewDir = output.worldPosition - cameraPos;
+    output.viewDir = output.worldPosition - lightBuffer.cameraPos;
     
     return output;
 }

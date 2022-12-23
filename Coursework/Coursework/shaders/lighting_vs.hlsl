@@ -1,4 +1,4 @@
-#include "defines.hlsli"
+#include "common.hlsli"
 
 cbuffer MatrixBuffer : register(b0)
 {
@@ -7,23 +7,12 @@ cbuffer MatrixBuffer : register(b0)
 	matrix projectionMatrix;
 }
 
-cbuffer CameraBuffer : register(b1)
+cbuffer LightCB : register(b1)
 {
-    matrix lightMatrix[MAX_LIGHTS];
-    float4 lightPosAndType[MAX_LIGHTS];
-	float3 cameraPos;
-	float padding;
+    VSLightBuffer lightBuffer;
 };
 
-cbuffer PointLightViewMatrices : register(b2)
-{
-    matrix viewRight[MAX_LIGHTS];
-    matrix viewLeft[MAX_LIGHTS];
-    matrix viewUp[MAX_LIGHTS];
-    matrix viewDown[MAX_LIGHTS];
-    matrix viewForward[MAX_LIGHTS];
-    matrix viewBack[MAX_LIGHTS];
-}
+
 
 struct InputType
 {
@@ -43,34 +32,6 @@ struct OutputType
 };
 
 
-matrix GetPointLightViewMatrix(int i, float3 toFrag)
-{
-    float3 absL = abs(toFrag);
-    float maxComponent = max(absL.x, max(absL.y, absL.z));
-    if (maxComponent == absL.x)
-    {
-        if (toFrag.x > 0)
-            return viewRight[i];
-        else
-            return viewLeft[i];
-    }
-    else if (maxComponent == absL.y)
-    {
-        if (toFrag.y > 0)
-            return viewUp[i];
-        else
-            return viewDown[i];
-    }
-    else
-    {
-        if (toFrag.z > 0)
-            return viewForward[i];
-        else
-            return viewBack[i];
-    }
-}
-
-
 OutputType main(InputType input)
 {
     OutputType output;
@@ -82,14 +43,14 @@ OutputType main(InputType input)
     
     for (int i = 0; i < MAX_LIGHTS; i++)
     {
-        if (lightPosAndType[i].w == LIGHT_TYPE_POINT)
+        if (lightBuffer.lightPosAndType[i].w == LIGHT_TYPE_POINT)
         {
-            float3 toFrag = normalize(output.worldPos - lightPosAndType[i].xyz);
-            float4 viewPos = mul(worldPos, GetPointLightViewMatrix(i, toFrag));
-            output.lightViewPos[i] = mul(viewPos, lightMatrix[i]);
+            float3 toFrag = normalize(output.worldPos - lightBuffer.lightPosAndType[i].xyz);
+            float4 viewPos = mul(worldPos, GetPointLightViewMatrix(i, toFrag, lightBuffer.pointLightMatrices));
+            output.lightViewPos[i] = mul(viewPos, lightBuffer.lightMatrix[i]);
         }
         else
-            output.lightViewPos[i] = mul(worldPos, lightMatrix[i]);
+            output.lightViewPos[i] = mul(worldPos, lightBuffer.lightMatrix[i]);
     }
     
 	// Store the texture coordinates for the pixel shader.
@@ -100,7 +61,7 @@ OutputType main(InputType input)
     // normal will be normalized in pixel shader post-interpolation
 	
     // view dir is direction from camera to vertex
-    output.viewDir = output.worldPos - cameraPos;
+    output.viewDir = output.worldPos - lightBuffer.cameraPos;
     // view dir will be normalized in pixel shader post-interpolation
 
     return output;

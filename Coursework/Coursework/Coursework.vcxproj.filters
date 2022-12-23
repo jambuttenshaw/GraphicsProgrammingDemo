@@ -93,7 +93,7 @@
     <None Include="shaders\noiseSimplex.hlsli">
       <Filter>Shaders\include</Filter>
     </None>
-    <None Include="shaders\defines.hlsli">
+    <None Include="shaders\common.hlsli">
       <Filter>Shaders\include</Filter>
     </None>
   </ItemGroup>

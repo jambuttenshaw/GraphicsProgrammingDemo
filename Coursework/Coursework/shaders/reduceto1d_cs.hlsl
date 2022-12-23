@@ -1,5 +1,5 @@
 
-#include "defines.hlsli"
+#include "common.hlsli"
 
 
 Texture2D input : register(t0);

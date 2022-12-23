@@ -13,15 +13,15 @@ SamplerComparisonState shadowSampler : register(s3);
 SamplerState heightmapSampler : register(s4);
 
 // lighting
-cbuffer LightBuffer : register(b0)
+cbuffer LightCB : register(b0)
 {
-    LightBuffer lighting;
+    const PSLightBuffer lightBuffer;
 };
 
 // materials
-cbuffer MaterialBuffer : register(b1)
+cbuffer MaterialCB : register(b1)
 {
-    const MaterialData materialData;
+    const MaterialBuffer materialBuffer;
 };
 
 cbuffer TerrainBuffer : register(b2)
@@ -111,8 +111,8 @@ float4 main(InputType input) : SV_TARGET
 
     // lighting
     float3 color = calculateLighting(input.worldPosition, input.lightViewPos, n, v, input.tex,
-        materialData,
-        lighting,
+        materialBuffer.material,
+        lightBuffer,
         texture2DBuffer, textureCubeBuffer,
         bilinearSampler, trilinearSampler, anisotropicSampler, shadowSampler);
     

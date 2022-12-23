@@ -11,15 +11,15 @@ SamplerState anisotropicSampler : register(s2);
 SamplerComparisonState shadowSampler : register(s3);
 
 // lighting
-cbuffer LightBuffer : register(b0)
+cbuffer LightCB : register(b0)
 {
-    LightBuffer lighting;
+    const PSLightBuffer lightBuffer;
 };
 
 // materials
-cbuffer MaterialBuffer : register(b1)
+cbuffer MaterialCB : register(b1)
 {
-    const MaterialData materialData;
+    const MaterialBuffer materialBuffer;
 };
 
 struct InputType
@@ -39,8 +39,8 @@ float4 main(InputType input) : SV_TARGET
 	float3 v = -normalize(input.viewDir);
     
     float3 color = calculateLighting(input.worldPos, input.lightViewPos, n, v, input.tex,
-                                     materialData,
-                                     lighting,
+                                     materialBuffer.material,
+                                     lightBuffer,
                                      texture2DBuffer, textureCubeBuffer,
                                      bilinearSampler, trilinearSampler, anisotropicSampler, shadowSampler);
     return float4(color, 1.0f);

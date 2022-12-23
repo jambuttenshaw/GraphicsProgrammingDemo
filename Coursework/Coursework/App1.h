@@ -89,7 +89,8 @@ private:
 	// render targets
 	RenderTarget* m_SceneRenderTexture = nullptr;
 	RenderTarget* m_WaterRenderTexture = nullptr;
-	const XMFLOAT4 m_ClearColour{ 1.0f, 0.0f, 1.0f, 1.0f };
+	//const XMFLOAT4 m_ClearColour{ 1.0f, 0.0f, 1.0f, 1.0f };
+	const XMFLOAT4 m_ClearColour{ 0.0f, 0.0f, 0.0f, 1.0f };
 
 	// environment
 	GlobalLighting* m_GlobalLighting = nullptr;

@@ -1,5 +1,5 @@
 #include "math.hlsli"
-#include "defines.hlsli"
+#include "common.hlsli"
 
 // DIFFUSE NDF's
 float3 lambertian_diffuse(float3 albedo)
@@ -227,7 +227,7 @@ float3 calculateLighting(
     float3 v,                       // world space view direction
     float2 uv,                      // tex coords
     const MaterialData material,    // material properties
-    const LightBuffer lights,       // light data
+    const PSLightBuffer lights,       // light data
     Texture2D texture2DBuffer[TEX_BUFFER_SIZE],
     TextureCube textureCubeBuffer[TEX_BUFFER_SIZE],
     SamplerState bilinearSampler,

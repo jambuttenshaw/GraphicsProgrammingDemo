@@ -6,6 +6,56 @@
 #include "GlobalLighting.h"
 
 
+void ShaderUtility::CreateBuffer(ID3D11Device* device, UINT byteWidth, ID3D11Buffer** ppBuffer)
+{
+	assert(byteWidth % 16 == 0 && "Constant buffer byte width must be multiple of 16!");
+
+	D3D11_BUFFER_DESC desc;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.ByteWidth = byteWidth;
+	desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	desc.MiscFlags = 0;
+	desc.StructureByteStride = 0;
+
+	HRESULT hr = device->CreateBuffer(&desc, NULL, ppBuffer);
+	assert(hr == S_OK);
+}
+
+void ShaderUtility::ConstructVSLightBuffer(VSLightBufferType* lightBuffer, SceneLight** lights, size_t lightCount, Camera* camera)
+{
+	int index = 0;
+	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)
+	{
+		if (!lights[i]->IsEnabled()) continue;
+
+		XMMATRIX tlightMatrix;
+		if (lights[i]->GetType() == SceneLight::LightType::Point)
+		{
+			tlightMatrix = XMMatrixTranspose(lights[i]->GetProjectionMatrix());
+
+			XMMATRIX viewMats[6];
+			lights[i]->GetPointLightViewMatrices(viewMats);
+
+			lightBuffer->pointLightMatrices.right[index] = XMMatrixTranspose(viewMats[0]);
+			lightBuffer->pointLightMatrices.left[index] = XMMatrixTranspose(viewMats[1]);
+			lightBuffer->pointLightMatrices.up[index] = XMMatrixTranspose(viewMats[2]);
+			lightBuffer->pointLightMatrices.down[index] = XMMatrixTranspose(viewMats[3]);
+			lightBuffer->pointLightMatrices.forward[index] = XMMatrixTranspose(viewMats[4]);
+			lightBuffer->pointLightMatrices.back[index] = XMMatrixTranspose(viewMats[5]);
+		}
+		else
+			tlightMatrix = XMMatrixTranspose(lights[i]->GetViewMatrix() * lights[i]->GetProjectionMatrix());
+		lightBuffer->lightMatrix[index] = tlightMatrix;
+
+		XMFLOAT3 p = lights[i]->GetPosition();
+		lightBuffer->lightPosAndType[index] = { p.x, p.y, p.z, static_cast<float>(lights[i]->GetType()) };
+
+		index++;
+	}
+	lightBuffer->cameraPos = camera->getPosition();
+}
+
 void ShaderUtility::ConstructLightData(LightDataType* lightData, const SceneLight* light, ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer)
 {
 	// if you are trying to construct light data for disabled lights, then something is wrong with your logic outside of this function
@@ -36,7 +86,7 @@ void ShaderUtility::ConstructLightData(LightDataType* lightData, const SceneLigh
 	lightData->shadowBiasCoeffs = light->GetShadowBiasCoeffs();
 }
 
-void ShaderUtility::ConstructLightBuffer(LightBufferType* lightBuffer, SceneLight** lights, size_t lightCount, GlobalLighting* globalLighting, ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer)
+void ShaderUtility::ConstructPSLightBuffer(PSLightBufferType* lightBuffer, SceneLight** lights, size_t lightCount, GlobalLighting* globalLighting, ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer)
 {
 	int count = 0;
 	for (int i = 0; i < min(lightCount, MAX_LIGHTS); i++)

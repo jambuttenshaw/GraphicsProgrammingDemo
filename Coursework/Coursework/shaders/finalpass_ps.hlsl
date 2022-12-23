@@ -1,4 +1,4 @@
-#include "defines.hlsli"
+#include "common.hlsli"
 
 Texture2D renderTextureColour : register(t0);
 Texture2D renderTextureDepth : register(t1);

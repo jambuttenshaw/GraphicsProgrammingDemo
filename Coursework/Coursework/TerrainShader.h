@@ -24,22 +24,6 @@ private:
 		XMMATRIX view;
 		XMMATRIX projection;
 	};
-	struct DSCameraBufferType
-	{
-		XMMATRIX lightMatrix[MAX_LIGHTS];
-		XMFLOAT4 lightPosAndType[MAX_LIGHTS];
-		XMFLOAT3 cameraPos;
-		float padding;
-	};
-	struct DSPointLightMatrixBufferType
-	{
-		XMMATRIX rightMatrix[MAX_LIGHTS];
-		XMMATRIX leftMatrix[MAX_LIGHTS];
-		XMMATRIX upMatrix[MAX_LIGHTS];
-		XMMATRIX downMatrix[MAX_LIGHTS];
-		XMMATRIX forwardMatrix[MAX_LIGHTS];
-		XMMATRIX backMatrix[MAX_LIGHTS];
-	};
 	struct TerrainBufferType
 	{
 		int heightmapIndex;
@@ -81,8 +65,6 @@ private:
 	void LoadDS(const wchar_t* ds);
 	void LoadPS(const wchar_t* ps);
 
-	void CreateBuffer(UINT byteWidth, ID3D11Buffer** ppBuffer);
-
 private:
 	ID3D11Device* m_Device = nullptr;
 
@@ -96,9 +78,8 @@ private:
 	ID3D11Buffer* m_VSMatrixBuffer = nullptr;			// matrices to be sent to vertex shader
 	ID3D11Buffer* m_TessellationBuffer = nullptr;		// tessellation parameters
 	ID3D11Buffer* m_DSMatrixBuffer = nullptr;			// matrices to be sent to domain shader
-	ID3D11Buffer* m_DSCameraBuffer = nullptr;			// camera and light matrices
-	ID3D11Buffer* m_DSPointLightMatBuffer = nullptr;	// point light view matrices
-	ID3D11Buffer* m_LightBuffer = nullptr;				// lighting data
+	ID3D11Buffer* m_DSLightBuffer = nullptr;			// camera and light matrices
+	ID3D11Buffer* m_PSLightBuffer = nullptr;				// lighting data
 	ID3D11Buffer* m_MaterialBuffer = nullptr;			// material data
 	ID3D11Buffer* m_TerrainBuffer = nullptr;			// terrain data
 

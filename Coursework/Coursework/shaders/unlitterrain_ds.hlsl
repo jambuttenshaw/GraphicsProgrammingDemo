@@ -1,4 +1,4 @@
-#include "defines.hlsli"
+#include "common.hlsli"
 
 Texture2D heightmap : register(t0);
 SamplerState heightmapSampler : register(s0);
