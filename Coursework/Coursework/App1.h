@@ -8,7 +8,9 @@
 
 #include "RenderTarget.h"
 #include "SceneLight.h"
+
 #include "Material.h"
+#include "MaterialLibrary.h"
 
 #include "TerrainMesh.h"
 
@@ -68,8 +70,6 @@ protected:
 	void saveSettings(const std::string& file);
 	void loadSettings(const std::string& file);
 
-	Material* GetMaterialByName(const std::string& name);
-
 private:
 	float m_Time = 0.0f;
 
@@ -115,12 +115,12 @@ private:
 	D3D11_RASTERIZER_DESC m_ShadowRasterDesc;
 	ID3D11RasterizerState* m_ShadowRasterizerState = nullptr;
 
+	MaterialLibrary m_MaterialLibrary;
+
 	bool m_ShowShadowMap = false;
 	int m_SelectedShadowMap = 0;
 	int m_SelectedShadowCubemapFace = 0;
 	OrthoMesh* m_ShadowMapMesh = nullptr;
-
-	std::array<Material, 6> m_Materials;
 
 	// post processing
 	bool m_EnablePostProcessing = false;

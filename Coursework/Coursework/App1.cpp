@@ -41,24 +41,31 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
 
-	m_Materials[0].SetName("Grass");
-	m_Materials[0].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
-	
-	m_Materials[1].SetName("Dirt");
-	m_Materials[1].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/dirt");
-	
-	m_Materials[2].SetName("Sand");
-	m_Materials[2].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/sand");
-	
-	m_Materials[3].SetName("Rock");
-	m_Materials[3].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/rock");
-	
-	m_Materials[4].SetName("Snow");
-	m_Materials[4].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/snow");
-	
-	m_Materials[5].SetName("Worn Shiny Metal");
-	m_Materials[5].LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
-	m_Materials[5].SetMetalness(1.0f);
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Grass");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Dirt");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/dirt");
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Sand");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/sand");
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Rock");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/rock");
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Snow");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/snow");
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Worn Shiny Metal");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
+		mat->SetMetalness(1.0f);
+	}
 
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
@@ -119,7 +126,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
 	//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
 	
-	m_GameObjects.push_back({ m_TerrainMesh, GetMaterialByName("Rock") });
+	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Rock") });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -522,7 +529,7 @@ void App1::gui()
 		int index = 0;
 		for (auto& light : m_Lights)
 		{
-			if (ImGui::TreeNode((void*)(intptr_t)index, "Light %d", index))
+			if (ImGui::TreeNode((void*)((intptr_t)index + &m_Lights), "Light %d", index))
 			{
 				ImGui::Separator();
 
@@ -539,14 +546,7 @@ void App1::gui()
 
 	if (ImGui::CollapsingHeader("Materials"))
 	{
-		for (auto& material : m_Materials)
-		{
-			if (ImGui::TreeNode(material.GetName().c_str()))
-			{
-				material.SettingsGUI();
-				ImGui::TreePop();
-			}
-		}
+		m_MaterialLibrary.MaterialSettingsGUI();
 	}
 	ImGui::Separator();
 
@@ -568,6 +568,21 @@ void App1::gui()
 		{
 			m_FinalPassShader->SettingsGUI();
 			ImGui::TreePop();
+		}
+	}
+	ImGui::Separator();
+
+	if (ImGui::CollapsingHeader("Game Objects"))
+	{
+		int index = 0;
+		for (auto& go : m_GameObjects)
+		{
+			if (ImGui::TreeNode((void*)((intptr_t)index + &m_GameObjects), "Game Object %d", index))
+			{
+				go.SettingsGUI(&m_MaterialLibrary);
+				ImGui::TreePop();
+			}
+			index++;
 		}
 	}
 	ImGui::Separator();
@@ -769,14 +784,4 @@ void App1::loadSettings(const std::string& file)
 
 	if (data.contains("waterSettings")) m_WaterShader->LoadFromJson(data["waterSettings"]);
 	if (data.contains("terrainSettings")) m_TerrainShader->LoadFromJson(data["terrainSettings"]);
-}
-
-Material* App1::GetMaterialByName(const std::string& name)
-{
-	for (auto& mat : m_Materials)
-	{
-		if (mat.GetName() == name)
-			return &mat;
-	}
-	return nullptr;
 }

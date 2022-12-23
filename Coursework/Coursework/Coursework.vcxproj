@@ -327,6 +327,7 @@
     <ClCompile Include="BaseFullScreenShader.cpp" />
     <ClCompile Include="BloomShader.cpp" />
     <ClCompile Include="Cubemap.cpp" />
+    <ClCompile Include="MaterialLibrary.cpp" />
     <ClCompile Include="MeasureLuminanceShader.cpp" />
     <ClCompile Include="ShaderUtility.cpp" />
     <ClCompile Include="ShadowCubemap.cpp" />
@@ -355,6 +356,7 @@
     <ClInclude Include="BloomShader.h" />
     <ClInclude Include="Cubemap.h" />
     <ClInclude Include="GameObject.h" />
+    <ClInclude Include="MaterialLibrary.h" />
     <ClInclude Include="MeasureLuminanceShader.h" />
     <ClInclude Include="ShaderUtility.h" />
     <ClInclude Include="ShadowCubemap.h" />
