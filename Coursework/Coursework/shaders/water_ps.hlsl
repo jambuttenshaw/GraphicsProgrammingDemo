@@ -1,13 +1,10 @@
 // Water post processing effect
 
-#include "math.hlsli"
+#include "lighting.hlsli"
 
+Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
+TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t16);
 
-Texture2D renderTextureColour : register(t0);
-Texture2D renderTextureDepth : register(t1);
-
-Texture2D normalMapA : register(t2);
-Texture2D normalMapB : register(t3);
 SamplerState normalMapSampler : register(s0);
 
 cbuffer WaterBuffer : register(b0)
@@ -26,6 +23,11 @@ cbuffer WaterBuffer : register(b0)
     float alphaMultiplier;
     // 16 bytes
     float3 oceanBoundsMax;
+    int rtColourMapIndex;
+    // 16 bytes
+    int rtDepthMapIndex;
+    int normalMapAIndex;
+    int normalMapBIndex;
     float normalMapScale;
     // 16 bytes
     float normalMapStrength;
@@ -34,13 +36,9 @@ cbuffer WaterBuffer : register(b0)
     float padding0;
 };
 
-cbuffer LightBuffer : register(b1)
+cbuffer LightCB : register(b1)
 {
-    float4 diffuseColour;
-    float4 ambientColour;
-    float4 specularColour;
-    float3 lightDirection;
-    float padding1;
+    PSLightBuffer lightBuffer;
 };
 
 struct InputType
@@ -51,21 +49,6 @@ struct InputType
 };
 
 
-float3 normalMapToWorldSpace(float3 normalMapSample, float3 unitNormalW, float3 tangentW)
-{
-    float3 normalT = (2.0f * normalMapSample) - 1.0f;
-    
-    // build orthonormal bases
-    float3 N = unitNormalW;
-    float3 T = normalize(tangentW - dot(tangentW, N) * N);
-    float3 B = cross(N, T);
-    
-    float3x3 TBN = float3x3(T, B, N);
-    
-    return normalize(mul(normalT, TBN));
-}
-
-
 float calculateLinearDepth(float z)
 {
     return projection._43 / (z - projection._33);
@@ -74,7 +57,7 @@ float calculateLinearDepth(float z)
 
 float4 main(InputType input) : SV_TARGET
 {
-    float4 colour = renderTextureColour[input.position.xy];
+    float4 colour = LoadTexture2D(texture2DBuffer, rtColourMapIndex, input.position.xy);
     
     float2 hitInfo = intersectAABB(cameraPos, input.viewVector, oceanBoundsMin, oceanBoundsMax);
     // the units of these distances are length(input.viewVector)
@@ -82,7 +65,8 @@ float4 main(InputType input) : SV_TARGET
     float distToOcean = hitInfo.x;
     float distThroughOcean = hitInfo.y;
     
-    float depthToScene = calculateLinearDepth(renderTextureDepth[input.position.xy].r);
+    float depthSample = LoadTexture2D(texture2DBuffer, rtDepthMapIndex, input.position.xy).r;
+    float depthToScene = calculateLinearDepth(depthSample);
 
     if (distToOcean < distThroughOcean && distThroughOcean > 0 && distToOcean < depthToScene)
     {
@@ -105,28 +89,14 @@ float4 main(InputType input) : SV_TARGET
         // this is not ideal
         const float3 normalW = float3(0, 1, 0);
         
-        float3 normalMapASample = normalMapA.Sample(normalMapSampler, (uv * normalMapScale) + float2(0.1f * time, 0.08f * time)).xyz;
-        float3 normalMapBSample = normalMapB.Sample(normalMapSampler, (uv * normalMapScale) + float2(-0.08f * time, -0.1f * time)).xyz;
+        float3 normalMapASample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
+                                                    (uv * normalMapScale) + float2(0.1f * time, 0.08f * time)).rgb;
+        float3 normalMapBSample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
+                                                    (uv * normalMapScale) + float2(-0.08f * time, -0.1f * time)).rgb;
         
         // convert normals to world space
-        float3 bumpedNormal = normalMapToWorldSpace(normalMapASample, normalW, float3(1, 0, 0));
-        bumpedNormal = 0.5f * (bumpedNormal + normalMapToWorldSpace(normalMapBSample, normalW, float3(1, 0, 0)));
-        
-        // lighting
-        float3 toLight = -normalize(lightDirection);
-        
-        float diffuse = saturate(dot(normalW, toLight));
-        float4 lightColour = ambientColour + diffuse * diffuseColour;
-        
-        // guassian model of specular recflection
-        float3 h = normalize(toLight - normalize(input.viewVector));
-        float specularAngle = acos(saturate(dot(h, bumpedNormal)));
-        float specularExponent = specularAngle / (1.0f - smoothness);
-        float specularHighlight = exp(-specularExponent * specularExponent);
-        float4 specular = saturate(specularHighlight * specularColour);
-        
-        waterColour *= lightColour;
-        waterColour += specular;
+        float3 bumpedNormal = tangentToWorld(normalMapASample, normalW, input.viewVector, input.tex);
+        bumpedNormal = tangentToWorld(normalMapBSample, bumpedNormal, input.viewVector, input.tex);
         
         colour = lerp(colour, waterColour, tAlpha);
     }

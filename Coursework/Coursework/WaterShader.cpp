@@ -2,10 +2,14 @@
 
 #include "SerializationHelper.h"
 
+#include "SceneLight.h"
+#include "RenderTarget.h"
+#include "GlobalLighting.h"
 
-WaterShader::WaterShader(ID3D11Device* device, ID3D11ShaderResourceView* normalMapA, ID3D11ShaderResourceView* normalMapB)
+
+WaterShader::WaterShader(ID3D11Device* device, GlobalLighting* globalLighting, ID3D11ShaderResourceView* normalMapA, ID3D11ShaderResourceView* normalMapB)
 	: BaseFullScreenShader(device),
-	m_NormalMapA(normalMapA), m_NormalMapB(normalMapB)
+	m_NormalMapA(normalMapA), m_NormalMapB(normalMapB), m_GlobalLighting(globalLighting)
 {
 	Init(L"water_ps.cso");
 }
@@ -15,38 +19,15 @@ WaterShader::~WaterShader()
 {
 	if (m_CameraBuffer) m_CameraBuffer->Release();
 	if (m_WaterBuffer) m_WaterBuffer->Release();
-	if (m_LightBuffer) m_LightBuffer->Release();
+	if (m_PSLightBuffer) m_PSLightBuffer->Release();
 	if (m_NormalMapSamplerState) m_NormalMapSamplerState->Release();
 }
 
 void WaterShader::CreateShaderResources()
 {
-	D3D11_BUFFER_DESC cameraBufferDesc;
-	cameraBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	cameraBufferDesc.ByteWidth = sizeof(CameraBufferType);
-	cameraBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cameraBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cameraBufferDesc.MiscFlags = 0;
-	cameraBufferDesc.StructureByteStride = 0;
-	m_Device->CreateBuffer(&cameraBufferDesc, NULL, &m_CameraBuffer);
-
-	D3D11_BUFFER_DESC waterBufferDesc;
-	waterBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	waterBufferDesc.ByteWidth = sizeof(WaterBufferType);
-	waterBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	waterBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	waterBufferDesc.MiscFlags = 0;
-	waterBufferDesc.StructureByteStride = 0;
-	m_Device->CreateBuffer(&waterBufferDesc, NULL, &m_WaterBuffer);
-
-	D3D11_BUFFER_DESC lightBufferDesc;
-	lightBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-	lightBufferDesc.ByteWidth = sizeof(LightBufferType);
-	lightBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	lightBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	lightBufferDesc.MiscFlags = 0;
-	lightBufferDesc.StructureByteStride = 0;
-	m_Device->CreateBuffer(&lightBufferDesc, NULL, &m_LightBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(CameraBufferType), &m_CameraBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(WaterBufferType), &m_WaterBuffer);
+	ShaderUtility::CreateBuffer(m_Device, sizeof(ShaderUtility::PSLightBufferType), &m_PSLightBuffer);
 
 	D3D11_SAMPLER_DESC normalMapSamplerDesc;
 	normalMapSamplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
@@ -65,72 +46,72 @@ void WaterShader::UnbindShaderResources(ID3D11DeviceContext* deviceContext)
 {
 	ID3D11Buffer* nullBuffers[] = { nullptr, nullptr };
 	deviceContext->PSSetConstantBuffers(0, 2, nullBuffers);
-	ID3D11ShaderResourceView* nullSRV = nullptr;
-	deviceContext->PSSetShaderResources(0, 1, &nullSRV);
+	ResourceBuffer emptyResourceBuffer;
+	deviceContext->PSSetShaderResources(0, RESOURCE_BUFFER_SIZE, emptyResourceBuffer.GetResourcePtr());
+	deviceContext->PSSetShaderResources(RESOURCE_BUFFER_SIZE, RESOURCE_BUFFER_SIZE, emptyResourceBuffer.GetResourcePtr());
 	ID3D11SamplerState* nullSampler = nullptr;
 	deviceContext->PSSetSamplers(0, 1, &nullSampler);
 }
 
-void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth, SceneLight* light, Camera* camera, float time)
+void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, RenderTarget* renderTarget, SceneLight** lights, size_t lightCount, Camera* camera, float time)
 {
-	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 
-	XMMATRIX tinvView = XMMatrixTranspose(XMMatrixInverse(nullptr, viewMatrix));
-	XMMATRIX tproj = XMMatrixTranspose(projectionMatrix);
+	ResourceBuffer tex2DBuffer, texCubeBuffer;
 
-	result = deviceContext->Map(m_CameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	CameraBufferType* cameraPtr;
-	cameraPtr = (CameraBufferType*)mappedResource.pData;
-	cameraPtr->invView = tinvView;
-	cameraPtr->projection = tproj;
-	deviceContext->Unmap(m_CameraBuffer, 0);
+	{
+		deviceContext->Map(m_CameraBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		CameraBufferType* cameraPtr = (CameraBufferType*)mappedResource.pData;
+		cameraPtr->invView = XMMatrixTranspose(XMMatrixInverse(nullptr, viewMatrix));
+		cameraPtr->projection = XMMatrixTranspose(projectionMatrix);
+		deviceContext->Unmap(m_CameraBuffer, 0);
+	}
+	{
+		deviceContext->Map(m_WaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		WaterBufferType* dataPtr = (WaterBufferType*)mappedResource.pData;
+
+		dataPtr->projection = XMMatrixTranspose(projectionMatrix);
+		dataPtr->cameraPos = camera->getPosition();
+
+		dataPtr->deepColour = m_DeepColour;
+		dataPtr->shallowColour = m_ShallowColour;
+
+		dataPtr->oceanBoundsMin = m_OceanBoundsMin;
+		dataPtr->oceanBoundsMax = m_OceanBoundsMax;
+
+		dataPtr->depthMultiplier = m_DepthMultiplier;
+		dataPtr->alphaMultiplier = m_AlphaMultiplier;
+		
+		dataPtr->rtColourMapIndex = tex2DBuffer.AddResource(renderTarget->GetColourSRV());
+		dataPtr->rtDepthMapIndex = tex2DBuffer.AddResource(renderTarget->GetDepthSRV());
+
+		dataPtr->normalMapAIndex = tex2DBuffer.AddResource(m_NormalMapA);
+		dataPtr->normalMapBIndex = tex2DBuffer.AddResource(m_NormalMapB);
+
+		dataPtr->normalMapScale = m_NormalMapScale;
+		dataPtr->normalMapStrength = m_NormalMapStrength;
+		dataPtr->smoothness = m_Smoothness;
+
+		dataPtr->time = time;
+		dataPtr->padding = 0.0f;
+
+		deviceContext->Unmap(m_WaterBuffer, 0);
+	}
+	{
+		deviceContext->Map(m_PSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
+		ShaderUtility::PSLightBufferType* dataPtr = (ShaderUtility::PSLightBufferType*)mappedResource.pData;
+		ShaderUtility::ConstructPSLightBuffer(dataPtr, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
+		deviceContext->Unmap(m_PSLightBuffer, 0);
+	}
+
 	deviceContext->VSSetConstantBuffers(0, 1, &m_CameraBuffer);
 
-	result = deviceContext->Map(m_WaterBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	WaterBufferType* dataPtr;
-	dataPtr = (WaterBufferType*)mappedResource.pData;
-	
-	dataPtr->projection = tproj;
-	dataPtr->cameraPos = camera->getPosition();
-
-	dataPtr->deepColour = m_DeepColour;
-	dataPtr->shallowColour = m_ShallowColour;
-
-	dataPtr->oceanBoundsMin = m_OceanBoundsMin;
-	dataPtr->oceanBoundsMax = m_OceanBoundsMax;
-
-	dataPtr->depthMultiplier = m_DepthMultiplier;
-	dataPtr->alphaMultiplier = m_AlphaMultiplier;
-	
-	dataPtr->normalMapScale = m_NormalMapScale;
-	dataPtr->normalMapStrength = m_NormalMapStrength;
-	dataPtr->smoothness = m_Smoothness;
-
-	dataPtr->time = time;
-	dataPtr->padding = 0.0f;
-	
-	deviceContext->Unmap(m_WaterBuffer, 0);
-	deviceContext->PSSetConstantBuffers(0, 1, &m_WaterBuffer);
-
-	//Additional
-	// Send light data to pixel shader
-	LightBufferType* lightPtr;
-	deviceContext->Map(m_LightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-	lightPtr = (LightBufferType*)mappedResource.pData;
-	auto c = light->GetColour();
-	lightPtr->diffuse = { c.x, c.y, c.z, 1.0f };
-	lightPtr->ambient = { 0.0f, 0.0f, 0.0f, 1.0f };
-	lightPtr->specular = { c.x, c.y, c.z, 1.0f };
-	lightPtr->direction = light->GetDirection();
-	lightPtr->padding = 0.0f;
-	deviceContext->Unmap(m_LightBuffer, 0);
-	deviceContext->PSSetConstantBuffers(1, 1, &m_LightBuffer);
-
-	// Set shader texture resource in the pixel shader.
-	ID3D11ShaderResourceView* srvs[] = { renderTextureColour, renderTextureDepth, m_NormalMapA, m_NormalMapB };
-	deviceContext->PSSetShaderResources(0, 4, srvs);
+	ID3D11Buffer* psCBs[] = { m_WaterBuffer, m_PSLightBuffer };
+	deviceContext->PSSetConstantBuffers(0, 2, psCBs);
 	deviceContext->PSSetSamplers(0, 1, &m_NormalMapSamplerState);
+
+	deviceContext->PSSetShaderResources(0, RESOURCE_BUFFER_SIZE, tex2DBuffer.GetResourcePtr());
+	deviceContext->PSSetShaderResources(RESOURCE_BUFFER_SIZE, RESOURCE_BUFFER_SIZE, texCubeBuffer.GetResourcePtr());
 }
 
 void WaterShader::SettingsGUI()

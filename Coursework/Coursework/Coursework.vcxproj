@@ -315,10 +315,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\common.hlsli" />
+    <None Include="shaders\defines.hlsli" />
     <None Include="shaders\math.hlsli" />
     <None Include="shaders\noiseFunctions.hlsli" />
     <None Include="shaders\noiseSimplex.hlsli" />
     <None Include="shaders\lighting.hlsli" />
+    <None Include="shaders\texturefuncs.hlsli" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="App1.cpp" />

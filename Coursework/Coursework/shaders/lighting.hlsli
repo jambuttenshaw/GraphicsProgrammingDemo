@@ -243,6 +243,7 @@ float3 calculateLighting(
         
         float3x3 TBN = cotangent_frame(n, -v, uv);
         n = normalize(mul(map, TBN));
+        //n = tangentToWorld(map, n, -v, uv);
     }
     
     float3 albedo = material.albedoMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.albedoMapIndex, anisotropicSampler, uv).rgb : material.albedoColor.rgb;

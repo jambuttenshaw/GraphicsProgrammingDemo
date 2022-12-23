@@ -2,11 +2,16 @@
 
 #include "DXF.h"
 #include "BaseFullScreenShader.h"
-#include "SceneLight.h"
+#include "ShaderUtility.h"
 
 #include <nlohmann/json.hpp>
 
+class SceneLight;
+class RenderTarget;
+class GlobalLighting;
+
 using namespace DirectX;
+
 
 class WaterShader : public BaseFullScreenShader
 {
@@ -27,6 +32,10 @@ private:
 		XMFLOAT3 oceanBoundsMin;
 		float alphaMultiplier;
 		XMFLOAT3 oceanBoundsMax;
+		int rtColourMapIndex;
+		int rtDepthMapIndex;
+		int normalMapAIndex;
+		int normalMapBIndex;
 		float normalMapScale;
 		float normalMapStrength;
 		float smoothness;
@@ -34,20 +43,11 @@ private:
 		float padding;
 	};
 
-	struct LightBufferType
-	{
-		XMFLOAT4 diffuse;
-		XMFLOAT4 ambient;
-		XMFLOAT4 specular;
-		XMFLOAT3 direction;
-		float padding;
-	};
-
 public:
-	WaterShader(ID3D11Device* device, ID3D11ShaderResourceView* normalMapA, ID3D11ShaderResourceView* normalMapB);
+	WaterShader(ID3D11Device* device, GlobalLighting* globalLighting, ID3D11ShaderResourceView* normalMapA, ID3D11ShaderResourceView* normalMapB);
 	~WaterShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& view, const XMMATRIX& projection, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth, SceneLight* light, Camera* camera, float time);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, RenderTarget* renderTarget, SceneLight** lights, size_t lightCount, Camera* camera, float time);
 
 	void SettingsGUI();
 
@@ -62,11 +62,11 @@ protected:
 private:
 	ID3D11Buffer* m_CameraBuffer = nullptr;
 	ID3D11Buffer* m_WaterBuffer = nullptr;
-	ID3D11Buffer* m_LightBuffer = nullptr;
+	ID3D11Buffer* m_PSLightBuffer = nullptr;
 	ID3D11SamplerState* m_NormalMapSamplerState = nullptr;
 
-	XMFLOAT3 m_OceanBoundsMin = { -50.0f, -10.0f, -50.0f };
-	XMFLOAT3 m_OceanBoundsMax = { 50.0f, 0.0f, 50.0f };
+	XMFLOAT3 m_OceanBoundsMin = { -25.0f, -10.0f, -25.0f };
+	XMFLOAT3 m_OceanBoundsMax = { 25.0f, 0.0f, 25.0f };
 
 	XMFLOAT4 m_ShallowColour = { 0.38f, 1.0f, 0.87f, 1.0f };
 	XMFLOAT4 m_DeepColour = { 0.10f, 0.22f, 0.6f, 1.0f };
@@ -80,4 +80,6 @@ private:
 
 	ID3D11ShaderResourceView* m_NormalMapA = nullptr;
 	ID3D11ShaderResourceView* m_NormalMapB = nullptr;
+
+	GlobalLighting* m_GlobalLighting = nullptr;
 };

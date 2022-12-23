@@ -70,7 +70,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_UnlitShader = new UnlitShader(renderer->getDevice(), hwnd);
 	m_UnlitTerrainShader = new UnlitTerrainShader(renderer->getDevice());
 	
-	m_WaterShader = new WaterShader(renderer->getDevice(), textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
+	m_WaterShader = new WaterShader(renderer->getDevice(), m_GlobalLighting, textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_MeasureLuminenceShader = new MeasureLuminanceShader(renderer->getDevice(), screenWidth, screenHeight);
 	m_BloomShader = new BloomShader(renderer->getDevice(), screenWidth / 2, screenHeight / 2, 5);
 	m_FinalPassShader = new FinalPassShader(renderer->getDevice());
@@ -110,16 +110,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// create game objects
 	
-	Material* rockMat = GetMaterialByName("Rock");
-	Material* shinyMetalMat = GetMaterialByName("Worn Shiny Metal");
-	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
-	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
-	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
-	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
-	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
-	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
+	//Material* rockMat = GetMaterialByName("Rock");
+	//Material* shinyMetalMat = GetMaterialByName("Worn Shiny Metal");
+	//m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
+	//m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
+	//m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
+	//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
+	//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
+	//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
 	
-	//m_GameObjects.push_back({ m_TerrainMesh, GetMaterialByName("Rock") });
+	m_GameObjects.push_back({ m_TerrainMesh, GetMaterialByName("Rock") });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -130,7 +130,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// setup default light settings
 	SceneLight& light = *(m_Lights[0]);
-	light.SetEnbled(true);
+	//light.SetEnbled(true);
 	light.SetColour({ 0.985f, 0.968f, 0.415f });
 	light.SetType(SceneLight::LightType::Point);
 	light.SetPosition({ 1, 4, -5 });
@@ -148,9 +148,6 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light2.SetIntensity(1.3f);
 	light2.EnableShadows();
 
-	m_GlobalLighting->SetIBLEnabled(false);
-	m_DrawSkybox = false;
-	
 	if (m_LoadOnOpen)
 	{
 		loadSettings(std::string(m_SaveFilePath));
@@ -398,7 +395,7 @@ void App1::waterPass()
 	m_WaterRenderTexture->Clear(renderer->getDeviceContext(), m_ClearColour);
 	m_WaterRenderTexture->Set(renderer->getDeviceContext());
 
-	m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SceneRenderTexture->GetColourSRV(), m_SceneRenderTexture->GetDepthSRV(), m_Lights[1], camera, m_Time);
+	m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SceneRenderTexture, m_Lights.data(), m_Lights.size(), camera, m_Time);
 	m_WaterShader->Render(renderer->getDeviceContext());
 }
 
@@ -557,6 +554,11 @@ void App1::gui()
 	{
 		ImGui::Checkbox("Enable", &m_EnablePostProcessing);
 
+		if (ImGui::TreeNode("Water"))
+		{
+			m_WaterShader->SettingsGUI();
+			ImGui::TreePop();
+		}
 		if (ImGui::TreeNode("Bloom"))
 		{
 			m_BloomShader->SettingsGUI();
@@ -567,12 +569,6 @@ void App1::gui()
 			m_FinalPassShader->SettingsGUI();
 			ImGui::TreePop();
 		}
-	}
-	ImGui::Separator();
-
-	if (ImGui::CollapsingHeader("Ocean"))
-	{
-		m_WaterShader->SettingsGUI();
 	}
 	ImGui::Separator();
 	

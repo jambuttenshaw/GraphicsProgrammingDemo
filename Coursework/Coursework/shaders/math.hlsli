@@ -124,3 +124,11 @@ float3x3 cotangent_frame(float3 n, float3 p, float2 uv)
     // create TBN matrix
     return float3x3(T * invmax, B * invmax, n);
 }
+
+float3 tangentToWorld(float3 sample, float3 n, float3 p, float2 uv)
+{
+    sample = (sample * 2.0f) - 1.0f;
+        
+    float3x3 TBN = cotangent_frame(n, p, uv);
+    return normalize(mul(sample, TBN));
+}

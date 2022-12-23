@@ -96,6 +96,12 @@
     <None Include="shaders\common.hlsli">
       <Filter>Shaders\include</Filter>
     </None>
+    <None Include="shaders\texturefuncs.hlsli">
+      <Filter>Shaders\include</Filter>
+    </None>
+    <None Include="shaders\defines.hlsli">
+      <Filter>Shaders\include</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
