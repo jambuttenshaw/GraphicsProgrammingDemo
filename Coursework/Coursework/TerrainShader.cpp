@@ -4,6 +4,7 @@
 #include "Material.h"
 #include "GlobalLighting.h"
 #include "ShadowCubemap.h"
+#include "TerrainMesh.h"
 
 
 TerrainShader::TerrainShader(ID3D11Device* device, GlobalLighting* globalLighting)
@@ -31,6 +32,9 @@ TerrainShader::~TerrainShader()
 	if (m_TessellationBuffer) m_TessellationBuffer->Release();
 
 	if (m_HeightmapSampleState) m_HeightmapSampleState->Release();
+	if (m_MaterialSampler) m_MaterialSampler->Release();
+	if (m_ShadowSampler) m_ShadowSampler->Release();
+	if (m_PointSampler) m_PointSampler->Release();
 }
 
 void TerrainShader::InitShader()
@@ -90,6 +94,18 @@ void TerrainShader::InitShader()
 	shadowSamplerDesc.BorderColor[3] = 1.0f;
 	shadowSamplerDesc.ComparisonFunc = D3D11_COMPARISON_LESS_EQUAL;
 	m_Device->CreateSamplerState(&shadowSamplerDesc, &m_ShadowSampler);
+
+	D3D11_SAMPLER_DESC pointSamplerDesc;
+	pointSamplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
+	pointSamplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	pointSamplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	pointSamplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	pointSamplerDesc.MipLODBias = 0.0f;
+	pointSamplerDesc.MaxAnisotropy = 1;
+	pointSamplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
+	pointSamplerDesc.MinLOD = 0;
+	pointSamplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	m_Device->CreateSamplerState(&pointSamplerDesc, &m_PointSampler);
 }
 
 void TerrainShader::LoadVS(const wchar_t* vs)
@@ -161,7 +177,7 @@ void TerrainShader::LoadPS(const wchar_t* ps)
 
 void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix,
-	ID3D11ShaderResourceView* heightmap,
+	TerrainMesh* terrainMesh,
 	size_t lightCount, SceneLight** lights, Camera* camera, Material* mat)
 {
 	HRESULT result;
@@ -181,9 +197,12 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		deviceContext->Map(m_TessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		TessellationBufferType* dataPtr = (TessellationBufferType*)mappedResource.pData;
 		dataPtr->minMaxDistance = m_MinMaxDistance;
+		dataPtr->minMaxHeightDeviation = m_MinMaxHeightDeviation;
 		dataPtr->minMaxLOD = m_MinMaxLOD;
-		dataPtr->cameraPos = camera->getPosition();
+		dataPtr->distanceLODBlending = m_DistanceLODBlending;
 		dataPtr->padding = 0.0f;
+		dataPtr->cameraPos = camera->getPosition();
+		dataPtr->size = terrainMesh->GetSize();
 		deviceContext->Unmap(m_TessellationBuffer, 0);
 	}
 	{
@@ -215,7 +234,7 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		deviceContext->Map(m_TerrainBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		TerrainBufferType* dataPtr = (TerrainBufferType*)mappedResource.pData;
 		
-		dataPtr->heightmapIndex = tex2DBuffer.AddResource(heightmap);
+		dataPtr->heightmapIndex = tex2DBuffer.AddResource(terrainMesh->GetHeightmapSRV());
 
 		dataPtr->flatThreshold = m_FlatThreshold;
 		dataPtr->cliffThreshold = m_CliffThreshold;
@@ -226,9 +245,13 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->VSSetConstantBuffers(0, 1, &m_VSMatrixBuffer);
 
 	deviceContext->HSSetConstantBuffers(0, 1, &m_TessellationBuffer);
+	auto preprocessedHeightmap = terrainMesh->GetPreprocessSRV();
+	deviceContext->HSSetShaderResources(0, 1, &preprocessedHeightmap);
+	deviceContext->HSSetSamplers(0, 1, &m_PointSampler);
 
 	ID3D11Buffer* dsCBs[] = { m_DSMatrixBuffer, m_DSLightBuffer };
 	deviceContext->DSSetConstantBuffers(0, 2, dsCBs);
+	auto heightmap = terrainMesh->GetHeightmapSRV();
 	deviceContext->DSSetShaderResources(0, 1, &heightmap);
 	deviceContext->DSSetSamplers(0, 1, &m_HeightmapSampleState);
 
@@ -269,6 +292,8 @@ void TerrainShader::GUI()
 	ImGui::Text("LOD");
 	ImGui::SliderFloat("Min Distance", &m_MinMaxDistance.x, 0.0f, m_MinMaxDistance.y);
 	ImGui::SliderFloat("Max Distance", &m_MinMaxDistance.y, m_MinMaxDistance.x, 100.0f);
+	ImGui::SliderFloat("Min Height Deviation", &m_MinMaxHeightDeviation.x, 0.0f, m_MinMaxHeightDeviation.y);
+	ImGui::SliderFloat("Max Height Deviation", &m_MinMaxHeightDeviation.y, m_MinMaxHeightDeviation.x, 4.0f);
 	ImGui::SliderFloat("Min LOD", &m_MinMaxLOD.x, 1.0f, m_MinMaxLOD.y);
 	ImGui::SliderFloat("Max LOD", &m_MinMaxLOD.y, m_MinMaxLOD.x, 64.0f);
 }

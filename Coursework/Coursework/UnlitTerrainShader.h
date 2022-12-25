@@ -5,6 +5,8 @@
 using namespace std;
 using namespace DirectX;
 
+class TerrainMesh;
+
 
 class UnlitTerrainShader
 {
@@ -32,7 +34,7 @@ public:
 
 	void SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection,
-		ID3D11ShaderResourceView* heightmap, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD);
+		TerrainMesh* terrainMesh, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD);
 	void Render(ID3D11DeviceContext* deviceContext, unsigned int indexCount);
 
 private:

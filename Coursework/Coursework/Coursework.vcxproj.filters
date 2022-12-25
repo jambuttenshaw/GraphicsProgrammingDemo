@@ -79,6 +79,9 @@
     <FxCompile Include="shaders\unlitterrain_ds.hlsl">
       <Filter>Shaders\terrain</Filter>
     </FxCompile>
+    <FxCompile Include="shaders\heightmappreprocess_cs.hlsl">
+      <Filter>Shaders\compute\heightmap</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\lighting.hlsli">

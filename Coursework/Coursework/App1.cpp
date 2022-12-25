@@ -97,7 +97,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_SphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 40);
 	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
-	m_TerrainMesh = new TerrainMesh(renderer->getDevice(), 25, 50.0f);
+	m_TerrainMesh = new TerrainMesh(renderer->getDevice(), 50.0f);
 
 	m_ShadowRasterDesc.FillMode = D3D11_FILL_SOLID;
 	m_ShadowRasterDesc.CullMode = D3D11_CULL_BACK;
@@ -117,16 +117,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// create game objects
 	
-	Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
-	Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
-	m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
-	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
-	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
-	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
-	m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
-	m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
+	//Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
+	//Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
+	//m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
+	//m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
+	//m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
+	//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
+	//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
+	//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
 	
-	//m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Rock") });
+	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Rock") });
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -340,7 +340,7 @@ void App1::depthPass(SceneLight* light)
 				break;
 			case GameObject::MeshType::Terrain:
 				go.mesh.terrain->SendData(renderer->getDeviceContext());
-				m_UnlitTerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix, go.mesh.terrain->GetSRV(), camera->getPosition(), m_TerrainShader->GetMinMaxDist(), m_TerrainShader->GetMinMaxLOD() );
+				m_UnlitTerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix, go.mesh.terrain, camera->getPosition(), m_TerrainShader->GetMinMaxDist(), m_TerrainShader->GetMinMaxLOD() );
 				m_UnlitTerrainShader->Render(renderer->getDeviceContext(), go.mesh.terrain->GetIndexCount());
 				break;
 			default:
@@ -370,7 +370,7 @@ void App1::worldPass()
 			break;
 		case GameObject::MeshType::Terrain:
 			go.mesh.terrain->SendData(renderer->getDeviceContext());
-			m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, go.mesh.terrain->GetSRV(), m_Lights.size(), m_Lights.data(), camera, go.material);
+			m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, go.mesh.terrain, m_Lights.size(), m_Lights.data(), camera, go.material);
 			m_TerrainShader->Render(renderer->getDeviceContext(), go.mesh.terrain->GetIndexCount());
 			break;
 		default:
@@ -712,8 +712,9 @@ void App1::applyFilterStack()
 {
 	for (auto filter : m_HeightmapFilters)
 	{
-		filter->Run(renderer->getDeviceContext(), m_TerrainMesh->GetUAV(), m_TerrainMesh->GetHeightmapResolution());
+		filter->Run(renderer->getDeviceContext(), m_TerrainMesh->GetHeightmapUAV(), m_TerrainMesh->GetHeightmapResolution());
 	}
+	m_TerrainMesh->PreprocessHeightmap(renderer->getDeviceContext());
 }
 
 IHeightmapFilter* App1::createFilterFromIndex(int index)

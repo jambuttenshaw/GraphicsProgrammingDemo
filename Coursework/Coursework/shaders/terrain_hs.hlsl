@@ -1,10 +1,19 @@
+#include "math.hlsli"
+
+// rgb = best fit plane normal
+//   a = standard deviation from best fit plane
+Texture2D preprocessedHeightmap : register(t0);
+SamplerState pointSampler : register(s0);
 
 cbuffer TessellationBuffer : register(b0)
 {
     float2 minMaxDistance;
+    float2 minMaxHeightDeviation;
     float2 minMaxLOD;
+    float distanceLODBlending;
+    float padding;
     float3 cameraPos;
-    float padding0;
+    float size;
 }
    
 
@@ -35,14 +44,21 @@ float3 ComputePatchMidpoint(float3 cp0, float3 cp1, float3 cp2, float3 cp3)
 float ComputeScaledDistance(float3 from, float3 to)
 {
     float d = distance(from, to);
-    //return (d - minMaxDistance.x) / (minMaxDistance.y - minMaxDistance.x);
     return smoothstep(minMaxDistance.x, minMaxDistance.y, d);
 }
 
 float ComputePatchLOD(float3 midpoint)
 {
+    float2 uv = midpoint.xz / size;
+    uv += float2(0.5f, 0.5f);
+    
+    float heightDeviation = preprocessedHeightmap.SampleLevel(pointSampler, uv, 0.0f).a;
+    float scaledHeightDeviation = smoothstep(minMaxHeightDeviation.x, minMaxHeightDeviation.y, heightDeviation);
+    
     float d = ComputeScaledDistance(cameraPos, midpoint);
-    return lerp(minMaxLOD.x, minMaxLOD.y, 1.0f - d);
+    
+    float lod01 = saturate(scaledHeightDeviation + distanceLODBlending * (1.0f - d));
+    return lerp(minMaxLOD.x, minMaxLOD.y, lod01);
 }
 
 

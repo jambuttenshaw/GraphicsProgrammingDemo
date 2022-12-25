@@ -10,6 +10,7 @@ using namespace DirectX;
 class SceneLight;
 class Material;
 class GlobalLighting;
+class TerrainMesh;
 
 
 class TerrainShader
@@ -34,9 +35,12 @@ private:
 	struct TessellationBufferType
 	{
 		XMFLOAT2 minMaxDistance;
+		XMFLOAT2 minMaxHeightDeviation;
 		XMFLOAT2 minMaxLOD;
-		XMFLOAT3 cameraPos;
+		float distanceLODBlending;
 		float padding;
+		XMFLOAT3 cameraPos;
+		float size;
 	};
 
 public:
@@ -45,7 +49,7 @@ public:
 
 	void SetShaderParameters(ID3D11DeviceContext* deviceContext,
 								const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection,
-								ID3D11ShaderResourceView* heightmap,
+								TerrainMesh* terrainMesh,
 								size_t lightCount, SceneLight** lights, Camera* camera, Material* mat);
 	void Render(ID3D11DeviceContext* deviceContext, unsigned int indexCount);
 
@@ -86,6 +90,7 @@ private:
 	ID3D11SamplerState* m_HeightmapSampleState = nullptr;
 	ID3D11SamplerState* m_MaterialSampler = nullptr;
 	ID3D11SamplerState* m_ShadowSampler = nullptr;
+	ID3D11SamplerState* m_PointSampler = nullptr;
 
 	GlobalLighting* m_GlobalLighting = nullptr;
 
@@ -96,6 +101,8 @@ private:
 
 	// tessellation params
 	XMFLOAT2 m_MinMaxDistance{ 10.0f, 40.0f };
-	XMFLOAT2 m_MinMaxLOD{ 1.0f, 10.0f };
+	XMFLOAT2 m_MinMaxHeightDeviation{ 0.5f, 2.0f };
+	XMFLOAT2 m_MinMaxLOD{ 1.0f, 8.0f };
+	float m_DistanceLODBlending = 0.5f;
 };
 

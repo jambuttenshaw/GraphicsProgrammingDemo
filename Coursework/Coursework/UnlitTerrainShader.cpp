@@ -1,5 +1,7 @@
 #include "UnlitTerrainShader.h"
 
+#include "TerrainMesh.h"
+
 
 UnlitTerrainShader::UnlitTerrainShader(ID3D11Device* device)
 	: m_Device(device)
@@ -119,7 +121,7 @@ void UnlitTerrainShader::CreateBuffer(UINT byteWidth, ID3D11Buffer** ppBuffer)
 
 void UnlitTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection,
-	ID3D11ShaderResourceView* heightmap, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD)
+	TerrainMesh* terrainMesh, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -153,8 +155,11 @@ void UnlitTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	deviceContext->VSSetConstantBuffers(0, 1, &m_VSMatrixBuffer);
 
 	deviceContext->HSSetConstantBuffers(0, 1, &m_TessellationBuffer);
+	auto preprocessedHeightmap = terrainMesh->GetPreprocessSRV();
+	deviceContext->HSGetShaderResources(0, 1, &preprocessedHeightmap);
 
 	deviceContext->DSSetConstantBuffers(0, 1, &m_DSMatrixBuffer);
+	auto heightmap = terrainMesh->GetHeightmapSRV();
 	deviceContext->DSSetShaderResources(0, 1, &heightmap);
 	deviceContext->DSSetSamplers(0, 1, &m_HeightmapSampleState);
 }
