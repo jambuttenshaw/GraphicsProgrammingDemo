@@ -68,7 +68,9 @@ struct PSLightBuffer
 
 struct MaterialBuffer
 {
-    MaterialData material;
+    MaterialData materials[MAX_MATERIALS];
+    int materialCount;
+    float3 padding;
 };
 
 

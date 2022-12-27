@@ -28,9 +28,18 @@ private:
 	struct TerrainBufferType
 	{
 		int heightmapIndex;
+		float uvScale;
 		float flatThreshold;
 		float cliffThreshold;
+
 		float steepnessSmoothing;
+		float heightSmoothing;
+		float shoreThreshold;
+		float snowHeightThreshold;
+
+		XMFLOAT2 minMaxSnowSteepness;
+		XMFLOAT2 padding;
+
 	};
 	struct TessellationBufferType
 	{
@@ -50,7 +59,7 @@ public:
 	void SetShaderParameters(ID3D11DeviceContext* deviceContext,
 								const XMMATRIX &world, const XMMATRIX &view, const XMMATRIX &projection,
 								TerrainMesh* terrainMesh,
-								size_t lightCount, SceneLight** lights, Camera* camera, Material* mat);
+								size_t lightCount, SceneLight** lights, Camera* camera, const std::vector<Material*>& materials);
 	void Render(ID3D11DeviceContext* deviceContext, unsigned int indexCount);
 
 	void GUI();
@@ -95,12 +104,17 @@ private:
 	GlobalLighting* m_GlobalLighting = nullptr;
 
 	// terrain properties
+	float m_UVScale = 32.0f;
 	float m_FlatThreshold = 0.5f;
 	float m_CliffThreshold = 0.8f;
+	float m_ShoreThreshold = 0.0f;
+	float m_SnowHeightThreshold = 2.0f;
+	XMFLOAT2 m_MinMaxSnowSteepness = { 0.27f, 0.8f };
 	float m_SteepnessSmoothing = 0.1f;
+	float m_HeightSmoothing = 1.0f;
 
 	// tessellation params
-	XMFLOAT2 m_MinMaxDistance{ 10.0f, 40.0f };
+	XMFLOAT2 m_MinMaxDistance{ 5.0f, 25.0f };
 	XMFLOAT2 m_MinMaxHeightDeviation{ 0.5f, 2.0f };
 	XMFLOAT2 m_MinMaxLOD{ 1.0f, 8.0f };
 	float m_DistanceLODBlending = 0.5f;

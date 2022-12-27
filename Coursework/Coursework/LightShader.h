@@ -18,7 +18,7 @@ public:
 	LightShader(ID3D11Device* device, HWND hwnd, GlobalLighting* globalLighing);
 	~LightShader();
 
-	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, size_t lightCount, SceneLight** lights, Camera* camera, const Material* mat);
+	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection, size_t lightCount, SceneLight** lights, Camera* camera, Material* mat);
 
 private:
 	void initShader(const wchar_t* vs, const wchar_t* ps);

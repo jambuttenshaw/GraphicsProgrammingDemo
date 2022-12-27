@@ -326,6 +326,7 @@
   <ItemGroup>
     <None Include="shaders\common.hlsli" />
     <None Include="shaders\defines.hlsli" />
+    <None Include="shaders\material.hlsli" />
     <None Include="shaders\math.hlsli" />
     <None Include="shaders\noiseFunctions.hlsli" />
     <None Include="shaders\noiseSimplex.hlsli" />

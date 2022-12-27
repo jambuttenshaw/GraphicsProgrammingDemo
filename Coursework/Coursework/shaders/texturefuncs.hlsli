@@ -4,40 +4,17 @@
 
 float4 SampleTexture2D(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float2 uv)
 {
+    #define CASESAMPLETEX2D(n) case n: return texBuffer[n].Sample(s, uv);
     switch (i)
     {
-        case 0:
-            return texBuffer[0].Sample(s, uv);
-        case 1:
-            return texBuffer[1].Sample(s, uv);
-        case 2:
-            return texBuffer[2].Sample(s, uv);
-        case 3:
-            return texBuffer[3].Sample(s, uv);
-        case 4:
-            return texBuffer[4].Sample(s, uv);
-        case 5:
-            return texBuffer[5].Sample(s, uv);
-        case 6:
-            return texBuffer[6].Sample(s, uv);
-        case 7:
-            return texBuffer[7].Sample(s, uv);
-        case 8:
-            return texBuffer[8].Sample(s, uv);
-        case 9:
-            return texBuffer[9].Sample(s, uv);
-        case 10:
-            return texBuffer[10].Sample(s, uv);
-        case 11:
-            return texBuffer[11].Sample(s, uv);
-        case 12:
-            return texBuffer[12].Sample(s, uv);
-        case 13:
-            return texBuffer[13].Sample(s, uv);
-        case 14:
-            return texBuffer[14].Sample(s, uv);
-        case 15:
-            return texBuffer[15].Sample(s, uv);
+        CASESAMPLETEX2D( 0) CASESAMPLETEX2D( 1) CASESAMPLETEX2D( 2) CASESAMPLETEX2D( 3)
+        CASESAMPLETEX2D( 4) CASESAMPLETEX2D( 5) CASESAMPLETEX2D( 6) CASESAMPLETEX2D( 7)
+        CASESAMPLETEX2D( 8) CASESAMPLETEX2D( 9) CASESAMPLETEX2D(10) CASESAMPLETEX2D(11)
+        CASESAMPLETEX2D(12) CASESAMPLETEX2D(13) CASESAMPLETEX2D(14) CASESAMPLETEX2D(15)
+        CASESAMPLETEX2D(16) CASESAMPLETEX2D(17) CASESAMPLETEX2D(18) CASESAMPLETEX2D(19)
+        CASESAMPLETEX2D(20) CASESAMPLETEX2D(21) CASESAMPLETEX2D(22) CASESAMPLETEX2D(23)
+        CASESAMPLETEX2D(24) CASESAMPLETEX2D(25) CASESAMPLETEX2D(26) CASESAMPLETEX2D(27)
+        CASESAMPLETEX2D(28) CASESAMPLETEX2D(29) CASESAMPLETEX2D(30) CASESAMPLETEX2D(31)
         default:
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -45,40 +22,17 @@ float4 SampleTexture2D(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerState
 }
 float4 SampleTextureCube(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float3 uvw)
 {
+    #define CASESAMPLETEXCUBE(n) case n: return texBuffer[n].Sample(s, uvw);
     switch (i)
     {
-        case 0:
-            return texBuffer[0].Sample(s, uvw);
-        case 1:
-            return texBuffer[1].Sample(s, uvw);
-        case 2:
-            return texBuffer[2].Sample(s, uvw);
-        case 3:
-            return texBuffer[3].Sample(s, uvw);
-        case 4:
-            return texBuffer[4].Sample(s, uvw);
-        case 5:
-            return texBuffer[5].Sample(s, uvw);
-        case 6:
-            return texBuffer[6].Sample(s, uvw);
-        case 7:
-            return texBuffer[7].Sample(s, uvw);
-        case 8:
-            return texBuffer[7].Sample(s, uvw);
-        case 9:
-            return texBuffer[7].Sample(s, uvw);
-        case 10:
-            return texBuffer[7].Sample(s, uvw);
-        case 11:
-            return texBuffer[7].Sample(s, uvw);
-        case 12:
-            return texBuffer[7].Sample(s, uvw);
-        case 13:
-            return texBuffer[7].Sample(s, uvw);
-        case 14:
-            return texBuffer[7].Sample(s, uvw);
-        case 15:
-            return texBuffer[7].Sample(s, uvw);
+        CASESAMPLETEXCUBE( 0) CASESAMPLETEXCUBE( 1) CASESAMPLETEXCUBE( 2) CASESAMPLETEXCUBE( 3)
+        CASESAMPLETEXCUBE( 4) CASESAMPLETEXCUBE( 5) CASESAMPLETEXCUBE( 6) CASESAMPLETEXCUBE( 7)
+        CASESAMPLETEXCUBE( 8) CASESAMPLETEXCUBE( 9) CASESAMPLETEXCUBE(10) CASESAMPLETEXCUBE(11)
+        CASESAMPLETEXCUBE(12) CASESAMPLETEXCUBE(13) CASESAMPLETEXCUBE(14) CASESAMPLETEXCUBE(15)
+        CASESAMPLETEXCUBE(16) CASESAMPLETEXCUBE(17) CASESAMPLETEXCUBE(18) CASESAMPLETEXCUBE(19)
+        CASESAMPLETEXCUBE(20) CASESAMPLETEXCUBE(21) CASESAMPLETEXCUBE(22) CASESAMPLETEXCUBE(23)
+        CASESAMPLETEXCUBE(24) CASESAMPLETEXCUBE(25) CASESAMPLETEXCUBE(26) CASESAMPLETEXCUBE(27)
+        CASESAMPLETEXCUBE(28) CASESAMPLETEXCUBE(29) CASESAMPLETEXCUBE(30) CASESAMPLETEXCUBE(31)
         default:
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -87,40 +41,17 @@ float4 SampleTextureCube(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, SamplerS
 
 float4 SampleTexture2DLOD(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float2 uv, float lod)
 {
+    #define CASESAMPLELEVELTEX2D(n) case n: return texBuffer[n].SampleLevel(s, uv, lod);
     switch (i)
     {
-        case 0:
-            return texBuffer[0].SampleLevel(s, uv, lod);
-        case 1:
-            return texBuffer[1].SampleLevel(s, uv, lod);
-        case 2:
-            return texBuffer[2].SampleLevel(s, uv, lod);
-        case 3:
-            return texBuffer[3].SampleLevel(s, uv, lod);
-        case 4:
-            return texBuffer[4].SampleLevel(s, uv, lod);
-        case 5:
-            return texBuffer[5].SampleLevel(s, uv, lod);
-        case 6:
-            return texBuffer[6].SampleLevel(s, uv, lod);
-        case 7:
-            return texBuffer[7].SampleLevel(s, uv, lod);
-        case 8:
-            return texBuffer[8].SampleLevel(s, uv, lod);
-        case 9:
-            return texBuffer[9].SampleLevel(s, uv, lod);
-        case 10:
-            return texBuffer[10].SampleLevel(s, uv, lod);
-        case 11:
-            return texBuffer[11].SampleLevel(s, uv, lod);
-        case 12:
-            return texBuffer[12].SampleLevel(s, uv, lod);
-        case 13:
-            return texBuffer[13].SampleLevel(s, uv, lod);
-        case 14:
-            return texBuffer[14].SampleLevel(s, uv, lod);
-        case 15:
-            return texBuffer[15].SampleLevel(s, uv, lod);
+        CASESAMPLELEVELTEX2D( 0) CASESAMPLELEVELTEX2D( 1) CASESAMPLELEVELTEX2D( 2) CASESAMPLELEVELTEX2D( 3)
+        CASESAMPLELEVELTEX2D( 4) CASESAMPLELEVELTEX2D( 5) CASESAMPLELEVELTEX2D( 6) CASESAMPLELEVELTEX2D( 7)
+        CASESAMPLELEVELTEX2D( 8) CASESAMPLELEVELTEX2D( 9) CASESAMPLELEVELTEX2D(10) CASESAMPLELEVELTEX2D(11)
+        CASESAMPLELEVELTEX2D(12) CASESAMPLELEVELTEX2D(13) CASESAMPLELEVELTEX2D(14) CASESAMPLELEVELTEX2D(15)
+        CASESAMPLELEVELTEX2D(16) CASESAMPLELEVELTEX2D(17) CASESAMPLELEVELTEX2D(18) CASESAMPLELEVELTEX2D(19)
+        CASESAMPLELEVELTEX2D(20) CASESAMPLELEVELTEX2D(21) CASESAMPLELEVELTEX2D(22) CASESAMPLELEVELTEX2D(23)
+        CASESAMPLELEVELTEX2D(24) CASESAMPLELEVELTEX2D(25) CASESAMPLELEVELTEX2D(26) CASESAMPLELEVELTEX2D(27)
+        CASESAMPLELEVELTEX2D(28) CASESAMPLELEVELTEX2D(29) CASESAMPLELEVELTEX2D(30) CASESAMPLELEVELTEX2D(31)
         default:
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -128,40 +59,17 @@ float4 SampleTexture2DLOD(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerSt
 }
 float4 SampleTextureCubeLOD(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float3 uvw, float lod)
 {
+    #define CASESAMPLELEVELTEXCUBE(n) case n: return texBuffer[n].SampleLevel(s, uvw, lod);
     switch (i)
     {
-        case 0:
-            return texBuffer[0].SampleLevel(s, uvw, lod);
-        case 1:
-            return texBuffer[1].SampleLevel(s, uvw, lod);
-        case 2:
-            return texBuffer[2].SampleLevel(s, uvw, lod);
-        case 3:
-            return texBuffer[3].SampleLevel(s, uvw, lod);
-        case 4:
-            return texBuffer[4].SampleLevel(s, uvw, lod);
-        case 5:
-            return texBuffer[5].SampleLevel(s, uvw, lod);
-        case 6:
-            return texBuffer[6].SampleLevel(s, uvw, lod);
-        case 7:
-            return texBuffer[7].SampleLevel(s, uvw, lod);
-        case 8:
-            return texBuffer[8].SampleLevel(s, uvw, lod);
-        case 9:
-            return texBuffer[9].SampleLevel(s, uvw, lod);
-        case 10:
-            return texBuffer[10].SampleLevel(s, uvw, lod);
-        case 11:
-            return texBuffer[11].SampleLevel(s, uvw, lod);
-        case 12:
-            return texBuffer[12].SampleLevel(s, uvw, lod);
-        case 13:
-            return texBuffer[13].SampleLevel(s, uvw, lod);
-        case 14:
-            return texBuffer[14].SampleLevel(s, uvw, lod);
-        case 15:
-            return texBuffer[15].SampleLevel(s, uvw, lod);
+        CASESAMPLELEVELTEXCUBE( 0) CASESAMPLELEVELTEXCUBE( 1) CASESAMPLELEVELTEXCUBE( 2) CASESAMPLELEVELTEXCUBE( 3)
+        CASESAMPLELEVELTEXCUBE( 4) CASESAMPLELEVELTEXCUBE( 5) CASESAMPLELEVELTEXCUBE( 6) CASESAMPLELEVELTEXCUBE( 7)
+        CASESAMPLELEVELTEXCUBE( 8) CASESAMPLELEVELTEXCUBE( 9) CASESAMPLELEVELTEXCUBE(10) CASESAMPLELEVELTEXCUBE(11)
+        CASESAMPLELEVELTEXCUBE(12) CASESAMPLELEVELTEXCUBE(13) CASESAMPLELEVELTEXCUBE(14) CASESAMPLELEVELTEXCUBE(15)
+        CASESAMPLELEVELTEXCUBE(16) CASESAMPLELEVELTEXCUBE(17) CASESAMPLELEVELTEXCUBE(18) CASESAMPLELEVELTEXCUBE(19)
+        CASESAMPLELEVELTEXCUBE(20) CASESAMPLELEVELTEXCUBE(21) CASESAMPLELEVELTEXCUBE(22) CASESAMPLELEVELTEXCUBE(23)
+        CASESAMPLELEVELTEXCUBE(24) CASESAMPLELEVELTEXCUBE(25) CASESAMPLELEVELTEXCUBE(26) CASESAMPLELEVELTEXCUBE(27)
+        CASESAMPLELEVELTEXCUBE(28) CASESAMPLELEVELTEXCUBE(29) CASESAMPLELEVELTEXCUBE(30) CASESAMPLELEVELTEXCUBE(31)
         default:
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -169,40 +77,17 @@ float4 SampleTextureCubeLOD(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, Sampl
 }
 float4 SampleTexture2DComp(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerComparisonState s, float2 uv, float compareValue)
 {
+    #define CASESAMPLECOMPTEX2D(n) case n: return texBuffer[n].SampleCmpLevelZero(s, uv, compareValue);
     switch (i)
     {
-        case 0:
-            return texBuffer[0].SampleCmpLevelZero(s, uv, compareValue);
-        case 1:
-            return texBuffer[1].SampleCmpLevelZero(s, uv, compareValue);
-        case 2:
-            return texBuffer[2].SampleCmpLevelZero(s, uv, compareValue);
-        case 3:
-            return texBuffer[3].SampleCmpLevelZero(s, uv, compareValue);
-        case 4:
-            return texBuffer[4].SampleCmpLevelZero(s, uv, compareValue);
-        case 5:
-            return texBuffer[5].SampleCmpLevelZero(s, uv, compareValue);
-        case 6:
-            return texBuffer[6].SampleCmpLevelZero(s, uv, compareValue);
-        case 7:
-            return texBuffer[7].SampleCmpLevelZero(s, uv, compareValue);
-        case 8:
-            return texBuffer[8].SampleCmpLevelZero(s, uv, compareValue);
-        case 9:
-            return texBuffer[9].SampleCmpLevelZero(s, uv, compareValue);
-        case 10:
-            return texBuffer[10].SampleCmpLevelZero(s, uv, compareValue);
-        case 11:
-            return texBuffer[11].SampleCmpLevelZero(s, uv, compareValue);
-        case 12:
-            return texBuffer[12].SampleCmpLevelZero(s, uv, compareValue);
-        case 13:
-            return texBuffer[13].SampleCmpLevelZero(s, uv, compareValue);
-        case 14:
-            return texBuffer[14].SampleCmpLevelZero(s, uv, compareValue);
-        case 15:
-            return texBuffer[15].SampleCmpLevelZero(s, uv, compareValue);
+        CASESAMPLECOMPTEX2D( 0) CASESAMPLECOMPTEX2D( 1) CASESAMPLECOMPTEX2D( 2) CASESAMPLECOMPTEX2D( 3)
+        CASESAMPLECOMPTEX2D( 4) CASESAMPLECOMPTEX2D( 5) CASESAMPLECOMPTEX2D( 6) CASESAMPLECOMPTEX2D( 7)
+        CASESAMPLECOMPTEX2D( 8) CASESAMPLECOMPTEX2D( 9) CASESAMPLECOMPTEX2D(10) CASESAMPLECOMPTEX2D(11)
+        CASESAMPLECOMPTEX2D(12) CASESAMPLECOMPTEX2D(13) CASESAMPLECOMPTEX2D(14) CASESAMPLECOMPTEX2D(15)
+        CASESAMPLECOMPTEX2D(16) CASESAMPLECOMPTEX2D(17) CASESAMPLECOMPTEX2D(18) CASESAMPLECOMPTEX2D(19)
+        CASESAMPLECOMPTEX2D(20) CASESAMPLECOMPTEX2D(21) CASESAMPLECOMPTEX2D(22) CASESAMPLECOMPTEX2D(23)
+        CASESAMPLECOMPTEX2D(24) CASESAMPLECOMPTEX2D(25) CASESAMPLECOMPTEX2D(26) CASESAMPLECOMPTEX2D(27)
+        CASESAMPLECOMPTEX2D(28) CASESAMPLECOMPTEX2D(29) CASESAMPLECOMPTEX2D(30) CASESAMPLECOMPTEX2D(31)
         default:
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -210,40 +95,17 @@ float4 SampleTexture2DComp(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerC
 }
 float4 SampleTextureCubeComp(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, SamplerComparisonState s, float3 uvw, float compareValue)
 {
+    #define CASESAMPLECOMPTEXCUBE(n) case n: return texBuffer[n].SampleCmpLevelZero(s, uvw, compareValue);
     switch (i)
     {
-        case 0:
-            return texBuffer[0].SampleCmpLevelZero(s, uvw, compareValue);
-        case 1:
-            return texBuffer[1].SampleCmpLevelZero(s, uvw, compareValue);
-        case 2:
-            return texBuffer[2].SampleCmpLevelZero(s, uvw, compareValue);
-        case 3:
-            return texBuffer[3].SampleCmpLevelZero(s, uvw, compareValue);
-        case 4:
-            return texBuffer[4].SampleCmpLevelZero(s, uvw, compareValue);
-        case 5:
-            return texBuffer[5].SampleCmpLevelZero(s, uvw, compareValue);
-        case 6:
-            return texBuffer[6].SampleCmpLevelZero(s, uvw, compareValue);
-        case 7:
-            return texBuffer[7].SampleCmpLevelZero(s, uvw, compareValue);
-        case 8:
-            return texBuffer[8].SampleCmpLevelZero(s, uvw, compareValue);
-        case 9:
-            return texBuffer[9].SampleCmpLevelZero(s, uvw, compareValue);
-        case 10:
-            return texBuffer[10].SampleCmpLevelZero(s, uvw, compareValue);
-        case 11:
-            return texBuffer[11].SampleCmpLevelZero(s, uvw, compareValue);
-        case 12:
-            return texBuffer[12].SampleCmpLevelZero(s, uvw, compareValue);
-        case 13:
-            return texBuffer[13].SampleCmpLevelZero(s, uvw, compareValue);
-        case 14:
-            return texBuffer[14].SampleCmpLevelZero(s, uvw, compareValue);
-        case 15:
-            return texBuffer[15].SampleCmpLevelZero(s, uvw, compareValue);
+        CASESAMPLECOMPTEXCUBE( 0) CASESAMPLECOMPTEXCUBE( 1) CASESAMPLECOMPTEXCUBE( 2) CASESAMPLECOMPTEXCUBE( 3)
+        CASESAMPLECOMPTEXCUBE( 4) CASESAMPLECOMPTEXCUBE( 5) CASESAMPLECOMPTEXCUBE( 6) CASESAMPLECOMPTEXCUBE( 7)
+        CASESAMPLECOMPTEXCUBE( 8) CASESAMPLECOMPTEXCUBE( 9) CASESAMPLECOMPTEXCUBE(10) CASESAMPLECOMPTEXCUBE(11)
+        CASESAMPLECOMPTEXCUBE(12) CASESAMPLECOMPTEXCUBE(13) CASESAMPLECOMPTEXCUBE(14) CASESAMPLECOMPTEXCUBE(15)
+        CASESAMPLECOMPTEXCUBE(16) CASESAMPLECOMPTEXCUBE(17) CASESAMPLECOMPTEXCUBE(18) CASESAMPLECOMPTEXCUBE(19)
+        CASESAMPLECOMPTEXCUBE(20) CASESAMPLECOMPTEXCUBE(21) CASESAMPLECOMPTEXCUBE(22) CASESAMPLECOMPTEXCUBE(23)
+        CASESAMPLECOMPTEXCUBE(24) CASESAMPLECOMPTEXCUBE(25) CASESAMPLECOMPTEXCUBE(26) CASESAMPLECOMPTEXCUBE(27)
+        CASESAMPLECOMPTEXCUBE(28) CASESAMPLECOMPTEXCUBE(29) CASESAMPLECOMPTEXCUBE(30) CASESAMPLECOMPTEXCUBE(31)
         default:
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }
@@ -252,40 +114,17 @@ float4 SampleTextureCubeComp(TextureCube texBuffer[TEX_BUFFER_SIZE], int i, Samp
 
 float4 LoadTexture2D(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, int2 pos)
 {
+    #define CASELOADTEX2D(n) case n: return texBuffer[n].Load(int3(pos, 0));
     switch (i)
     {
-        case 0:
-            return texBuffer[0].Load(int3(pos, 0));
-        case 1:
-            return texBuffer[1].Load(int3(pos, 0));
-        case 2:
-            return texBuffer[2].Load(int3(pos, 0));
-        case 3:
-            return texBuffer[3].Load(int3(pos, 0));
-        case 4:
-            return texBuffer[4].Load(int3(pos, 0));
-        case 5:
-            return texBuffer[5].Load(int3(pos, 0));
-        case 6:
-            return texBuffer[6].Load(int3(pos, 0));
-        case 7:
-            return texBuffer[7].Load(int3(pos, 0));
-        case 8:
-            return texBuffer[8].Load(int3(pos, 0));
-        case 9:
-            return texBuffer[9].Load(int3(pos, 0));
-        case 10:
-            return texBuffer[10].Load(int3(pos, 0));
-        case 11:
-            return texBuffer[11].Load(int3(pos, 0));
-        case 12:
-            return texBuffer[12].Load(int3(pos, 0));
-        case 13:
-            return texBuffer[13].Load(int3(pos, 0));
-        case 14:
-            return texBuffer[14].Load(int3(pos, 0));
-        case 15:
-            return texBuffer[15].Load(int3(pos, 0));
+        CASELOADTEX2D( 0) CASELOADTEX2D( 1) CASELOADTEX2D( 2) CASELOADTEX2D( 3)
+        CASELOADTEX2D( 4) CASELOADTEX2D( 5) CASELOADTEX2D( 6) CASELOADTEX2D( 7)
+        CASELOADTEX2D( 8) CASELOADTEX2D( 9) CASELOADTEX2D(10) CASELOADTEX2D(11)
+        CASELOADTEX2D(12) CASELOADTEX2D(13) CASELOADTEX2D(14) CASELOADTEX2D(15)
+        CASELOADTEX2D(16) CASELOADTEX2D(17) CASELOADTEX2D(18) CASELOADTEX2D(19)
+        CASELOADTEX2D(20) CASELOADTEX2D(21) CASELOADTEX2D(22) CASELOADTEX2D(23)
+        CASELOADTEX2D(24) CASELOADTEX2D(25) CASELOADTEX2D(26) CASELOADTEX2D(27)
+        CASELOADTEX2D(28) CASELOADTEX2D(29) CASELOADTEX2D(30) CASELOADTEX2D(31)
         default:
             return float4(0.0f, 0.0f, 0.0f, 0.0f);
     }

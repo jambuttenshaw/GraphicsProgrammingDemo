@@ -125,10 +125,10 @@ float3x3 cotangent_frame(float3 n, float3 p, float2 uv)
     return float3x3(T * invmax, B * invmax, n);
 }
 
-float3 tangentToWorld(float3 sample, float3 n, float3 p, float2 uv)
+float3 tangentToWorld(float3 sample, float3 n, float3 v, float2 uv)
 {
     sample = (sample * 2.0f) - 1.0f;
         
-    float3x3 TBN = cotangent_frame(n, p, uv);
+    float3x3 TBN = cotangent_frame(n, -v, uv);
     return normalize(mul(sample, TBN));
 }

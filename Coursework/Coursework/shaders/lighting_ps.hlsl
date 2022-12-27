@@ -3,7 +3,7 @@
 
 // textures
 Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
-TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t16);
+TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t32);
 
 SamplerState bilinearSampler : register(s0);
 SamplerState trilinearSampler : register(s1);
@@ -39,7 +39,7 @@ float4 main(InputType input) : SV_TARGET
 	float3 v = -normalize(input.viewDir);
     
     float3 color = calculateLighting(input.worldPos, input.lightViewPos, n, v, input.tex,
-                                     materialBuffer.material,
+                                     materialBuffer.materials[0],
                                      lightBuffer,
                                      texture2DBuffer, textureCubeBuffer,
                                      bilinearSampler, trilinearSampler, anisotropicSampler, shadowSampler);

@@ -238,12 +238,8 @@ float3 calculateLighting(
 {
     if (material.normalMapIndex > -1)
     {
-        float3 map = SampleTexture2D(texture2DBuffer, material.normalMapIndex, bilinearSampler, uv).rgb;
-        map = (map * 2.0f) - 1.0f;
-        
-        float3x3 TBN = cotangent_frame(n, -v, uv);
-        n = normalize(mul(map, TBN));
-        //n = tangentToWorld(map, n, -v, uv);
+        float3 map = SampleTexture2D(texture2DBuffer, material.normalMapIndex, anisotropicSampler, uv).rgb;
+        n = tangentToWorld(map, n, -v, uv);
     }
     
     float3 albedo = material.albedoMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.albedoMapIndex, anisotropicSampler, uv).rgb : material.albedoColor.rgb;

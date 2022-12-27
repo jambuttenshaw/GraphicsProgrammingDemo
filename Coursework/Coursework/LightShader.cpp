@@ -69,7 +69,7 @@ void LightShader::initShader(const wchar_t* vsFilename, const wchar_t* psFilenam
 
 
 void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& worldMatrix, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix,
-									size_t lightCount, SceneLight** lights, Camera* camera, const Material* mat)
+									size_t lightCount, SceneLight** lights, Camera* camera, Material* mat)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -84,24 +84,10 @@ void LightShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		dataPtr->projection = XMMatrixTranspose(projectionMatrix);
 		deviceContext->Unmap(m_MatrixBuffer, 0);
 	}
-	{
-		result = deviceContext->Map(m_VSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::VSLightBufferType* dataPtr = (ShaderUtility::VSLightBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructVSLightBuffer(dataPtr, lights, lightCount, camera);
-		deviceContext->Unmap(m_VSLightBuffer, 0);
-	}
-	{
-		deviceContext->Map(m_PSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::PSLightBufferType* dataPtr = (ShaderUtility::PSLightBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructPSLightBuffer(dataPtr, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
-		deviceContext->Unmap(m_PSLightBuffer, 0);
-	}
-	{
-		deviceContext->Map(m_MaterialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::MaterialBufferType* dataPtr = (ShaderUtility::MaterialBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructMaterialData(&dataPtr->material, mat, &tex2DBuffer);
-		deviceContext->Unmap(m_MaterialBuffer, 0);
-	}
+	
+	ShaderUtility::ConstructVSLightBuffer(deviceContext, m_VSLightBuffer, lights, lightCount, camera);
+	ShaderUtility::ConstructPSLightBuffer(deviceContext, m_PSLightBuffer, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
+	ShaderUtility::ConstructMaterialBuffer(deviceContext, m_MaterialBuffer, &mat, 1, &tex2DBuffer);
 
 
 	ID3D11Buffer* vsBuffers[] = { m_MatrixBuffer, m_VSLightBuffer };

@@ -15,7 +15,8 @@ class GlobalLighting;
 
 
 #define MAX_LIGHTS 4
-#define RESOURCE_BUFFER_SIZE 16
+#define MAX_MATERIALS 8
+#define RESOURCE_BUFFER_SIZE 32
 
 class ResourceBuffer
 {
@@ -49,7 +50,7 @@ class ShaderUtility
 {
 public:
 	// constant buffer type definitions
-	struct ShaderUtility::LightDataType
+	struct LightDataType
 	{
 		XMFLOAT4 irradiance;
 		XMFLOAT4 position;
@@ -64,7 +65,7 @@ public:
 
 		float padding;
 	};
-	struct ShaderUtility::MaterialDataType
+	struct MaterialDataType
 	{
 		XMFLOAT3 albedo;
 		int albedoMapIndex;
@@ -74,7 +75,7 @@ public:
 		int normalMapIndex;
 	};
 
-	struct ShaderUtility::VSLightBufferType
+	struct VSLightBufferType
 	{
 		XMMATRIX lightMatrix[MAX_LIGHTS];
 		XMFLOAT4 lightPosAndType[MAX_LIGHTS];
@@ -89,7 +90,7 @@ public:
 			XMMATRIX back[MAX_LIGHTS];
 		} pointLightMatrices;
 	};
-	struct ShaderUtility::PSLightBufferType
+	struct PSLightBufferType
 	{
 		LightDataType lights[MAX_LIGHTS];
 
@@ -102,9 +103,11 @@ public:
 		XMFLOAT3 padding;
 	};
 
-	struct ShaderUtility::MaterialBufferType
+	struct MaterialBufferType
 	{
-		MaterialDataType material;
+		MaterialDataType materials[MAX_MATERIALS];
+		int materialCount;
+		XMFLOAT3 padding;
 	};
 
 public:
@@ -114,10 +117,17 @@ public:
 
 	static void CreateBuffer(ID3D11Device* device, UINT byteWidth, ID3D11Buffer** ppBuffer);
 
-	static void ConstructVSLightBuffer(VSLightBufferType* lightBuffer, SceneLight** lights, size_t lightCount, Camera* camera);
 	static void ConstructLightData(LightDataType* lightData, const SceneLight* light, ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer);
-	static void ConstructPSLightBuffer(PSLightBufferType* lightBuffer, SceneLight** lights, size_t lightCount, GlobalLighting* globalLighting, ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer);
-
 	static void ConstructMaterialData(MaterialDataType* matData, const Material* mat, ResourceBuffer* tex2DBuffer);
+
+	static void ConstructVSLightBuffer(ID3D11DeviceContext* deviceContext, ID3D11Buffer* lightBuffer,
+		SceneLight** lights, size_t lightCount, Camera* camera);
+	static void ConstructPSLightBuffer(ID3D11DeviceContext* deviceContext, ID3D11Buffer* lightBuffer,
+		SceneLight** lights, size_t lightCount, GlobalLighting* globalLighting,
+		ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer);
+
+	static void ConstructMaterialBuffer(ID3D11DeviceContext* deviceContext, ID3D11Buffer* matBuffer,
+		Material* const* mats, size_t matCount,
+		ResourceBuffer* tex2DBuffer);
 
 };

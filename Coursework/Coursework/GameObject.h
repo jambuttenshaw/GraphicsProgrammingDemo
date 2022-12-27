@@ -5,6 +5,7 @@
 #include "Material.h"
 #include "MaterialLibrary.h"
 #include "TerrainMesh.h"
+#include "ShaderUtility.h"
 
 #include "imGUI/imgui.h"
 
@@ -24,7 +25,8 @@ struct GameObject
 		BaseMesh* regular = nullptr;
 		TerrainMesh* terrain;
 	} mesh;
-	Material* material = nullptr;
+
+	std::vector<Material*> materials;
 
 	bool castsShadows = true;
 
@@ -33,20 +35,29 @@ struct GameObject
 	{
 		this->meshType = MeshType::Regular;
 		this->mesh.regular = mesh;
-		this->material = mat;
+
+		this->materials.push_back(mat);
 	}
 	GameObject(const XMFLOAT3& position, BaseMesh* mesh, Material* mat)
 	{
-		this->meshType = MeshType::Regular;
 		this->transform.SetTranslation(position);
+
+		this->meshType = MeshType::Regular;
 		this->mesh.regular = mesh;
-		this->material = mat;
+
+		this->materials.push_back(mat);
 	}
 	GameObject(TerrainMesh* mesh, Material* mat)
 	{
 		this->meshType = MeshType::Terrain;
 		this->mesh.terrain = mesh;
-		this->material = mat;
+
+		this->materials.push_back(mat);
+	}
+
+	void AddMaterial(Material* mat)
+	{
+		materials.push_back(mat);
 	}
 
 	void SettingsGUI(const MaterialLibrary* materialLibrary)
@@ -63,7 +74,8 @@ struct GameObject
 
 		ImGui::Separator();
 
-		ImGui::Text("Material");
-		materialLibrary->MaterialSelectGUI(&material);
+		ImGui::Text("Materials");
+		for (int i = 0; i < materials.size(); i++)
+			materialLibrary->MaterialSelectGUI(&materials[i]);
 	}
 };

@@ -105,6 +105,9 @@
     <None Include="shaders\defines.hlsli">
       <Filter>Shaders\include</Filter>
     </None>
+    <None Include="shaders\material.hlsli">
+      <Filter>Shaders\include</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main.cpp" />

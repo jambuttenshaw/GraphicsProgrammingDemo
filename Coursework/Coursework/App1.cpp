@@ -117,16 +117,21 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// create game objects
 	
-	//Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
-	//Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
+	Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
+	Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
 	//m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
-	//m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
-	//m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
-	//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
+	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
+	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
+	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
 	//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
 	//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
 	
-	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Rock") });
+	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Sand") });
+	GameObject& terrainGO = m_GameObjects.back();
+	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Grass"));
+	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Dirt"));
+	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Rock"));
+	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Snow"));
 
 	// create lights
 	for (auto& light : m_Lights)
@@ -146,14 +151,14 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.EnableShadows();
 
 	SceneLight& light2 = *(m_Lights[1]);
-	//light2.SetEnbled(true);
+	light2.SetEnbled(true);
 	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 15.5f, -15.5f });
 	light2.SetType(SceneLight::LightType::Directional);
 	light2.SetYaw(XMConvertToRadians(0.0f));
 	light2.SetPitch(XMConvertToRadians(-45.0f));
 	light2.SetIntensity(1.3f);
-	light2.EnableShadows();
+	//light2.EnableShadows();
 
 	if (m_LoadOnOpen)
 	{
@@ -365,12 +370,12 @@ void App1::worldPass()
 		{
 		case GameObject::MeshType::Regular:
 			go.mesh.regular->sendData(renderer->getDeviceContext());
-			m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, go.material);
+			m_LightShader->setShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, m_Lights.size(), m_Lights.data(), camera, go.materials[0]);
 			m_LightShader->render(renderer->getDeviceContext(), go.mesh.regular->getIndexCount());
 			break;
 		case GameObject::MeshType::Terrain:
 			go.mesh.terrain->SendData(renderer->getDeviceContext());
-			m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, go.mesh.terrain, m_Lights.size(), m_Lights.data(), camera, go.material);
+			m_TerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, viewMatrix, projectionMatrix, go.mesh.terrain, m_Lights.size(), m_Lights.data(), camera, go.materials);
 			m_TerrainShader->Render(renderer->getDeviceContext(), go.mesh.terrain->GetIndexCount());
 			break;
 		default:

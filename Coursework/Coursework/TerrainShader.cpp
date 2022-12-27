@@ -69,9 +69,9 @@ void TerrainShader::InitShader()
 
 	D3D11_SAMPLER_DESC samplerDesc;
 	samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;
-	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
-	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDesc.MipLODBias = 0.0f;
 	samplerDesc.MaxAnisotropy = 1;
 	samplerDesc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
@@ -178,7 +178,7 @@ void TerrainShader::LoadPS(const wchar_t* ps)
 void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	const XMMATRIX &worldMatrix, const XMMATRIX &viewMatrix, const XMMATRIX &projectionMatrix,
 	TerrainMesh* terrainMesh,
-	size_t lightCount, SceneLight** lights, Camera* camera, Material* mat)
+	size_t lightCount, SceneLight** lights, Camera* camera, const std::vector<Material*>& materials)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -212,33 +212,25 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		dataPtr->projection = XMMatrixTranspose(projectionMatrix);
 		deviceContext->Unmap(m_DSMatrixBuffer, 0);
 	}
-	{
-		result = deviceContext->Map(m_DSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::VSLightBufferType* dataPtr = (ShaderUtility::VSLightBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructVSLightBuffer(dataPtr, lights, lightCount, camera);
-		deviceContext->Unmap(m_DSLightBuffer, 0);
-	}
-	{
-		deviceContext->Map(m_PSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::PSLightBufferType* dataPtr = (ShaderUtility::PSLightBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructPSLightBuffer(dataPtr, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
-		deviceContext->Unmap(m_PSLightBuffer, 0);
-	}
-	{
-		deviceContext->Map(m_MaterialBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::MaterialBufferType* dataPtr = (ShaderUtility::MaterialBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructMaterialData(&dataPtr->material, mat, &tex2DBuffer);
-		deviceContext->Unmap(m_MaterialBuffer, 0);
-	}
+	ShaderUtility::ConstructVSLightBuffer(deviceContext, m_DSLightBuffer, lights, lightCount, camera);
+	ShaderUtility::ConstructPSLightBuffer(deviceContext, m_PSLightBuffer, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
+	ShaderUtility::ConstructMaterialBuffer(deviceContext, m_MaterialBuffer, materials.data(), materials.size(), &tex2DBuffer);
 	{
 		deviceContext->Map(m_TerrainBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		TerrainBufferType* dataPtr = (TerrainBufferType*)mappedResource.pData;
 		
 		dataPtr->heightmapIndex = tex2DBuffer.AddResource(terrainMesh->GetHeightmapSRV());
+		dataPtr->uvScale = m_UVScale;
 
 		dataPtr->flatThreshold = m_FlatThreshold;
 		dataPtr->cliffThreshold = m_CliffThreshold;
+		dataPtr->shoreThreshold = m_ShoreThreshold;
+		dataPtr->snowHeightThreshold = m_SnowHeightThreshold;
+		dataPtr->minMaxSnowSteepness = m_MinMaxSnowSteepness;
 		dataPtr->steepnessSmoothing = m_SteepnessSmoothing;
+		dataPtr->heightSmoothing = m_HeightSmoothing;
+
+
 		deviceContext->Unmap(m_TerrainBuffer, 0);
 	}
 
@@ -285,9 +277,15 @@ void TerrainShader::Render(ID3D11DeviceContext* deviceContext, unsigned int inde
 
 void TerrainShader::GUI()
 {
+	ImGui::DragFloat("UV Scale", &m_UVScale, 0.01f);
 	ImGui::SliderFloat("Flat Threshold", &m_FlatThreshold, 0.0f, m_CliffThreshold);
 	ImGui::SliderFloat("Cliff Threshold", &m_CliffThreshold, m_FlatThreshold, 1.0f);
-	ImGui::SliderFloat("Steepness Smoothing", &m_SteepnessSmoothing, 0.0f, 0.2f);
+	ImGui::SliderFloat("Shore Threshold", &m_ShoreThreshold, -5.0f, 5.0f);
+	ImGui::SliderFloat("Snow Height Threshold", &m_SnowHeightThreshold, 0.0f, 10.0f);
+	ImGui::SliderFloat("Min Snow Steepness Threshold", &m_MinMaxSnowSteepness.x, 0.0f, m_MinMaxSnowSteepness.y);
+	ImGui::SliderFloat("Max Snow Steepness Threshold", &m_MinMaxSnowSteepness.y, m_MinMaxSnowSteepness.x, 1.0f);
+	ImGui::SliderFloat("Steepness Smoothing", &m_SteepnessSmoothing, 0.0f, 0.5f);
+	ImGui::SliderFloat("Height Smoothing", &m_HeightSmoothing, 0.0f, 1.5f);
 
 	ImGui::Text("LOD");
 	ImGui::SliderFloat("Min Distance", &m_MinMaxDistance.x, 0.0f, m_MinMaxDistance.y);
@@ -296,6 +294,7 @@ void TerrainShader::GUI()
 	ImGui::SliderFloat("Max Height Deviation", &m_MinMaxHeightDeviation.y, m_MinMaxHeightDeviation.x, 4.0f);
 	ImGui::SliderFloat("Min LOD", &m_MinMaxLOD.x, 1.0f, m_MinMaxLOD.y);
 	ImGui::SliderFloat("Max LOD", &m_MinMaxLOD.y, m_MinMaxLOD.x, 64.0f);
+	ImGui::SliderFloat("Distance LOD Blending", &m_DistanceLODBlending, 0.0f, 1.0f);
 }
 
 nlohmann::json TerrainShader::Serialize() const

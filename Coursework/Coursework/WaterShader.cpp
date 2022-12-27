@@ -97,12 +97,7 @@ void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 
 		deviceContext->Unmap(m_WaterBuffer, 0);
 	}
-	{
-		deviceContext->Map(m_PSLightBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
-		ShaderUtility::PSLightBufferType* dataPtr = (ShaderUtility::PSLightBufferType*)mappedResource.pData;
-		ShaderUtility::ConstructPSLightBuffer(dataPtr, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
-		deviceContext->Unmap(m_PSLightBuffer, 0);
-	}
+	ShaderUtility::ConstructPSLightBuffer(deviceContext, m_PSLightBuffer, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
 
 	deviceContext->VSSetConstantBuffers(0, 1, &m_CameraBuffer);
 

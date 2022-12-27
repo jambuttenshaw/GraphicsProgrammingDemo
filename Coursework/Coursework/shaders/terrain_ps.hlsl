@@ -1,10 +1,10 @@
 // Terrain Pixel Shader
 
-#include "lighting.hlsli"
+#include "material.hlsli"
 
 // textures
 Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
-TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t16);
+TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t32);
 
 SamplerState bilinearSampler : register(s0);
 SamplerState trilinearSampler : register(s1);
@@ -27,9 +27,17 @@ cbuffer MaterialCB : register(b1)
 cbuffer TerrainBuffer : register(b2)
 {
     int heightmapIndex;
+    float uvScale;
     float flatThreshold;
     float cliffThreshold;
+    
     float steepnessSmoothing;
+    float heightSmoothing;
+    float shoreThreshold;
+    float snowHeightThreshold;
+    
+    float2 minMaxSnowSteepness;
+    float3 padding;
 };
 
 struct InputType
@@ -69,49 +77,74 @@ float4 main(InputType input) : SV_TARGET
 {
     float3 n = calculateNormal(input.tex);
     float3 v = -normalize(input.viewDir);
+    float2 uv = input.tex * uvScale;
     
-    /*
     // steepness:
     // global up is always (0, 1, 0), so dot(normal, worldNormal) simplifies to normal.y
     float steepness = 1 - n.y;
     
-    float transitionA = steepnessSmoothing * (1 - flatThreshold);
-    float transitionB = steepnessSmoothing * (1 - cliffThreshold);
+    // fractional values blend between adjacent materials
+    float s1 = steepnessSmoothing * 0.5f;
+    float s2 = heightSmoothing * 0.5f;
     
-    float steepnessStrength = 0.5f * (
-        smoothstep(flatThreshold - transitionA, flatThreshold + transitionA, steepness) +
-        smoothstep(cliffThreshold - transitionB, cliffThreshold + transitionB, steepness)
-    );
+    // blend the slope materials
+    float matBlend = smoothstep(flatThreshold - s1, flatThreshold + s1, steepness);
+    matBlend += smoothstep(cliffThreshold - s1, cliffThreshold + s1, steepness);
     
-    // flat ground colouring/texturing
-    float shoreMix = 1 - smoothstep(0, 1.5f, input.worldPosition.y);
-    float3 shoreColour = float3(0.89f, 0.8f, 0.42f);
-    float3 flatColour = float3(0.3f, 0.5f, 0.05f);
-    flatColour = lerp(flatColour, shoreColour, shoreMix);
+    // mix materials
     
+    MaterialData groundMaterial = materialMix(
+            materialBuffer.materials[int(matBlend) + 1],
+            materialBuffer.materials[min(int(matBlend) + 2, materialBuffer.materialCount)],
+            frac(matBlend),
+            uv, texture2DBuffer, anisotropicSampler);
     
-    // sloped ground colouring
-    float3 slopeColour = float3(0.35f, 0.23f, 0.04f);
-    
-    
-    // cliff ground colouring
-    float3 cliffColour = float3(0.19f, 0.18f, 0.15f);
+    float3 materialNormal = blendNormals(materialBuffer.materials[int(matBlend) + 1].normalMapIndex,
+            materialBuffer.materials[min(int(matBlend) + 2, materialBuffer.materialCount)].normalMapIndex,
+            frac(matBlend), n, v,
+            uv, texture2DBuffer, anisotropicSampler);
     
     
-    // texturing:
-	
+    {
+        // blend the shore
+        float shoreMix = smoothstep(shoreThreshold - s2, shoreThreshold + s2, input.worldPosition.y);
+        groundMaterial = materialMix(
+            materialBuffer.materials[0],
+            groundMaterial,
+            shoreMix,
+            uv, texture2DBuffer, anisotropicSampler);
+        materialNormal = blendNormals(materialBuffer.materials[0].normalMapIndex,
+            materialNormal,
+            shoreMix, n, v,
+            uv, texture2DBuffer, anisotropicSampler);
+    }
     
-    // calculate final ground colour
-    float3 groundColour;
-    if (steepnessStrength < 0.5f)
-        groundColour = lerp(flatColour, slopeColour, remap01(steepnessStrength, 0.0f, 0.5f));
-    else
-        groundColour = lerp(slopeColour, cliffColour, remap01(steepnessStrength, 0.5f, 1.0f));
-    */    
-
+    
+    {
+        // blend snow
+        float snowMix = mul(
+                smoothstep(snowHeightThreshold - s2, snowHeightThreshold + s2, input.worldPosition.y),
+                (1.0f - smoothstep(minMaxSnowSteepness.x - s1, minMaxSnowSteepness.x + s1, steepness)) +
+                smoothstep(minMaxSnowSteepness.y - s1, minMaxSnowSteepness.y + s1, steepness)
+        );
+        
+        groundMaterial = materialMix(
+            groundMaterial,
+            materialBuffer.materials[4],
+            snowMix,
+            uv, texture2DBuffer, anisotropicSampler);
+        materialNormal = blendNormals(materialBuffer.materials[4].normalMapIndex,
+            materialNormal,
+            1.0f - snowMix, n, v,
+            uv, texture2DBuffer, anisotropicSampler);
+    }
+    
+    // unsure why this is needed, but this fixes the normals
+    materialNormal.z = -materialNormal.z;
+    
     // lighting
-    float3 color = calculateLighting(input.worldPosition, input.lightViewPos, n, v, input.tex,
-        materialBuffer.material,
+    float3 color = calculateLighting(input.worldPosition, input.lightViewPos, materialNormal, v, uv,
+        groundMaterial,
         lightBuffer,
         texture2DBuffer, textureCubeBuffer,
         bilinearSampler, trilinearSampler, anisotropicSampler, shadowSampler);
