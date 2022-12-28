@@ -123,7 +123,7 @@ private:
 	OrthoMesh* m_ShadowMapMesh = nullptr;
 
 	// post processing
-	bool m_EnablePostProcessing = false;
+	bool m_EnablePostProcessing = true;
 
 	std::vector<IHeightmapFilter*> m_HeightmapFilters;
 	int m_SelectedHeightmapFilter = -1;

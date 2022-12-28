@@ -3,37 +3,36 @@
 #include "lighting.hlsli"
 
 Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
-TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t16);
+TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t32);
 
 SamplerState normalMapSampler : register(s0);
+SamplerState bilinearSampler : register(s1);
+SamplerState trilinearSampler : register(s2);
 
 cbuffer WaterBuffer : register(b0)
 {
-    // 64 bytes
     matrix projection;
-    // 16 bytes
-    float4 deepColour;
-    // 16 bytes
-    float4 shallowColour;
-    // 16 bytes
-    float3 cameraPos;
-    float depthMultiplier;
-    // 16 bytes
-    float3 oceanBoundsMin;
-    float alphaMultiplier;
-    // 16 bytes
-    float3 oceanBoundsMax;
+    
+    float4 specularColour;
+    float4 transmittanceColour;
+    
     int rtColourMapIndex;
-    // 16 bytes
     int rtDepthMapIndex;
     int normalMapAIndex;
     int normalMapBIndex;
+    
+    float3 cameraPos;
+    float roughness;
+    
+    float3 oceanBoundsMin;
+    float transmittanceDepth;
+    
+    float3 oceanBoundsMax;
     float normalMapScale;
-    // 16 bytes
+    
     float normalMapStrength;
-    float smoothness;
     float time;
-    float padding0;
+    float2 padding0;
 };
 
 cbuffer LightCB : register(b1)
@@ -70,13 +69,7 @@ float4 main(InputType input) : SV_TARGET
 
     if (distToOcean < distThroughOcean && distThroughOcean > 0 && distToOcean < depthToScene)
     {
-        
-        float depthThroughWater = min(depthToScene - distToOcean , distThroughOcean) ;
-        
-        float tDepth = 1 - exp(-depthMultiplier * depthThroughWater);
-        float tAlpha = 1 - exp(-alphaMultiplier * depthThroughWater);
-        
-        float4 waterColour = lerp(shallowColour, deepColour, tDepth);
+        float depthThroughWater = min(depthToScene - distToOcean , distThroughOcean);
         
         // normal mapping
         
@@ -90,15 +83,66 @@ float4 main(InputType input) : SV_TARGET
         const float3 normalW = float3(0, 1, 0);
         
         float3 normalMapASample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
-                                                    (uv * normalMapScale) + float2(0.1f * time, 0.08f * time)).rgb;
+                                                    (uv * normalMapScale) + float2(0.0f, 0.1f * time)).rgb;
         float3 normalMapBSample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
                                                     (uv * normalMapScale) + float2(-0.08f * time, -0.1f * time)).rgb;
         
         // convert normals to world space
         float3 bumpedNormal = tangentToWorld(normalMapASample, normalW, input.viewVector, input.tex);
         bumpedNormal = tangentToWorld(normalMapBSample, bumpedNormal, input.viewVector, input.tex);
+        // lighting
         
-        colour = lerp(colour, waterColour, tAlpha);
+        // calculate the transmission luminance
+        float3 physicalExtinction = -log(transmittanceColour.rgb) / transmittanceDepth;
+        float3 T = exp(-physicalExtinction * depthThroughWater);
+        
+        // calculate the specular reflection on the waters surface
+        float3 n = normalize(lerp(normalW, bumpedNormal, normalMapStrength));
+        float3 v = -input.viewVector;
+        float3 p = intersectionPoint;
+        
+        float3 specular = float3(0.0f, 0.0f, 0.0f);
+        for (int i = 0; i < lightBuffer.lightCount; i++)
+        {
+            LightData light = lightBuffer.lights[i];
+            
+            // calculate light direction and irradiance
+            float type = light.type;
+            float3 el = light.irradiance.rgb;
+            float3 l = float3(0.0f, 0.0f, 1.0f);
+            if (type == LIGHT_TYPE_DIRECTIONAL)
+            {
+                l = -light.direction.xyz;
+            }
+            else if (type == LIGHT_TYPE_POINT)
+            {
+                l = normalize(light.position.xyz - p);
+                el *= distanceAttenuation(length(light.position.xyz - p), light.range);
+            }
+            else if (type == LIGHT_TYPE_SPOT)
+            {
+                float3 toLight = light.position.xyz - p;
+                l = normalize(toLight);
+                el *= distanceAttenuation(length(toLight), light.range) * spotAttenuation(l, -light.direction.xyz, light.spotAngles);
+            }
+    
+		    // evaluate shading equation
+            float3 brdf_specular = ggx_brdf_specular(v, l, n, specularColour.rgb, roughness) * el * saturate(dot(n, l));
+        
+        
+            specular += brdf_specular;
+        }
+        
+        if (lightBuffer.enableEnvironmentalLighting)
+        {
+            specular += calculateAmbientSpecular(n, v, specularColour.rgb, roughness,
+                                                       texture2DBuffer, textureCubeBuffer,
+                                                       lightBuffer.prefilterMapIndex, lightBuffer.brdfIntegrationMapIndex,
+                                                       trilinearSampler, bilinearSampler);
+        }
+        
+        float3 waterColour = specular + T * colour.rgb;
+        colour = float4(waterColour, 1.0f);
     }
     
     return colour;

@@ -46,7 +46,7 @@ float Remap(float x, float cross_over_point, float4 toe_coeffs, float4 shoulder_
 float4 main(InputType input) : SV_TARGET
 {
     float3 color = renderTextureColour[input.position.xy].rgb;
-    
+    return float4(color, 1.0f);
 	// apply bloom
     float3 bloom = float3(0.0f, 0.0f, 0.0f);
     float levelStrength = 1.0f;

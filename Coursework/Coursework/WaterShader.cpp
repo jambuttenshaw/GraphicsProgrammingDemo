@@ -73,27 +73,24 @@ void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		dataPtr->projection = XMMatrixTranspose(projectionMatrix);
 		dataPtr->cameraPos = camera->getPosition();
 
-		dataPtr->deepColour = m_DeepColour;
-		dataPtr->shallowColour = m_ShallowColour;
+		dataPtr->rtColourMapIndex = tex2DBuffer.AddResource(renderTarget->GetColourSRV());
+		dataPtr->rtDepthMapIndex = tex2DBuffer.AddResource(renderTarget->GetDepthSRV());
+		dataPtr->normalMapAIndex = tex2DBuffer.AddResource(m_NormalMapA);
+		dataPtr->normalMapBIndex = tex2DBuffer.AddResource(m_NormalMapB);
+
+		dataPtr->specularColour = m_SpecularColour;
+		dataPtr->transmittanceColour = m_TransmittanceColour;
 
 		dataPtr->oceanBoundsMin = m_OceanBoundsMin;
 		dataPtr->oceanBoundsMax = m_OceanBoundsMax;
 
-		dataPtr->depthMultiplier = m_DepthMultiplier;
-		dataPtr->alphaMultiplier = m_AlphaMultiplier;
+		dataPtr->transmittanceDepth= m_TransmittanceDepth;
+		dataPtr->roughness = m_Roughness;
 		
-		dataPtr->rtColourMapIndex = tex2DBuffer.AddResource(renderTarget->GetColourSRV());
-		dataPtr->rtDepthMapIndex = tex2DBuffer.AddResource(renderTarget->GetDepthSRV());
-
-		dataPtr->normalMapAIndex = tex2DBuffer.AddResource(m_NormalMapA);
-		dataPtr->normalMapBIndex = tex2DBuffer.AddResource(m_NormalMapB);
-
 		dataPtr->normalMapScale = m_NormalMapScale;
 		dataPtr->normalMapStrength = m_NormalMapStrength;
-		dataPtr->smoothness = m_Smoothness;
 
 		dataPtr->time = time;
-		dataPtr->padding = 0.0f;
 
 		deviceContext->Unmap(m_WaterBuffer, 0);
 	}
@@ -103,7 +100,8 @@ void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 
 	ID3D11Buffer* psCBs[] = { m_WaterBuffer, m_PSLightBuffer };
 	deviceContext->PSSetConstantBuffers(0, 2, psCBs);
-	deviceContext->PSSetSamplers(0, 1, &m_NormalMapSamplerState);
+	ID3D11SamplerState* psSamplers[] = { m_NormalMapSamplerState, m_GlobalLighting->GetBRDFIntegrationSampler(), m_GlobalLighting->GetCubemapSampler() };
+	deviceContext->PSSetSamplers(0, 3, psSamplers);
 
 	deviceContext->PSSetShaderResources(0, RESOURCE_BUFFER_SIZE, tex2DBuffer.GetResourcePtr());
 	deviceContext->PSSetShaderResources(RESOURCE_BUFFER_SIZE, RESOURCE_BUFFER_SIZE, texCubeBuffer.GetResourcePtr());
@@ -113,19 +111,19 @@ void WaterShader::SettingsGUI()
 {
 	ImGui::DragFloat3("Ocean Bounds Min", &m_OceanBoundsMin.x, 0.1f);
 	ImGui::DragFloat3("Ocean Bounds Max", &m_OceanBoundsMax.x, 0.1f);
-	ImGui::ColorEdit3("Deep Colour", &m_DeepColour.x);
-	ImGui::ColorEdit3("Shallow Colour", &m_ShallowColour.x);
-	ImGui::SliderFloat("Depth Multiplier", &m_DepthMultiplier, 0.05f, 1.0f);
-	ImGui::SliderFloat("Alpha Multiplier", &m_AlphaMultiplier, 0.05f, 1.0f);
+	ImGui::ColorEdit3("Specular Colour", &m_SpecularColour.x);
+	ImGui::ColorEdit3("Transmittance Colour", &m_TransmittanceColour.x);
+	ImGui::SliderFloat("Roughness", &m_Roughness, 0.01f, 1.0f);
+	ImGui::SliderFloat("Transmittance Depth", &m_TransmittanceDepth, 0.0f, 10.0f);
 	ImGui::SliderFloat("Normal Map Strength", &m_NormalMapStrength, 0.0f, 1.0f);
 	ImGui::DragFloat("Normal Map Scale", &m_NormalMapScale, 0.1f);
-	ImGui::SliderFloat("Smoothness", &m_Smoothness, 0.0f, 1.0f);
 }
+
 
 nlohmann::json WaterShader::Serialize() const
 {
 	nlohmann::json serialized;
-
+	/*
 	serialized["oceanBoundsMin"] = SerializationHelper::SerializeFloat3(m_OceanBoundsMin);
 	serialized["oceanBoundsMax"] = SerializationHelper::SerializeFloat3(m_OceanBoundsMax);
 
@@ -138,12 +136,13 @@ nlohmann::json WaterShader::Serialize() const
 	serialized["normalMapStrength"] = m_NormalMapStrength;
 	serialized["normalMapScale"] = m_NormalMapScale;
 	serialized["smoothness"] = m_Smoothness;
-
+	*/
 	return serialized;
 }
 
 void WaterShader::LoadFromJson(const nlohmann::json& data)
 {
+	/*
 	if (data.contains("oceanBoundsMin")) SerializationHelper::LoadFloat3FromJson(&m_OceanBoundsMin, data["oceanBoundsMin"]);
 	if (data.contains("oceanBoundsMax")) SerializationHelper::LoadFloat3FromJson(&m_OceanBoundsMax, data["oceanBoundsMax"]);
 
@@ -156,4 +155,5 @@ void WaterShader::LoadFromJson(const nlohmann::json& data)
 	if (data.contains("normalMapStrength")) m_NormalMapStrength = data["normalMapStrength"];
 	if (data.contains("normalMapScale")) m_NormalMapScale = data["normalMapScale"];
 	if (data.contains("smoothness")) m_Smoothness = data["smoothness"];
+	*/
 }

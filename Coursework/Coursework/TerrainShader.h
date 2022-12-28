@@ -107,7 +107,7 @@ private:
 	float m_UVScale = 32.0f;
 	float m_FlatThreshold = 0.5f;
 	float m_CliffThreshold = 0.8f;
-	float m_ShoreThreshold = 0.0f;
+	float m_ShoreThreshold = 0.5f;
 	float m_SnowHeightThreshold = 2.0f;
 	XMFLOAT2 m_MinMaxSnowSteepness = { 0.27f, 0.8f };
 	float m_SteepnessSmoothing = 0.1f;

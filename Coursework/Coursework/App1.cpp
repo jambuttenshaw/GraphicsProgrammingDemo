@@ -38,8 +38,8 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	BaseApplication::init(hinstance, hwnd, screenWidth, screenHeight, in, VSYNC, FULL_SCREEN);
 
 	// Load textures
-	textureMgr->loadTexture(L"oceanNormalMapA", L"res/wave_normals1.png");
-	textureMgr->loadTexture(L"oceanNormalMapB", L"res/wave_normals2.png");
+	textureMgr->loadTexture(L"oceanNormalMapA", L"res/waterNormals1.png");
+	textureMgr->loadTexture(L"oceanNormalMapB", L"res/waterNormals2.png");
 
 	{
 		Material* mat = m_MaterialLibrary.CreateMaterial("Grass");
@@ -117,12 +117,12 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// create game objects
 	
-	Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
-	Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
+	//Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
+	//Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
 	//m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
-	m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
-	m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
-	m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
+	//m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
+	//m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
+	//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
 	//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
 	//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
 	
@@ -141,16 +141,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	}
 
 	// setup default light settings
-	SceneLight& light = *(m_Lights[0]);
+	//SceneLight& light = *(m_Lights[0]);
 	//light.SetEnbled(true);
-	light.SetColour({ 0.985f, 0.968f, 0.415f });
-	light.SetType(SceneLight::LightType::Point);
-	light.SetPosition({ 1, 4, -5 });
-	light.SetIntensity(2.0f);
-	light.SetRange(20.0f);
-	light.EnableShadows();
+	//light.SetColour({ 0.985f, 0.968f, 0.415f });
+	//light.SetType(SceneLight::LightType::Point);
+	//light.SetPosition({ 1, 4, -5 });
+	//light.SetIntensity(2.0f);
+	//light.SetRange(20.0f);
+	//light.EnableShadows();
 
-	SceneLight& light2 = *(m_Lights[1]);
+	SceneLight& light2 = *(m_Lights[0]);
 	light2.SetEnbled(true);
 	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
 	light2.SetPosition({ 0, 15.5f, -15.5f });
@@ -249,8 +249,8 @@ bool App1::render()
 	{
 		// water is a post-processing effect and rendered afterwards
 		waterPass();
-
 		RenderTarget* outputRT = m_WaterRenderTexture;
+
 		// output to backbuffer for final pass
 		renderer->setBackBufferRenderTarget();
 
@@ -539,6 +539,10 @@ void App1::gui()
 				ImGui::Separator();
 
 				light->SettingsGUI();
+
+				ImGui::Separator();
+				if (ImGui::Button("Move to Camera"))
+					light->SetPosition(camera->getPosition());
 
 				ImGui::TreePop();
 				ImGui::Separator();
