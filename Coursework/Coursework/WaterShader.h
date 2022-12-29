@@ -35,17 +35,18 @@ private:
 		int normalMapBIndex;
 
 		XMFLOAT3 cameraPos;
-		float roughness;
-
-		XMFLOAT3 oceanBoundsMin;
 		float transmittanceDepth;
 
-		XMFLOAT3 oceanBoundsMax;
+		XMFLOAT3 oceanBoundsMin;
 		float normalMapScale;
 
+		XMFLOAT3 oceanBoundsMax;
 		float normalMapStrength;
+
 		float time;
-		XMFLOAT2 padding;
+		float waveSpeed;
+		float waveAngle;
+		float padding;
 	};
 
 public:
@@ -76,11 +77,13 @@ private:
 	XMFLOAT4 m_SpecularColour = { 0.125f, 0.125f, 0.125f, 1.0f };
 	XMFLOAT4 m_TransmittanceColour = { 0.067f, 0.608f, 0.945f, 1.0f };
 
-	float m_Roughness = 0.01f;
 	float m_TransmittanceDepth = 2.0f;
 
 	float m_NormalMapStrength = 1.0f;
 	float m_NormalMapScale = 30.0f;
+
+	float m_WaveSpeed = 0.1f;
+	float m_WaveAngle = 0.0f;
 
 	ID3D11ShaderResourceView* m_NormalMapA = nullptr;
 	ID3D11ShaderResourceView* m_NormalMapB = nullptr;

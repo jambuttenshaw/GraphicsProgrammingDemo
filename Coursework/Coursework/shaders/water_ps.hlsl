@@ -22,17 +22,18 @@ cbuffer WaterBuffer : register(b0)
     int normalMapBIndex;
     
     float3 cameraPos;
-    float roughness;
-    
-    float3 oceanBoundsMin;
     float transmittanceDepth;
     
-    float3 oceanBoundsMax;
+    float3 oceanBoundsMin;
     float normalMapScale;
     
+    float3 oceanBoundsMax;
     float normalMapStrength;
+    
     float time;
-    float2 padding0;
+    float waveSpeed;
+    float waveAngle;
+    float padding;
 };
 
 cbuffer LightCB : register(b1)
@@ -69,7 +70,7 @@ float4 main(InputType input) : SV_TARGET
 
     if (distToOcean < distThroughOcean && distThroughOcean > 0 && distToOcean < depthToScene)
     {
-        float depthThroughWater = min(depthToScene - distToOcean , distThroughOcean);
+        float depthThroughWater = min(depthToScene - distToOcean, distThroughOcean);
         
         // normal mapping
         
@@ -82,10 +83,13 @@ float4 main(InputType input) : SV_TARGET
         // this is not ideal
         const float3 normalW = float3(0, 1, 0);
         
+        float2 uvScale = uv * normalMapScale;
+        float2 uvOffsetA = waveSpeed * time * float2(cos(waveAngle), sin(waveAngle));
+        float2 uvOffsetB = waveSpeed * time * float2(cos(waveAngle + 0.5f * PI), sin(waveAngle + 0.5f * PI));
         float3 normalMapASample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
-                                                    (uv * normalMapScale) + float2(0.0f, 0.1f * time)).rgb;
+                                                    uvScale + uvOffsetA).rgb;
         float3 normalMapBSample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
-                                                    (uv * normalMapScale) + float2(-0.08f * time, -0.1f * time)).rgb;
+                                                    uvScale + uvOffsetB).rgb;
         
         // convert normals to world space
         float3 bumpedNormal = tangentToWorld(normalMapASample, normalW, input.viewVector, input.tex);
@@ -127,7 +131,7 @@ float4 main(InputType input) : SV_TARGET
             }
     
 		    // evaluate shading equation
-            float3 brdf_specular = ggx_brdf_specular(v, l, n, specularColour.rgb, roughness) * el * saturate(dot(n, l));
+            float3 brdf_specular = ggx_brdf_specular(v, l, n, specularColour.rgb, 0.005f) * el * saturate(dot(n, l));
         
         
             specular += brdf_specular;
@@ -135,7 +139,7 @@ float4 main(InputType input) : SV_TARGET
         
         if (lightBuffer.enableEnvironmentalLighting)
         {
-            specular += calculateAmbientSpecular(n, v, specularColour.rgb, roughness,
+            specular += calculateAmbientSpecular(n, v, specularColour.rgb, 0.0f,
                                                        texture2DBuffer, textureCubeBuffer,
                                                        lightBuffer.prefilterMapIndex, lightBuffer.brdfIntegrationMapIndex,
                                                        trilinearSampler, bilinearSampler);

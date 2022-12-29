@@ -85,12 +85,13 @@ void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		dataPtr->oceanBoundsMax = m_OceanBoundsMax;
 
 		dataPtr->transmittanceDepth= m_TransmittanceDepth;
-		dataPtr->roughness = m_Roughness;
 		
 		dataPtr->normalMapScale = m_NormalMapScale;
 		dataPtr->normalMapStrength = m_NormalMapStrength;
 
 		dataPtr->time = time;
+		dataPtr->waveSpeed = m_WaveSpeed;
+		dataPtr->waveAngle = m_WaveAngle;
 
 		deviceContext->Unmap(m_WaterBuffer, 0);
 	}
@@ -113,10 +114,11 @@ void WaterShader::SettingsGUI()
 	ImGui::DragFloat3("Ocean Bounds Max", &m_OceanBoundsMax.x, 0.1f);
 	ImGui::ColorEdit3("Specular Colour", &m_SpecularColour.x);
 	ImGui::ColorEdit3("Transmittance Colour", &m_TransmittanceColour.x);
-	ImGui::SliderFloat("Roughness", &m_Roughness, 0.01f, 1.0f);
 	ImGui::SliderFloat("Transmittance Depth", &m_TransmittanceDepth, 0.0f, 10.0f);
 	ImGui::SliderFloat("Normal Map Strength", &m_NormalMapStrength, 0.0f, 1.0f);
 	ImGui::DragFloat("Normal Map Scale", &m_NormalMapScale, 0.1f);
+	ImGui::DragFloat("Wave Speed", &m_WaveSpeed, 0.001f);
+	ImGui::SliderAngle("Wave Angle", &m_WaveAngle, 0.0f, 360.0f);
 }
 
 

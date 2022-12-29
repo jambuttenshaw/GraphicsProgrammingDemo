@@ -33,7 +33,7 @@ void SceneLight::SettingsGUI()
 	if (t != m_Type)
 	{
 		m_Type = t;
-		// check to see if shadow map needs switched
+		// check to see if a new shadow map needs switched
 		if (m_ShadowsEnabled) CreateShadowMap();
 	}
 
@@ -150,7 +150,7 @@ void SceneLight::EnableShadows()
 	if (m_ShadowsEnabled) return;
 	m_ShadowsEnabled = true;
 
-	if (!m_ShadowMap || !m_ShadowCubeMap) CreateShadowMap();
+	CreateShadowMap();
 }
 
 void SceneLight::DisableShadows()
@@ -181,21 +181,11 @@ void SceneLight::CreateShadowMap()
 {
 	if (m_Type == LightType::Point)
 	{
-		if (m_ShadowMap)
-		{
-			delete m_ShadowMap;
-			m_ShadowMap = nullptr;
-		}
 		if (!m_ShadowCubeMap)
 			m_ShadowCubeMap = new ShadowCubemap(m_Device, 1024);
 	}
 	else
 	{
-		if (m_ShadowCubeMap)
-		{
-			delete m_ShadowCubeMap;
-			m_ShadowCubeMap = nullptr;
-		}
 		if (!m_ShadowMap)
 			m_ShadowMap = new ShadowMap(m_Device, 1024, 1024);
 	}
