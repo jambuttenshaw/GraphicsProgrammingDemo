@@ -173,13 +173,38 @@ App1::~App1()
 	// probably not the best place to put this...
 	if (m_SaveOnExit) saveSettings(std::string(m_SaveFilePath));
 
-	// Release the Direct3D object.
-	if (m_TerrainMesh) delete m_TerrainMesh;
-	if (m_TerrainShader) delete m_TerrainShader;
+
 	if (m_LightShader) delete m_LightShader;
+	if (m_TerrainShader) delete m_TerrainShader;
+	if (m_TextureShader) delete m_TextureShader;
+
+	if (m_UnlitShader) delete m_UnlitShader;
+	if (m_UnlitTerrainShader) delete m_UnlitTerrainShader;
+
+	if (m_WaterShader) delete m_WaterShader;
+	if (m_MeasureLuminenceShader) delete m_MeasureLuminenceShader;
+	if (m_BloomShader) delete m_BloomShader;
+	if (m_FinalPassShader) delete m_FinalPassShader;
+
+	if (m_CubeMesh) delete m_CubeMesh;
+	if (m_SphereMesh) delete m_SphereMesh;
+	if (m_PlaneMesh) delete m_PlaneMesh;
+	if (m_TerrainMesh) delete m_TerrainMesh;
+	if (m_ShadowMapMesh) delete m_ShadowMapMesh;
 
 	if (m_SceneRenderTexture) delete m_SceneRenderTexture;
 	if (m_WaterRenderTexture) delete m_WaterRenderTexture;
+
+	if (m_GlobalLighting) delete m_GlobalLighting;
+	if (m_EnvironmentMap) delete m_EnvironmentMap;
+	if (m_Skybox) delete m_Skybox;
+
+	for (auto& light : m_Lights)
+	{
+		if (light) delete light;
+	}
+
+	m_ShadowRasterizerState->Release();
 
 	for (auto filter : m_HeightmapFilters)
 	{
@@ -450,26 +475,6 @@ void App1::gui()
 	}
 	ImGui::Separator();
 
-	
-	if (ImGui::CollapsingHeader("Save/Load Settings"))
-	{
-		ImGui::InputText("Save file", m_SaveFilePath, IM_ARRAYSIZE(m_SaveFilePath));
-
-		if (ImGui::Button("Save"))
-			saveSettings(std::string(m_SaveFilePath));
-		ImGui::SameLine();
-		if (ImGui::Button("Open"))
-		{
-			loadSettings(std::string(m_SaveFilePath));
-			applyFilterStack();
-		}
-
-		ImGui::Checkbox("Load On Open", &m_LoadOnOpen);
-		ImGui::Checkbox("Save On Exit", &m_SaveOnExit);
-	}
-	ImGui::Separator();
-	
-
 	if (ImGui::CollapsingHeader("Lighting"))
 	{
 		if (ImGui::TreeNode("Debug"))
@@ -482,15 +487,6 @@ void App1::gui()
 				if (m_Lights[m_SelectedShadowMap]->GetType() == SceneLight::LightType::Point)
 					ImGui::SliderInt("Cubemap face", &m_SelectedShadowCubemapFace, 0, 5);
 			}
-
-			int bias = m_ShadowRasterDesc.DepthBias;
-			if (ImGui::DragInt("Bias", &bias, 1000))
-			{
-				m_ShadowRasterDesc.DepthBias = bias;
-				m_ShadowRasterizerState->Release();
-				renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
-			}
-
 
 			ImGui::TreePop();
 		}
@@ -523,6 +519,14 @@ void App1::gui()
 				}
 				m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 				m_Skybox->SetCubemap(m_EnvironmentMap);
+			}
+
+			int bias = m_ShadowRasterDesc.DepthBias;
+			if (ImGui::DragInt("Bias", &bias, 1000))
+			{
+				m_ShadowRasterDesc.DepthBias = bias;
+				m_ShadowRasterizerState->Release();
+				renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
 			}
 
 			m_GlobalLighting->SettingsGUI();
@@ -620,6 +624,24 @@ void App1::terrainSettingsMenu()
 		ImGui::End();
 		return;
 	}
+
+	if (ImGui::CollapsingHeader("Save/Load Settings"))
+	{
+		ImGui::InputText("Save file", m_SaveFilePath, IM_ARRAYSIZE(m_SaveFilePath));
+
+		if (ImGui::Button("Save"))
+			saveSettings(std::string(m_SaveFilePath));
+		ImGui::SameLine();
+		if (ImGui::Button("Open"))
+		{
+			loadSettings(std::string(m_SaveFilePath));
+			applyFilterStack();
+		}
+
+		ImGui::Checkbox("Load On Open", &m_LoadOnOpen);
+		ImGui::Checkbox("Save On Exit", &m_SaveOnExit);
+	}
+	ImGui::Separator();
 
 	bool regenerateTerrain = false;
 
@@ -752,10 +774,6 @@ void App1::saveSettings(const std::string& file)
 	{
 		serialized["filters"].push_back(filter->Serialize());
 	}
-
-	serialized["waterSettings"] = m_WaterShader->Serialize();
-	serialized["terrainSettings"] = m_TerrainShader->Serialize();
-
 	std::string serializedString = serialized.dump();
 	std::ofstream outfile(file);
 
@@ -798,7 +816,4 @@ void App1::loadSettings(const std::string& file)
 			m_HeightmapFilters.push_back(newFilter);
 		}
 	}
-
-	if (data.contains("waterSettings")) m_WaterShader->LoadFromJson(data["waterSettings"]);
-	if (data.contains("terrainSettings")) m_TerrainShader->LoadFromJson(data["terrainSettings"]);
 }

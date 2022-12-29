@@ -23,11 +23,8 @@ void FinalPassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, ID
 	deviceContext->Map(m_ParamsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	ParamsBufferType* data = (ParamsBufferType*)mappedResource.pData;
 	data->avgLumFactor = 1.0f / (w * h);
-	data->whitePoint = m_WhitePoint;
-	data->blackPoint = m_BlackPoint;
-	data->toe = m_Toe;
-	data->shoulder = m_Shoulder;
-	data->crossPoint = m_CrossPoint;
+	data->lumWhite = m_LumWhite;
+	data->middleGrey = m_MiddleGrey;
 	data->bloomLevels = bloomLevels;
 	data->bloomStrength = bloomStrength;
 	deviceContext->Unmap(m_ParamsBuffer, 0);
@@ -41,12 +38,8 @@ void FinalPassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, ID
 
 void FinalPassShader::SettingsGUI()
 {
-	ImGui::SliderFloat("White Point", &m_WhitePoint, m_CrossPoint, 20.0f);
-	ImGui::SliderFloat("Cross Point", &m_CrossPoint, m_BlackPoint, m_WhitePoint);
-	ImGui::SliderFloat("Black Point", &m_BlackPoint, 0.0f, m_CrossPoint);
-
-	ImGui::SliderFloat("Toe", &m_Toe, 0.0f, 1.0f);
-	ImGui::SliderFloat("Shoulder", &m_Shoulder, 0.0f, 1.0f);
+	ImGui::DragFloat("Lum White", &m_LumWhite, 0.005f);
+	ImGui::DragFloat("Middle Grey", &m_MiddleGrey, 0.005f);
 }
 
 void FinalPassShader::CreateShaderResources()

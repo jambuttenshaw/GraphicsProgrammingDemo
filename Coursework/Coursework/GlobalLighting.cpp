@@ -145,6 +145,8 @@ void GlobalLighting::CreateIrradianceMap(ID3D11DeviceContext* deviceContext)
 void GlobalLighting::CreateBRDFIntegrationMap(ID3D11DeviceContext* deviceContext)
 {
 	if (m_BRDFIntegrationMap) m_BRDFIntegrationMap->Release();
+	if (m_BRDFIntegrationMapSRV) m_BRDFIntegrationMapSRV->Release();
+	if (m_BRDFIntegrationMapUAV) m_BRDFIntegrationMapUAV->Release();
 
 	// create texture
 	D3D11_TEXTURE2D_DESC texDesc;

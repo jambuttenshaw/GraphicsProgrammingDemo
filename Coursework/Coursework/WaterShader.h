@@ -4,8 +4,6 @@
 #include "BaseFullScreenShader.h"
 #include "ShaderUtility.h"
 
-#include <nlohmann/json.hpp>
-
 class SceneLight;
 class RenderTarget;
 class GlobalLighting;
@@ -56,9 +54,6 @@ public:
 	void setShaderParameters(ID3D11DeviceContext* deviceContext, const XMMATRIX& viewMatrix, const XMMATRIX& projectionMatrix, RenderTarget* renderTarget, SceneLight** lights, size_t lightCount, Camera* camera, float time);
 
 	void SettingsGUI();
-
-	nlohmann::json Serialize() const;
-	void LoadFromJson(const nlohmann::json& data);
 
 protected:
 

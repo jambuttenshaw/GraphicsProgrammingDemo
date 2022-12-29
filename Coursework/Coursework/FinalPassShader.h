@@ -12,16 +12,14 @@ private:
 	{
 		// tone mapping
 		float avgLumFactor;
-		float whitePoint;
-		float blackPoint;
-		float toe;
-
-		float shoulder;
-		float crossPoint;
+		float lumWhite;
+		float middleGrey;
 
 		// bloom
 		int bloomLevels;
 		float bloomStrength;
+
+		XMFLOAT3 padding;
 	};
 
 public:
@@ -42,9 +40,6 @@ private:
 	ID3D11Buffer* m_ParamsBuffer = nullptr;
 	ID3D11SamplerState* m_TrilinearSampler = nullptr;
 
-	float m_WhitePoint = 2.5f;
-	float m_BlackPoint = 0.0f;
-	float m_Toe = 0.1f;
-	float m_Shoulder = 0.1f;
-	float m_CrossPoint = 0.15f;
+	float m_LumWhite = 1.0f;
+	float m_MiddleGrey = 0.5f;
 };

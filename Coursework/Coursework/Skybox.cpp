@@ -60,7 +60,7 @@ Skybox::Skybox(ID3D11Device* device, Cubemap* cubemap)
 
 Skybox::~Skybox()
 {
-	delete m_CubeMesh;;
+	delete m_CubeMesh;
 
 	m_VS->Release();
 	m_PS->Release();

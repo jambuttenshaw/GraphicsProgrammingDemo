@@ -296,21 +296,3 @@ void TerrainShader::GUI()
 	ImGui::SliderFloat("Max LOD", &m_MinMaxLOD.y, m_MinMaxLOD.x, 64.0f);
 	ImGui::SliderFloat("Distance LOD Blending", &m_DistanceLODBlending, 0.0f, 1.0f);
 }
-
-nlohmann::json TerrainShader::Serialize() const
-{
-	nlohmann::json serialized;
-
-	serialized["flatThreshold"] = m_FlatThreshold;
-	serialized["cliffThreshold"] = m_CliffThreshold;
-	serialized["steepnessSmoothing"] = m_SteepnessSmoothing;
-
-	return serialized;
-}
-
-void TerrainShader::LoadFromJson(const nlohmann::json& data)
-{
-	if (data.contains("flatThreshold")) m_FlatThreshold = data["flatThreshold"];
-	if (data.contains("cliffThreshold")) m_CliffThreshold = data["cliffThreshold"];
-	if (data.contains("steepnessSmoothing")) m_SteepnessSmoothing = data["steepnessSmoothing"];
-}

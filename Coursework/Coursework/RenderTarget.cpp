@@ -3,7 +3,7 @@
 RenderTarget::RenderTarget(ID3D11Device* device, unsigned int width, unsigned int height)
 	: m_Width(width), m_Height(height)
 {
-	HRESULT result;
+	HRESULT hr;
 
 	// create colour buffer
 	D3D11_TEXTURE2D_DESC colourBufferDesc;
@@ -20,7 +20,9 @@ RenderTarget::RenderTarget(ID3D11Device* device, unsigned int width, unsigned in
 	colourBufferDesc.CPUAccessFlags = 0;
 	colourBufferDesc.MiscFlags = 0;
 
-	result = device->CreateTexture2D(&colourBufferDesc, NULL, &m_ColourBuffer);
+	ID3D11Texture2D* colourBuffer;
+	hr = device->CreateTexture2D(&colourBufferDesc, NULL, &colourBuffer);
+	assert(hr == S_OK);
 
 	// create render target view
 	D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
@@ -30,7 +32,8 @@ RenderTarget::RenderTarget(ID3D11Device* device, unsigned int width, unsigned in
 	renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 	renderTargetViewDesc.Texture2D.MipSlice = 0;
 
-	result = device->CreateRenderTargetView(m_ColourBuffer, &renderTargetViewDesc, &m_RenderTargetView);
+	hr = device->CreateRenderTargetView(colourBuffer, &renderTargetViewDesc, &m_RenderTargetView);
+	assert(hr == S_OK);
 
 	// create shader resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC colourSRVDesc;
@@ -41,7 +44,8 @@ RenderTarget::RenderTarget(ID3D11Device* device, unsigned int width, unsigned in
 	colourSRVDesc.Texture2D.MostDetailedMip = 0;
 	colourSRVDesc.Texture2D.MipLevels = 1;
 
-	result = device->CreateShaderResourceView(m_ColourBuffer, &colourSRVDesc, &m_ColourSRV);
+	hr = device->CreateShaderResourceView(colourBuffer, &colourSRVDesc, &m_ColourSRV);
+	assert(hr == S_OK);
 
 
 
@@ -61,8 +65,10 @@ RenderTarget::RenderTarget(ID3D11Device* device, unsigned int width, unsigned in
 	depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
 	depthBufferDesc.CPUAccessFlags = 0;
 	depthBufferDesc.MiscFlags = 0;
-	
-	result = device->CreateTexture2D(&depthBufferDesc, NULL, &m_DepthStencilBuffer);
+
+	ID3D11Texture2D* depthStencilBuffer;
+	hr = device->CreateTexture2D(&depthBufferDesc, NULL, &depthStencilBuffer);
+	assert(hr == S_OK);
 
 	// create depth/stencil vieww
 	D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
@@ -72,7 +78,8 @@ RenderTarget::RenderTarget(ID3D11Device* device, unsigned int width, unsigned in
 	depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 	depthStencilViewDesc.Texture2D.MipSlice = 0;
 
-	result = device->CreateDepthStencilView(m_DepthStencilBuffer, &depthStencilViewDesc, &m_DepthStencilView);
+	hr = device->CreateDepthStencilView(depthStencilBuffer, &depthStencilViewDesc, &m_DepthStencilView);
+	assert(hr == S_OK);
 
 	// create shader resource view
 	D3D11_SHADER_RESOURCE_VIEW_DESC depthSRVDesc;
@@ -83,13 +90,12 @@ RenderTarget::RenderTarget(ID3D11Device* device, unsigned int width, unsigned in
 	depthSRVDesc.Texture2D.MostDetailedMip = 0;
 	depthSRVDesc.Texture2D.MipLevels = 1;
 
-	result = device->CreateShaderResourceView(m_DepthStencilBuffer, &depthSRVDesc, &m_DepthSRV);
+	hr = device->CreateShaderResourceView(depthStencilBuffer, &depthSRVDesc, &m_DepthSRV);
+	assert(hr == S_OK);
 }
 
 RenderTarget::~RenderTarget()
 {
-	if (m_ColourBuffer) m_ColourBuffer->Release();
-	if (m_DepthStencilBuffer) m_DepthStencilBuffer->Release();
 	if (m_RenderTargetView) m_RenderTargetView->Release();
 	if (m_DepthStencilView) m_DepthStencilView->Release();
 	if (m_ColourSRV) m_ColourSRV->Release();

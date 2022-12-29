@@ -7,6 +7,13 @@
 #include <fstream>
 
 
+Material::~Material()
+{
+	if (m_AlbedoMap) m_AlbedoMap->Release();
+	if (m_RoughnessMap) m_RoughnessMap->Release();
+	if (m_NormalMap) m_NormalMap->Release();
+}
+
 void Material::SettingsGUI()
 {
 	if (m_AlbedoMap)

@@ -87,8 +87,12 @@ Cubemap::Cubemap(ID3D11Device* device, const char* faces[6])
 
 Cubemap::~Cubemap()
 {
-	m_SRV->Release();
 	m_CubemapTexture->Release();
+	m_SRV->Release();
+	for (auto& srv : m_FaceSRVs)
+	{
+		if (srv) srv->Release();
+	} 
 	for (auto& uav : m_UAVs)
 	{
 		if (uav) uav->Release();

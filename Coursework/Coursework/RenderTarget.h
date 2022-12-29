@@ -22,9 +22,6 @@ public:
 private:
 	unsigned int m_Width = 0, m_Height = 0;
 
-	ID3D11Texture2D* m_ColourBuffer = nullptr;
-	ID3D11Texture2D* m_DepthStencilBuffer = nullptr;
-
 	ID3D11RenderTargetView* m_RenderTargetView = nullptr;
 	ID3D11DepthStencilView* m_DepthStencilView = nullptr;
 

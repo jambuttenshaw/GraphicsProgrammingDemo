@@ -19,6 +19,7 @@ SceneLight::SceneLight(ID3D11Device* device)
 SceneLight::~SceneLight()
 {
 	if (m_ShadowMap) delete m_ShadowMap;
+	if (m_ShadowCubeMap) delete m_ShadowCubeMap;
 }
 
 void SceneLight::SettingsGUI()

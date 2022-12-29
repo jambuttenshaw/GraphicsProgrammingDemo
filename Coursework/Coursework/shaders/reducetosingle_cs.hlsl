@@ -12,6 +12,11 @@ cbuffer CSBuffer : register(b0)
 
 groupshared float accum[groupthreads];
 
+bool IsNaN(float x)
+{
+    return (asuint(x) & 0x7fffffff) > 0x7f800000;
+}
+
 [numthreads(groupthreads, 1, 1)]
 void main(uint3 Gid : SV_GroupID, uint3 DTid : SV_DispatchThreadID, uint GI : SV_GroupIndex)
 {
@@ -51,6 +56,9 @@ void main(uint3 Gid : SV_GroupID, uint3 DTid : SV_DispatchThreadID, uint GI : SV
 
     if (GI == 0)
     {
-        output[Gid.x] = accum[0];
+        if (IsNaN(accum[0]))
+            output[Gid.y * groupCount.x + Gid.x] = 0;
+        else
+            output[Gid.y * groupCount.x + Gid.x] = accum[0];
     }
 }

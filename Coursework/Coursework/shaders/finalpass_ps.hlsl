@@ -10,15 +10,14 @@ SamplerState trilinearSampler;
 cbuffer Params : register(b0)
 {
     float avgLumFactor; // avgLum = lum[0] * avgLumFactor
-	float w;	// white point
-	float b;	// black point
-	float t;	// toe amount
-	float s;	// shoulder amount
-	float c;	// cross over point
+	float lumWhite;
+	float middleGrey;
 
 	// bloom
     int bloomLevels;
     float bloomStrength;
+	
+    float3 padding;
 }
 
 struct InputType
@@ -28,6 +27,7 @@ struct InputType
 	float3 viewVector : POSITION0;
 };
 
+/*
 float CalculateK()
 {
 	float num = (1.0f - t) * (c - b);
@@ -41,12 +41,12 @@ float Remap(float x, float cross_over_point, float4 toe_coeffs, float4 shoulder_
 	float2 fraction = coeffs.xy * x + coeffs.zw;
 	return fraction.x / fraction.y;
 }
-
+*/
 
 float4 main(InputType input) : SV_TARGET
 {
     float3 color = renderTextureColour[input.position.xy].rgb;
-    return float4(color, 1.0f);
+	
 	// apply bloom
     float3 bloom = float3(0.0f, 0.0f, 0.0f);
     float levelStrength = 1.0f;
@@ -55,8 +55,9 @@ float4 main(InputType input) : SV_TARGET
         bloom += levelStrength * bloomTex.SampleLevel(trilinearSampler, input.tex, i).rgb;
         levelStrength *= 0.5f;
     }
-    color += bloom * bloomStrength;
+    //color += bloom * bloomStrength;
 	
+	/*
 	float luminance = dot(color, LUM_VECTOR.rgb);
 	float fLum = lum[0] * avgLumFactor;
 	
@@ -80,6 +81,14 @@ float4 main(InputType input) : SV_TARGET
 	float newLuminance = Remap(luminance / fLum, c, toe_coeffs, shoulder_coeffs);
 
 	color *= newLuminance / luminance;
+	*/
+	float fLum = lum[0] * avgLumFactor;
+    color /= fLum;
 	
+    // Tone mapping
+    color.rgb *= middleGrey;
+    color.rgb *= (1.0f + color / lumWhite);
+    color.rgb /= (1.0f + color);
+
 	return float4(color, 1.0f);
 }

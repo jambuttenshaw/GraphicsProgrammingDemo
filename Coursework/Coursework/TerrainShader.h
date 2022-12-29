@@ -1,8 +1,6 @@
 #pragma once
 
 #include "DXF.h"
-#include <nlohmann/json.hpp>
-
 using namespace DirectX;
 
 #include "ShaderUtility.h"
@@ -69,9 +67,6 @@ public:
 	inline float GetDistanceLODBlending() const { return m_DistanceLODBlending; }
 	inline const XMFLOAT2& GetMinMaxLOD() const { return m_MinMaxLOD; }
 
-	nlohmann::json Serialize() const;
-	void LoadFromJson(const nlohmann::json& data);
-
 private:
 	void InitShader();
 	
@@ -107,12 +102,12 @@ private:
 
 	// terrain properties
 	float m_UVScale = 32.0f;
-	float m_FlatThreshold = 0.5f;
-	float m_CliffThreshold = 0.8f;
+	float m_FlatThreshold = 0.406f;
+	float m_CliffThreshold = 0.674f;
 	float m_ShoreThreshold = 0.5f;
 	float m_SnowHeightThreshold = 2.0f;
 	XMFLOAT2 m_MinMaxSnowSteepness = { 0.27f, 0.8f };
-	float m_SteepnessSmoothing = 0.1f;
+	float m_SteepnessSmoothing = 0.108f;
 	float m_HeightSmoothing = 1.0f;
 
 	// tessellation params
