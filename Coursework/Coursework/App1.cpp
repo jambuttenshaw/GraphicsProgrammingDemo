@@ -345,7 +345,7 @@ void App1::depthPass(SceneLight* light)
 				break;
 			case GameObject::MeshType::Terrain:
 				go.mesh.terrain->SendData(renderer->getDeviceContext());
-				m_UnlitTerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix, go.mesh.terrain, camera->getPosition(), m_TerrainShader->GetMinMaxDist(), m_TerrainShader->GetMinMaxLOD() );
+				m_UnlitTerrainShader->SetShaderParameters(renderer->getDeviceContext(), w, lightViewMatrices[m], lightProjectionMatrix, go.mesh.terrain, camera->getPosition(), m_TerrainShader->GetMinMaxDist(), m_TerrainShader->GetMinMaxLOD(), m_TerrainShader->GetMinMaxHeightDeviation(), m_TerrainShader->GetDistanceLODBlending());
 				m_UnlitTerrainShader->Render(renderer->getDeviceContext(), go.mesh.terrain->GetIndexCount());
 				break;
 			default:

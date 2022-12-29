@@ -74,3 +74,34 @@ void MaterialLibrary::MaterialSelectGUI(Material** mat) const
 
 	delete[] matNames;
 }
+
+void MaterialLibrary::MaterialSelectGUI(std::vector<Material*>& mats) const
+{
+	const char** matNames = new const char* [m_Materials.size()];
+
+	for (int i = 0; i < mats.size(); i++)
+	{
+		const std::string& currentMatName = GetName(mats[i]);
+
+		int j = 0, currentIndex = -1;
+		for (auto& m : m_Materials)
+		{
+			matNames[j] = m.first.c_str();
+			if (m.first == currentMatName)
+				currentIndex = j;
+			j++;
+		}
+
+		char format[] = "Select Material %d";
+		char label[20];
+		sprintf_s(label, format, i);
+
+		if (ImGui::Combo(label, &currentIndex, matNames, static_cast<int>(m_Materials.size())))
+		{
+			std::string name(matNames[currentIndex]);
+			mats[i] = GetMaterial(name);
+		}
+	}
+
+	delete[] matNames;
+}

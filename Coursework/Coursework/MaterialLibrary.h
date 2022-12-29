@@ -17,6 +17,7 @@ public:
 
 	void MaterialSettingsGUI();
 	void MaterialSelectGUI(Material** mat) const;
+	void MaterialSelectGUI(std::vector<Material*>& mats) const;
 
 private:
 	std::unordered_map<std::string, Material*> m_Materials;

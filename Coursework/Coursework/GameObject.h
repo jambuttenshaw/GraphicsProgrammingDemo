@@ -75,7 +75,6 @@ struct GameObject
 		ImGui::Separator();
 
 		ImGui::Text("Materials");
-		for (int i = 0; i < materials.size(); i++)
-			materialLibrary->MaterialSelectGUI(&materials[i]);
+		materialLibrary->MaterialSelectGUI(materials);
 	}
 };

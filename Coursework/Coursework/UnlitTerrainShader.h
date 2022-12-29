@@ -23,9 +23,12 @@ private:
 	struct TessellationBufferType
 	{
 		XMFLOAT2 minMaxDistance;
+		XMFLOAT2 minMaxHeightDeviation;
 		XMFLOAT2 minMaxLOD;
-		XMFLOAT3 cameraPos;
+		float distanceLODBlending;
 		float padding;
+		XMFLOAT3 cameraPos;
+		float size;
 	};
 
 public:
@@ -34,7 +37,7 @@ public:
 
 	void SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection,
-		TerrainMesh* terrainMesh, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD);
+		TerrainMesh* terrainMesh, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD, XMFLOAT2 minMaxHeightDeviation, float distanceLODBlending);
 	void Render(ID3D11DeviceContext* deviceContext, unsigned int indexCount);
 
 private:

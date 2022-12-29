@@ -65,6 +65,8 @@ public:
 	void GUI();
 
 	inline const XMFLOAT2& GetMinMaxDist() const { return m_MinMaxDistance; }
+	inline const XMFLOAT2& GetMinMaxHeightDeviation() const { return m_MinMaxHeightDeviation; }
+	inline float GetDistanceLODBlending() const { return m_DistanceLODBlending; }
 	inline const XMFLOAT2& GetMinMaxLOD() const { return m_MinMaxLOD; }
 
 	nlohmann::json Serialize() const;

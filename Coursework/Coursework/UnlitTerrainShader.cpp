@@ -121,7 +121,7 @@ void UnlitTerrainShader::CreateBuffer(UINT byteWidth, ID3D11Buffer** ppBuffer)
 
 void UnlitTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 	const XMMATRIX& world, const XMMATRIX& view, const XMMATRIX& projection,
-	TerrainMesh* terrainMesh, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD)
+	TerrainMesh* terrainMesh, const XMFLOAT3& tessPOV, XMFLOAT2 minMaxDist, XMFLOAT2 minMaxLOD, XMFLOAT2 minMaxHeightDeviation, float distanceLODBlending)
 {
 	HRESULT result;
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
@@ -139,9 +139,12 @@ void UnlitTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		deviceContext->Map(m_TessellationBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		TessellationBufferType* dataPtr = (TessellationBufferType*)mappedResource.pData;
 		dataPtr->minMaxDistance = minMaxDist;
+		dataPtr->minMaxHeightDeviation = minMaxHeightDeviation;
 		dataPtr->minMaxLOD = minMaxLOD;
-		dataPtr->cameraPos = tessPOV;
+		dataPtr->distanceLODBlending = distanceLODBlending;
 		dataPtr->padding = 0.0f;
+		dataPtr->cameraPos = tessPOV;
+		dataPtr->size = terrainMesh->GetSize();
 		deviceContext->Unmap(m_TessellationBuffer, 0);
 	}
 	{
@@ -156,7 +159,7 @@ void UnlitTerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 
 	deviceContext->HSSetConstantBuffers(0, 1, &m_TessellationBuffer);
 	auto preprocessedHeightmap = terrainMesh->GetPreprocessSRV();
-	deviceContext->HSGetShaderResources(0, 1, &preprocessedHeightmap);
+	deviceContext->HSSetShaderResources(0, 1, &preprocessedHeightmap);
 
 	deviceContext->DSSetConstantBuffers(0, 1, &m_DSMatrixBuffer);
 	auto heightmap = terrainMesh->GetHeightmapSRV();
