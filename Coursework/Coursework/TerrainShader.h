@@ -25,6 +25,9 @@ private:
 	};
 	struct TerrainBufferType
 	{
+		float heightmapDims;
+		float terrainSize;
+
 		int heightmapIndex;
 		float uvScale;
 		float flatThreshold;
@@ -36,8 +39,6 @@ private:
 		float snowHeightThreshold;
 
 		XMFLOAT2 minMaxSnowSteepness;
-		XMFLOAT2 padding;
-
 	};
 	struct TessellationBufferType
 	{
@@ -114,6 +115,6 @@ private:
 	XMFLOAT2 m_MinMaxDistance{ 5.0f, 25.0f };
 	XMFLOAT2 m_MinMaxHeightDeviation{ 0.5f, 2.0f };
 	XMFLOAT2 m_MinMaxLOD{ 1.0f, 8.0f };
-	float m_DistanceLODBlending = 0.5f;
+	float m_DistanceLODBlending = 0.75f;
 };
 

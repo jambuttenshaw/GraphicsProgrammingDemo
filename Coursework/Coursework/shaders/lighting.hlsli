@@ -278,7 +278,7 @@ float3 calculateLighting(
     if (material.normalMapIndex > -1)
     {
         float3 map = SampleTexture2D(texture2DBuffer, material.normalMapIndex, anisotropicSampler, uv).rgb;
-        n = tangentToWorld(map, n, -v, uv);
+        n = normalMapToWorld(map, n, -v, uv);
     }
     
     float3 albedo = material.albedoMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.albedoMapIndex, anisotropicSampler, uv).rgb : material.albedoColor.rgb;

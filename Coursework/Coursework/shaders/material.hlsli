@@ -11,7 +11,7 @@ float3 blendNormals(int normalMapIndexA, int normalMapIndexB, float t,
         mapB = SampleTexture2D(tex2DBuffer, normalMapIndexB, materialSampler, uv).rgb;
     float3 map = lerp(mapA, mapB, t);
     
-    return tangentToWorld(map, n, v, uv);
+    return normalMapToWorld(map, n, v, uv);
 }
 
 float3 blendNormals(int normalMapIndex, float3 nB, float t,
@@ -20,7 +20,7 @@ float3 blendNormals(int normalMapIndex, float3 nB, float t,
     if (normalMapIndex > -1)
     {
         float3 map = SampleTexture2D(tex2DBuffer, normalMapIndex, materialSampler, uv).rgb;
-        float3 nA = tangentToWorld(map, n, v, uv);
+        float3 nA = normalMapToWorld(map, n, v, uv);
         return normalize(lerp(nA, nB, t));
     }
     return nB;

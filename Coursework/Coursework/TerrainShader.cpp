@@ -219,6 +219,9 @@ void TerrainShader::SetShaderParameters(ID3D11DeviceContext* deviceContext,
 		deviceContext->Map(m_TerrainBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		TerrainBufferType* dataPtr = (TerrainBufferType*)mappedResource.pData;
 		
+		dataPtr->heightmapDims = static_cast<float>(terrainMesh->GetHeightmapResolution());
+		dataPtr->terrainSize = terrainMesh->GetSize();
+
 		dataPtr->heightmapIndex = tex2DBuffer.AddResource(terrainMesh->GetHeightmapSRV());
 		dataPtr->uvScale = m_UVScale;
 

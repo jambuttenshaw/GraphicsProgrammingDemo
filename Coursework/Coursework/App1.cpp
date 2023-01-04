@@ -141,24 +141,15 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	}
 
 	// setup default light settings
-	//SceneLight& light = *(m_Lights[0]);
-	//light.SetEnbled(true);
-	//light.SetColour({ 0.985f, 0.968f, 0.415f });
-	//light.SetType(SceneLight::LightType::Point);
-	//light.SetPosition({ 1, 4, -5 });
-	//light.SetIntensity(2.0f);
-	//light.SetRange(20.0f);
-	//light.EnableShadows();
-
-	SceneLight& light2 = *(m_Lights[0]);
-	light2.SetEnbled(true);
-	//light2.SetColour({ 0.352f, 0.791f, 0.946f });
-	light2.SetPosition({ 0, 15.5f, -15.5f });
-	light2.SetType(SceneLight::LightType::Directional);
-	light2.SetYaw(XMConvertToRadians(0.0f));
-	light2.SetPitch(XMConvertToRadians(-45.0f));
-	light2.SetIntensity(1.3f);
-	//light2.EnableShadows();
+	SceneLight& light = *(m_Lights[0]);
+	light.SetEnbled(true);
+	light.SetColour({ 1.0f, 0.815f, 0.231f });
+	light.SetPosition({ 0, 15.5f, -15.5f });
+	light.SetType(SceneLight::LightType::Directional);
+	light.SetYaw(XMConvertToRadians(168.0f));
+	light.SetPitch(XMConvertToRadians(-8.0f));
+	light.SetIntensity(4.3f);
+	light.EnableShadows();
 
 	if (m_LoadOnOpen)
 	{

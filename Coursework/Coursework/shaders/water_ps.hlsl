@@ -93,11 +93,11 @@ float4 main(InputType input) : SV_TARGET
         
         
         // convert normals to world space
-        float3 bumpedNormal = tangentToWorld(normalMapASample, normalW, input.viewVector, input.tex);
+        float3 bumpedNormal = normalMapToWorld(normalMapASample, normalW, input.viewVector, input.tex);
         if (isnan(length(bumpedNormal)))
             bumpedNormal = normalW;
         else
-            bumpedNormal = tangentToWorld(normalMapBSample, bumpedNormal, input.viewVector, input.tex);
+            bumpedNormal = normalMapToWorld(normalMapBSample, bumpedNormal, input.viewVector, input.tex);
         
         // lighting
         

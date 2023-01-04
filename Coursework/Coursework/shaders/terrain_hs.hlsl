@@ -21,12 +21,14 @@ struct VSOutputType
 {
     float3 position : WORLD_SPACE_CONTROL_POINT_POSITION;
     float2 tex : CONTROL_POINT_TEXCOORD;
+    float3 normal : CONTROL_POINT_NORMAL;
 };
 
 struct HSControlPointOutput
 {
     float3 position : WORLD_SPACE_CONTROL_POINT_POSITION;
     float2 tex : CONTROL_POINT_TEXCOORD;
+    float3 normal : CONTROL_POINT_NORMAL;
 };
 
 struct HSConstantOutput
@@ -116,6 +118,7 @@ HSControlPointOutput main(InputPatch<VSOutputType, 12> ip, uint i : SV_OutputCon
 
     output.position = ip[i].position;
     output.tex = ip[i].tex;
+    output.normal = ip[i].normal;
 
     return output;
 }

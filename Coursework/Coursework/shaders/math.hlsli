@@ -125,12 +125,17 @@ float3x3 cotangent_frame(float3 n, float3 p, float2 uv)
     return float3x3(T * invmax, B * invmax, n);
 }
 
-float3 tangentToWorld(float3 sample, float3 n, float3 v, float2 uv)
+float3 tangentSpaceToWorldSpace(float3 tangentSpace, float3 n, float3 v, float2 uv)
 {
     // v = camera to fragment
-    
-    sample = (sample * 2.0f) - 1.0f;
         
     float3x3 TBN = cotangent_frame(n, -v, uv);
-    return normalize(mul(sample, TBN));
+    return normalize(mul(tangentSpace, TBN));
+}
+
+float3 normalMapToWorld(float3 sample, float3 n, float3 v, float2 uv)
+{
+    sample = (sample * 2.0f) - 1.0f;
+    
+    return tangentSpaceToWorldSpace(sample, n, v, uv);
 }

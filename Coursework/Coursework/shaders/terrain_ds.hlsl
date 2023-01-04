@@ -19,6 +19,7 @@ struct DSOutput
 {
     float4 position : SV_POSITION;
     float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
     float3 worldPosition : POSITION0;
     float3 viewDir : POSITION1;
     float4 lightViewPos[MAX_LIGHTS] : POSITION2;
@@ -28,6 +29,7 @@ struct HSControlPointOutput
 {
     float3 position : WORLD_SPACE_CONTROL_POINT_POSITION;
     float2 tex : CONTROL_POINT_TEXCOORD;
+    float3 normal : CONTROL_POINT_NORMAL;
 };
 
 struct HSConstantOutput
@@ -56,8 +58,13 @@ DSOutput main(HSConstantOutput input, float2 domainUV : SV_DomainLocation, const
                       lerp(patch[2].tex, patch[3].tex, domainUV.x),
                       domainUV.y);
     
+    output.normal = lerp(lerp(patch[0].normal, patch[1].normal, domainUV.x),
+                         lerp(patch[2].normal, patch[3].normal, domainUV.x),
+                         domainUV.y);
+    output.normal = normalize(output.normal);
+    
     // apply displacement map
-    output.worldPosition.y += GetHeight(output.tex);
+    output.worldPosition += output.normal * GetHeight(output.tex);
 
     // transform vertex
     output.position = mul(float4(output.worldPosition, 1.0f), viewMatrix);

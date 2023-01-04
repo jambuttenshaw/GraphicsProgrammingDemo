@@ -26,6 +26,9 @@ cbuffer MaterialCB : register(b1)
 
 cbuffer TerrainBuffer : register(b2)
 {
+    float heightmapDims;
+    float terrainSize;
+    
     int heightmapIndex;
     float uvScale;
     float flatThreshold;
@@ -37,30 +40,29 @@ cbuffer TerrainBuffer : register(b2)
     float snowHeightThreshold;
     
     float2 minMaxSnowSteepness;
-    float3 padding;
 };
 
 struct InputType
 {
-	float4 position : SV_POSITION;
-	float2 tex : TEXCOORD0;
+    float4 position : SV_POSITION;
+    float2 tex : TEXCOORD0;
+    float3 normal : NORMAL;
     float3 worldPosition : POSITION0;
     float3 viewDir : POSITION1;
     float4 lightViewPos[MAX_LIGHTS] : POSITION2;
 };
 
-float3 calculateNormal(float2 pos)
+float3 calculateNormalTangentSpace(float2 pos)
 {
-    const float gWorldCellSpace = 1 / 100.0f;
+    const float2 gWorldCellSpace = float2(1.0f, 1.0f) / terrainSize;
 	
-    const float gTexelCellSpaceU = 1.0f / 1024.0f;
-    const float gTexelCellSpaceV = 1.0f / 1024.0f;
+    const float2 gTexelCellSpace = float2(1.0f, 1.0f) / heightmapDims;
 	
 	// calculate normal from displacement map
-    float2 leftTex = pos - float2(gTexelCellSpaceU, 0.0f);
-    float2 rightTex = pos + float2(gTexelCellSpaceU, 0.0f);
-    float2 topTex = pos - float2(0.0f, gTexelCellSpaceV);
-    float2 bottomTex = pos + float2(0.0f, gTexelCellSpaceV);
+    float2 leftTex = pos - float2(gTexelCellSpace.x, 0.0f);
+    float2 rightTex = pos + float2(gTexelCellSpace.x, 0.0f);
+    float2 topTex = pos - float2(0.0f, gTexelCellSpace.y);
+    float2 bottomTex = pos + float2(0.0f, gTexelCellSpace.y);
 	
     
     float leftY      = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, leftTex, 0).r;
@@ -68,20 +70,22 @@ float3 calculateNormal(float2 pos)
     float topY       = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, topTex, 0).r;
     float bottomY    = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, bottomTex, 0).r;
 	
-    float3 tangent = normalize(float3(2.0f * gWorldCellSpace, rightY - leftY, 0.0f));
-    float3 bitangent = normalize(float3(0.0f, bottomY - topY, -2.0f * gWorldCellSpace));
+    float3 tangent = normalize(float3(2.0f * gWorldCellSpace.x, 0.0f, rightY - leftY));
+    float3 bitangent = normalize(float3(0.0f, 2.0f * gWorldCellSpace.y, bottomY - topY));
     return normalize(cross(tangent, bitangent));
 }
 
 float4 main(InputType input) : SV_TARGET
 {
-    float3 n = calculateNormal(input.tex);
-    float3 v = -normalize(input.viewDir);
+    input.normal = normalize(input.normal);
+    float3 tangentSpaceNormal = calculateNormalTangentSpace(input.tex);
+    
     float2 uv = input.tex * uvScale;
+    float3 v = -normalize(input.viewDir);
+    float3 n = tangentSpaceToWorldSpace(tangentSpaceNormal, input.normal, v, uv);
     
     // steepness:
-    // global up is always (0, 1, 0), so dot(normal, worldNormal) simplifies to normal.y
-    float steepness = 1 - n.y;
+    float steepness = 1 - dot(input.normal, n);
     
     // fractional values blend between adjacent materials
     float s1 = steepnessSmoothing * 0.5f;
