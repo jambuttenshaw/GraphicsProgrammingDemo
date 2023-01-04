@@ -66,8 +66,8 @@ private:
 	ID3D11Buffer* m_PSLightBuffer = nullptr;
 	ID3D11SamplerState* m_NormalMapSamplerState = nullptr;
 
-	XMFLOAT3 m_OceanBoundsMin = { -25.0f, -10.0f, -25.0f };
-	XMFLOAT3 m_OceanBoundsMax = { 25.0f, 0.0f, 25.0f };
+	XMFLOAT3 m_OceanBoundsMin = { -50.0f, -10.0f, -50.0f };
+	XMFLOAT3 m_OceanBoundsMax = { 50.0f, 0.0f, 50.0f };
 
 	XMFLOAT4 m_SpecularColour = { 0.125f, 0.125f, 0.125f, 1.0f };
 	XMFLOAT4 m_TransmittanceColour = { 0.067f, 0.608f, 0.945f, 1.0f };

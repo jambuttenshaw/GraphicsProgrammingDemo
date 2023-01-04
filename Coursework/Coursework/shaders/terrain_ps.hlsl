@@ -87,62 +87,59 @@ float4 main(InputType input) : SV_TARGET
     // steepness:
     float steepness = 1 - dot(input.normal, n);
     
-    // fractional values blend between adjacent materials
     float s1 = steepnessSmoothing * 0.5f;
     float s2 = heightSmoothing * 0.5f;
     
-    // blend the slope materials
-    float matBlend = smoothstep(flatThreshold - s1, flatThreshold + s1, steepness);
-    matBlend += smoothstep(cliffThreshold - s1, cliffThreshold + s1, steepness);
-    
     // mix materials
+    float dirtBlend = smoothstep(flatThreshold - s1, flatThreshold + s1, steepness);
+    float cliffBlend = smoothstep(cliffThreshold - s1, cliffThreshold + s1, steepness);
+    float shoreMix = smoothstep(shoreThreshold - s2, shoreThreshold + s2, input.worldPosition.y);
+    float snowMix = smoothstep(snowHeightThreshold - s2, snowHeightThreshold + s2, input.worldPosition.y) *
+            ((1.0f - smoothstep(minMaxSnowSteepness.x - s1, minMaxSnowSteepness.x + s1, steepness)) +
+            smoothstep(minMaxSnowSteepness.y - s1, minMaxSnowSteepness.y + s1, steepness));
     
     MaterialData groundMaterial = materialMix(
-            materialBuffer.materials[int(matBlend) + 1],
-            materialBuffer.materials[min(int(matBlend) + 2, materialBuffer.materialCount)],
-            frac(matBlend),
+            materialBuffer.materials[1],
+            materialBuffer.materials[2],
+            dirtBlend,
             uv, texture2DBuffer, anisotropicSampler);
-    
-    float3 materialNormal = blendNormals(materialBuffer.materials[int(matBlend) + 1].normalMapIndex,
-            materialBuffer.materials[min(int(matBlend) + 2, materialBuffer.materialCount)].normalMapIndex,
-            frac(matBlend), n, v,
+    float3 materialNormal = blendNormals(
+            materialBuffer.materials[1].normalMapIndex,
+            materialBuffer.materials[2].normalMapIndex,
+            dirtBlend, n, v,
             uv, texture2DBuffer, anisotropicSampler);
-    
-    
-    {
-        // blend the shore
-        float shoreMix = smoothstep(shoreThreshold - s2, shoreThreshold + s2, input.worldPosition.y);
-        groundMaterial = materialMix(
+     
+    groundMaterial = materialMix(
+            groundMaterial,
+            materialBuffer.materials[3],
+            cliffBlend,
+            uv, texture2DBuffer, anisotropicSampler);
+    materialNormal = blendNormals(
+            materialBuffer.materials[3].normalMapIndex,
+            materialNormal,
+            1.0f - cliffBlend, n, v,
+            uv, texture2DBuffer, anisotropicSampler);
+
+    groundMaterial = materialMix(
             materialBuffer.materials[0],
             groundMaterial,
             shoreMix,
             uv, texture2DBuffer, anisotropicSampler);
-        materialNormal = blendNormals(materialBuffer.materials[0].normalMapIndex,
+    materialNormal = blendNormals(materialBuffer.materials[0].normalMapIndex,
             materialNormal,
             shoreMix, n, v,
             uv, texture2DBuffer, anisotropicSampler);
-    }
-    
-    
-    {
-        // blend snow
-        float snowMix = mul(
-                smoothstep(snowHeightThreshold - s2, snowHeightThreshold + s2, input.worldPosition.y),
-                (1.0f - smoothstep(minMaxSnowSteepness.x - s1, minMaxSnowSteepness.x + s1, steepness)) +
-                smoothstep(minMaxSnowSteepness.y - s1, minMaxSnowSteepness.y + s1, steepness)
-        );
-        
-        groundMaterial = materialMix(
+
+    groundMaterial = materialMix(
             groundMaterial,
             materialBuffer.materials[4],
             snowMix,
             uv, texture2DBuffer, anisotropicSampler);
-        materialNormal = blendNormals(materialBuffer.materials[4].normalMapIndex,
+    materialNormal = blendNormals(materialBuffer.materials[4].normalMapIndex,
             materialNormal,
             1.0f - snowMix, n, v,
             uv, texture2DBuffer, anisotropicSampler);
-    }
-    
+
     // unsure why this is needed, but this fixes the normals
     materialNormal.z = -materialNormal.z;
     

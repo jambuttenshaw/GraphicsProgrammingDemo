@@ -12,8 +12,8 @@ SceneLight::SceneLight(ID3D11Device* device)
 	m_OrthoMatrix = XMMatrixIdentity();
 	m_PerspectiveMatrix = XMMatrixIdentity();
 
-	GenerateOrthoMatrix(50, 50, 0.1f, 100.0f);
-	GeneratePerspectiveMatrix(0.1f, 100.0f);
+	GenerateOrthoMatrix();
+	GeneratePerspectiveMatrix();
 }
 
 SceneLight::~SceneLight()
@@ -76,11 +76,25 @@ void SceneLight::SettingsGUI()
 	}
 	if (m_ShadowsEnabled)
 	{
+		bool generateProjectionMatrix = false;
+
 		if (m_Type == LightType::Directional)
+		{
 			ImGui::DragFloat3("Position", &m_Position.x, 0.1f);
 
-		ImGui::SliderFloat("Shadow Bias Amount", &m_ShadowBiasCoeffs.x, 0.0f, 0.05f);
-		ImGui::SliderFloat("Shadow Bias Attenuation", &m_ShadowBiasCoeffs.y, 0.0f, 5.0f);
+			generateProjectionMatrix |= ImGui::DragFloat("Frustum Width", &m_FrustumWidth, 0.01f);
+			generateProjectionMatrix |= ImGui::DragFloat("Frustum Height", &m_FrustumHeight, 0.01f);
+		}
+		generateProjectionMatrix |= ImGui::DragFloat("Near Plane", &m_NearPlane, 0.01f);
+		generateProjectionMatrix |= ImGui::DragFloat("Far Plane", &m_FarPlane, 0.01f);
+		if (generateProjectionMatrix) GenerateProjectionMatrix();
+		
+
+		if (m_Type == LightType::Point)
+		{
+			ImGui::SliderFloat("Shadow Bias Amount", &m_ShadowBiasCoeffs.x, 0.0f, 0.05f);
+			ImGui::SliderFloat("Shadow Bias Attenuation", &m_ShadowBiasCoeffs.y, 0.0f, 5.0f);
+		}
 	}
 }
 
@@ -94,10 +108,21 @@ const XMMATRIX& SceneLight::GetProjectionMatrix() const
 {
 	switch (m_Type)
 	{
-	case SceneLight::LightType::Directional:	return m_OrthoMatrix; break;
-	case SceneLight::LightType::Point:			return m_PerspectiveMatrix; break;
-	case SceneLight::LightType::Spot:			return m_PerspectiveMatrix; break;
-	default:									return XMMatrixIdentity(); break;
+	case SceneLight::LightType::Directional:	return m_OrthoMatrix;
+	case SceneLight::LightType::Point:			return m_PerspectiveMatrix;
+	case SceneLight::LightType::Spot:			return m_PerspectiveMatrix;
+	default:									return XMMatrixIdentity();
+	}
+}
+
+void SceneLight::GenerateProjectionMatrix()
+{
+	switch(m_Type)
+	{
+	case SceneLight::LightType::Directional:	GenerateOrthoMatrix();
+	case SceneLight::LightType::Point:			GeneratePerspectiveMatrix();
+	case SceneLight::LightType::Spot:			GeneratePerspectiveMatrix();
+	default:									break;
 	}
 }
 
@@ -120,14 +145,31 @@ void SceneLight::GenerateViewMatrix()
 	m_ViewMatrix = XMMatrixLookAtLH(pos, pos + dir, up);
 }
 
-void SceneLight::GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane)
+void SceneLight::GenerateOrthoMatrix(float frustumWidth, float frustumHeight, float nearPlane, float farPlane)
 {
-	m_OrthoMatrix = XMMatrixOrthographicLH(screenWidth, screenHeight, nearPlane, farPlane);
+	m_FrustumWidth = frustumWidth;
+	m_FrustumHeight = frustumHeight;
+	m_NearPlane = nearPlane;
+	m_FarPlane = farPlane;
+	GenerateOrthoMatrix();
+}
+
+void SceneLight::GenerateOrthoMatrix()
+{
+	m_OrthoMatrix = XMMatrixOrthographicLH(m_FrustumWidth, m_FrustumHeight, m_NearPlane, m_FarPlane);
+
 }
 
 void SceneLight::GeneratePerspectiveMatrix(float nearPlane, float farPlane)
 {
-	m_PerspectiveMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, nearPlane, farPlane);
+	m_NearPlane = nearPlane;
+	m_FarPlane = farPlane;
+	GeneratePerspectiveMatrix();
+}
+
+void SceneLight::GeneratePerspectiveMatrix()
+{
+	m_PerspectiveMatrix = XMMatrixPerspectiveFovLH(XM_PIDIV2, 1.0f, m_NearPlane, m_FarPlane);
 }
 
 void SceneLight::GetPointLightViewMatrices(XMMATRIX* matArray)

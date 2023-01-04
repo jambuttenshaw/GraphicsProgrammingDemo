@@ -53,10 +53,15 @@ public:
 
 	// light matrices
 	inline const XMMATRIX& GetViewMatrix() const { return m_ViewMatrix; }
-	const XMMATRIX& GetProjectionMatrix() const;
 	void GenerateViewMatrix();
-	void GenerateOrthoMatrix(float screenWidth, float screenHeight, float nearPlane, float farPlane);
+
+	const XMMATRIX& GetProjectionMatrix() const;
+	void GenerateProjectionMatrix();
+
+	void GenerateOrthoMatrix(float frustumWidth, float frustumHeight, float nearPlane, float farPlane);
+	void GenerateOrthoMatrix();
 	void GeneratePerspectiveMatrix(float nearPlane, float farPlane);
+	void GeneratePerspectiveMatrix();
 
 	void GetPointLightViewMatrices(XMMATRIX* matArray);
 	
@@ -106,4 +111,8 @@ private:
 	XMFLOAT2 m_ShadowBiasCoeffs = { 0.0f, 0.0f };
 
 	XMMATRIX m_ViewMatrix, m_OrthoMatrix, m_PerspectiveMatrix;
+	float m_FrustumWidth = 65.0f;
+	float m_FrustumHeight = 65.0f;
+	float m_NearPlane = 0.1f;
+	float m_FarPlane = 100.0f;
 };

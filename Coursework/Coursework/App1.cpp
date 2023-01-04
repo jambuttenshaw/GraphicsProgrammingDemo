@@ -144,10 +144,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	SceneLight& light = *(m_Lights[0]);
 	light.SetEnbled(true);
 	light.SetColour({ 1.0f, 0.815f, 0.231f });
-	light.SetPosition({ 0, 15.5f, -15.5f });
+	light.SetPosition({ -6.2f, 15.0f, 28.8f });
 	light.SetType(SceneLight::LightType::Directional);
-	light.SetYaw(XMConvertToRadians(168.0f));
-	light.SetPitch(XMConvertToRadians(-8.0f));
+	light.SetYaw(XMConvertToRadians(166.0f));
+	light.SetPitch(XMConvertToRadians(-16.0f));
 	light.SetIntensity(4.3f);
 	light.EnableShadows();
 
