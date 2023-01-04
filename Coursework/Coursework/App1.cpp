@@ -243,7 +243,7 @@ bool App1::render()
 	renderer->setWireframeMode(wireframeToggle); // resets raster state
 
 	// render to a texture if post processing is enabled
-	if (m_EnablePostProcessing)
+	if (m_EnablePostProcessing && !wireframeToggle)
 	{
 		m_SceneRenderTexture->Clear(renderer->getDeviceContext(), m_ClearColour);
 		m_SceneRenderTexture->Set(renderer->getDeviceContext());
@@ -261,7 +261,7 @@ bool App1::render()
 
 	// post processing
 	renderer->setZBuffer(false);
-	if (m_EnablePostProcessing)
+	if (m_EnablePostProcessing && !wireframeToggle)
 	{
 		// water is a post-processing effect and rendered afterwards
 		waterPass();
