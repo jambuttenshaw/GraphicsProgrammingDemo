@@ -82,7 +82,7 @@ float4 main(InputType input) : SV_TARGET
     
     float2 uv = input.tex * uvScale;
     float3 v = -normalize(input.viewDir);
-    float3 n = tangentSpaceToWorldSpace(tangentSpaceNormal, input.normal, v, uv);
+    float3 n = tangentSpaceToWorldSpace(tangentSpaceNormal, input.normal, float3(1.0f, 0.0f, 0.0f));
     
     // steepness:
     float steepness = 1 - dot(input.normal, n);

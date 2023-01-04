@@ -133,6 +133,19 @@ float3 tangentSpaceToWorldSpace(float3 tangentSpace, float3 n, float3 v, float2 
     return normalize(mul(tangentSpace, TBN));
 }
 
+float3 tangentSpaceToWorldSpace(float3 tangentSpace, float3 n, float3 t)
+{
+    // v = camera to fragment
+    
+    float3 N = normalize(n);
+    float3 T = normalize(t - N * dot(N, t));
+    float3 B = normalize(cross(N, T));
+    
+    float3x3 TBN = float3x3(T, B, N);
+    
+    return normalize(mul(tangentSpace, TBN));
+}
+
 float3 normalMapToWorld(float3 sample, float3 n, float3 v, float2 uv)
 {
     sample = (sample * 2.0f) - 1.0f;
