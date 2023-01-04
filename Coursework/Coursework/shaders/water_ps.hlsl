@@ -150,7 +150,7 @@ float4 main(InputType input) : SV_TARGET
                                                        trilinearSampler, bilinearSampler);
         }
         
-        float3 waterColour = specular + T * colour.rgb;
+        float3 waterColour = specular * (distToOcean > 0) + T * colour.rgb;
         colour = float4(waterColour, 1.0f);
     }
     

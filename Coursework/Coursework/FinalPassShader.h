@@ -41,7 +41,7 @@ private:
 	ID3D11Buffer* m_ParamsBuffer = nullptr;
 	ID3D11SamplerState* m_TrilinearSampler = nullptr;
 
-	bool m_EnableTonemapping = true;
+	bool m_EnableTonemapping = false;
 	float m_LumWhite = 1.0f;
 	float m_MiddleGrey = 0.5f;
 
