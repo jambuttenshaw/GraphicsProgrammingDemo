@@ -27,7 +27,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
         return;
     
     // calculate normal (direction from the centre of the cubemap through this fragment
-    float2 uv = DTid.xy / (float2) (PEMDims);
+    float2 uv = DTid.xy / (float2) (PEMDims - uint2(1, 1));
     uv = uv * 2.0f - 1.0f;
     
     float3 worldPos = faceNormal + uv.x * faceTangent + uv.y * faceBitangent;

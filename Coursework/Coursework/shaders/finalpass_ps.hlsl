@@ -9,15 +9,16 @@ SamplerState trilinearSampler;
 
 cbuffer Params : register(b0)
 {
+    int enableTonemapping;
     float avgLumFactor; // avgLum = lum[0] * avgLumFactor
 	float lumWhite;
 	float middleGrey;
 
 	// bloom
-    int bloomLevels;
+    int enableBloom;
     float bloomStrength;
 	
-    float3 padding;
+    float2 padding;
 }
 
 struct InputType
@@ -27,68 +28,27 @@ struct InputType
 	float3 viewVector : POSITION0;
 };
 
-/*
-float CalculateK()
-{
-	float num = (1.0f - t) * (c - b);
-	float denom = (1.0f - s) * (w - c) + num;
-	return num / denom;
-}
-
-float Remap(float x, float cross_over_point, float4 toe_coeffs, float4 shoulder_coeffs)
-{
-	float4 coeffs = (x < cross_over_point) ? toe_coeffs : shoulder_coeffs;
-	float2 fraction = coeffs.xy * x + coeffs.zw;
-	return fraction.x / fraction.y;
-}
-*/
-
 float4 main(InputType input) : SV_TARGET
 {
     float3 color = renderTextureColour[input.position.xy].rgb;
 	
-	// apply bloom
-    float3 bloom = float3(0.0f, 0.0f, 0.0f);
-    float levelStrength = 1.0f;
-    for (int i = 0; i < bloomLevels; i++)
+	if (enableBloom)
     {
-        bloom += levelStrength * bloomTex.SampleLevel(trilinearSampler, input.tex, i).rgb;
-        levelStrength *= 0.5f;
+	    // apply bloom
+        float3 bloom = bloomTex.SampleLevel(trilinearSampler, input.tex, 0).rgb;
+        color += bloom * bloomStrength;
     }
-    //color += bloom * bloomStrength;
 	
-	/*
-	float luminance = dot(color, LUM_VECTOR.rgb);
-	float fLum = lum[0] * avgLumFactor;
-	
-	float k = CalculateK();
-	
-	float4 toe_coeffs =
-	{ 
-		k * (1.0f - t),
-		k * b * (t - 1.0f),
-		-t,
-		c - b * (1.0f - t)
-	};
-	float4 shoulder_coeffs =
-	{
-		1.0f + k * (s - 1.0f),
-		k * w * (1.0f - s),
-		s,
-		w * (1.0f - s) - c
-	};
-
-	float newLuminance = Remap(luminance / fLum, c, toe_coeffs, shoulder_coeffs);
-
-	color *= newLuminance / luminance;
-	*/
-	float fLum = lum[0] * avgLumFactor;
-    color /= fLum;
-	
-    // Tone mapping
-    color.rgb *= middleGrey;
-    color.rgb *= (1.0f + color / lumWhite);
-    color.rgb /= (1.0f + color);
+    if (enableTonemapping)
+    {
+        // Tone mapping
+	    float fLum = lum[0] * avgLumFactor;
+        color /= fLum;
+	    
+        color.rgb *= middleGrey;
+        color.rgb *= (1.0f + color / lumWhite);
+        color.rgb /= (1.0f + color);
+    }
 
 	return float4(color, 1.0f);
 }

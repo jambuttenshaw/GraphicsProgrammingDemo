@@ -14,9 +14,7 @@ private:
 
 	struct CSBufferType
 	{
-		float threshold;
-		float smoothing;
-		XMFLOAT2 padding;
+		XMFLOAT4 params;
 	};
 
 public:
@@ -27,28 +25,39 @@ public:
 
 	void Run(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* input);
 
-	inline ID3D11ShaderResourceView* GetSRV() const { return m_SRV; }
-
-	inline int GetLevels() const { return m_Levels; }
-	inline float GetStrength() const { return m_Strength; }
-
+	inline ID3D11ShaderResourceView* GetSRV() const { return m_Levels[0].srv1; }
+	
 private:
 	void LoadCS(ID3D11Device* device, const wchar_t* filename, ID3D11ComputeShader** ppCS);
 
-	inline ID3D11UnorderedAccessView* GetUAV(int mip) { assert(mip < m_Levels); return m_UAVs[mip]; }
+	void RunCS(ID3D11DeviceContext* deviceContext, ID3D11ComputeShader* shader, ID3D11ShaderResourceView* input, ID3D11UnorderedAccessView* output, int outputLevel, void* csBufferData, size_t csBufferDataSize);
 
 private:
-	ID3D11ComputeShader* m_Shader = nullptr;
+	ID3D11ComputeShader* m_BrightpassShader = nullptr;
+	ID3D11ComputeShader* m_CombineShader = nullptr;
+	ID3D11ComputeShader* m_HorizontalBlurShader = nullptr;
+	ID3D11ComputeShader* m_VerticalBlurShader = nullptr;
 
-	ID3D11Texture2D* m_BloomTex = nullptr;
 	unsigned int m_Width = -1;
 	unsigned int m_Height = -1;
 
-	ID3D11ShaderResourceView* m_SRV = nullptr;
+	struct BloomLevel
+	{
+		ID3D11ShaderResourceView* srv1 = nullptr;
+		ID3D11ShaderResourceView* srv2 = nullptr;
+		ID3D11UnorderedAccessView* uav1 = nullptr;
+		ID3D11UnorderedAccessView* uav2 = nullptr;
 
-	// a UAV is needed for every texture in the mip chain
-	std::vector<ID3D11UnorderedAccessView*> m_UAVs;
-	int m_Levels = -1;
+		void Release()
+		{
+			if (srv1) srv1->Release();
+			if (srv2) srv2->Release();
+			if (uav1) uav1->Release();
+			if (uav2) uav2->Release();
+		}
+	};
+	std::vector<BloomLevel> m_Levels;
+	int m_LevelCount = -1;
 
 	ID3D11Buffer* m_CSBuffer = nullptr;
 
@@ -56,6 +65,4 @@ private:
 
 	// params
 	float m_Threshold = 1.0f;
-	float m_Smoothing = 0.15f;
-	float m_Strength = 0.7f;
 };

@@ -51,8 +51,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
     if (DTid.x > BRDFIntegrationDims.x || DTid.y > BRDFIntegrationDims.y)
         return;
     
-    // calculate normal (direction from the centre of the cubemap through this fragment
-    float2 uv = DTid.xy / (float2) (BRDFIntegrationDims);
+    float2 uv = DTid.xy / (float2) (BRDFIntegrationDims - uint2(1, 1));
     
     float2 integratedBRDF = IntegrateBRDF(uv.x, uv.y);
     

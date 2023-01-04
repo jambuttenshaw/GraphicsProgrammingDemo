@@ -18,7 +18,7 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     if (dispatchThreadID.x > heightmapDims.x || dispatchThreadID.y > heightmapDims.y)
         return;
     
-    float2 pos = float2(dispatchThreadID.xy) / float2(heightmapDims);
+    float2 pos = float2(dispatchThreadID.xy) / float2(heightmapDims - uint2(1, 1));
     pos += float2(SimpleNoise(pos + float2(17.13f, 23.7f), warpSettings),
                   SimpleNoise(pos - float2(17.13f, 23.7f), warpSettings));
     

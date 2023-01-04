@@ -17,16 +17,20 @@ FinalPassShader::~FinalPassShader()
 }
 
 void FinalPassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, ID3D11ShaderResourceView* renderTextureColour, ID3D11ShaderResourceView* renderTextureDepth,
-	ID3D11ShaderResourceView* luminance, unsigned int w, unsigned int h, ID3D11ShaderResourceView* bloom, int bloomLevels, float bloomStrength)
+	ID3D11ShaderResourceView* luminance, unsigned int w, unsigned int h, ID3D11ShaderResourceView* bloom)
 {
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	deviceContext->Map(m_ParamsBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	ParamsBufferType* data = (ParamsBufferType*)mappedResource.pData;
+
+	data->enableTonemapping = m_EnableTonemapping;
 	data->avgLumFactor = 1.0f / (w * h);
 	data->lumWhite = m_LumWhite;
 	data->middleGrey = m_MiddleGrey;
-	data->bloomLevels = bloomLevels;
-	data->bloomStrength = bloomStrength;
+
+	data->enableBloom = m_EnableBloom;
+	data->bloomStrength = m_BloomStrength;
+
 	deviceContext->Unmap(m_ParamsBuffer, 0);
 	deviceContext->PSSetConstantBuffers(0, 1, &m_ParamsBuffer);
 
@@ -38,8 +42,11 @@ void FinalPassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, ID
 
 void FinalPassShader::SettingsGUI()
 {
+	ImGui::Checkbox("Enable Tonemapping", &m_EnableTonemapping);
 	ImGui::DragFloat("Lum White", &m_LumWhite, 0.005f);
 	ImGui::DragFloat("Middle Grey", &m_MiddleGrey, 0.005f);
+	ImGui::Checkbox("Enable Bloom", &m_EnableBloom);
+	ImGui::DragFloat("Bloom Strength", &m_BloomStrength, 0.01f);
 }
 
 void FinalPassShader::CreateShaderResources()

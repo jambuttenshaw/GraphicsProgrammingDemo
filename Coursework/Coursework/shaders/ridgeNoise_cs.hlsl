@@ -17,7 +17,7 @@ void main(uint3 dispatchThreadID : SV_DispatchThreadID)
     if (dispatchThreadID.x > heightmapDims.x || dispatchThreadID.y > heightmapDims.y)
         return;
     
-    float2 pos = float2(dispatchThreadID.xy) / float2(heightmapDims);
+    float2 pos = float2(dispatchThreadID.xy) / float2(heightmapDims - uint2(1, 1));
     
     float height = 0.0f;
     if (settings.peakSmoothing > 0.0f)

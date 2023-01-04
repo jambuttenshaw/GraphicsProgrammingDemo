@@ -74,7 +74,7 @@ private:
 
 	float m_TransmittanceDepth = 2.0f;
 
-	float m_NormalMapStrength = 1.0f;
+	float m_NormalMapStrength = 0.6f;
 	float m_NormalMapScale = 30.0f;
 
 	float m_WaveSpeed = 0.1f;

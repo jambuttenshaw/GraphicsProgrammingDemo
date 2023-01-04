@@ -25,7 +25,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
     if (DTid.x > irradianceMapDims.x || DTid.y > irradianceMapDims.y)
         return;
     
-    float2 uv = DTid.xy / (float2) (irradianceMapDims);
+    float2 uv = DTid.xy / (float2) (irradianceMapDims - uint2(1, 1));
     uv = uv * 2.0f - 1.0f;
     
     float3 worldPos = faceNormal + uv.x * faceTangent + uv.y * faceBitangent;

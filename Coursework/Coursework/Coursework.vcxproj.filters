@@ -73,14 +73,23 @@
     <FxCompile Include="shaders\reducetosingle_cs.hlsl">
       <Filter>Shaders\compute\postprocess</Filter>
     </FxCompile>
-    <FxCompile Include="shaders\bloom_cs.hlsl">
-      <Filter>Shaders\compute\postprocess</Filter>
-    </FxCompile>
     <FxCompile Include="shaders\unlitterrain_ds.hlsl">
       <Filter>Shaders\terrain</Filter>
     </FxCompile>
     <FxCompile Include="shaders\heightmappreprocess_cs.hlsl">
       <Filter>Shaders\compute\heightmap</Filter>
+    </FxCompile>
+    <FxCompile Include="shaders\bloombrightpass_cs.hlsl">
+      <Filter>Shaders\compute\postprocess\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\horizontalguass_cs.hlsl">
+      <Filter>Shaders\compute\postprocess\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\verticalguass_cs.hlsl">
+      <Filter>Shaders\compute\postprocess\bloom</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\bloomcombine_cs.hlsl">
+      <Filter>Shaders\compute\postprocess\bloom</Filter>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
@@ -306,6 +315,9 @@
     </Filter>
     <Filter Include="Rendering\Shaders\Terrain">
       <UniqueIdentifier>{2d8765e4-9298-41f4-87d3-7102fbeac8c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders\compute\postprocess\bloom">
+      <UniqueIdentifier>{a155b559-9acb-4025-ad30-80fdf59d9af4}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

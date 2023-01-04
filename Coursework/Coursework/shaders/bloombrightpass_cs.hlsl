@@ -22,7 +22,7 @@ void main( uint3 DTid : SV_DispatchThreadID )
     if (DTid.x >= dims.x || DTid.y >= dims.y)
         return;
 
-    float2 uv = (float2) (DTid.xy) / (float2) (dims);
+    float2 uv = (float2) (DTid.xy) / (float2) (dims - uint2(1, 1));
 
     // sample texture
     float4 s = input.SampleLevel(samplerState, uv, 0.0f);
