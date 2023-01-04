@@ -32,6 +32,6 @@ void main( uint3 DTid : SV_DispatchThreadID )
     float filteredLum = smoothstep(threshold - smoothing, threshold + smoothing, lum);
     
     // store in output texture
-    float3 outColor = s.rgb * (filteredLum / lum);
+    float3 outColor = s.rgb * (filteredLum / (lum + 0.0001f));
     output[DTid.xy] = float4(outColor, 1.0f);
 }
