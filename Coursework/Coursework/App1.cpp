@@ -66,7 +66,24 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/worn_shiny_metal");
 		mat->SetMetalness(1.0f);
 	}
-
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Cement");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/cement");
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Gold");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/gold");
+		mat->SetMetalness(1.0f);
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Copper");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/copper");
+		mat->SetMetalness(1.0f);
+	}
+	{
+		Material* mat = m_MaterialLibrary.CreateMaterial("Granite");
+		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/granite");
+	}
 
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
@@ -118,14 +135,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	// create game objects
 	
 	{
-		Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
-		Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
-		m_GameObjects.push_back({ { 7, 5, 8 }, m_PlaneMesh, rockMat });
-		m_GameObjects.push_back({ { 15, 6, 19 }, m_SphereMesh, shinyMetalMat });
-		m_GameObjects.push_back({ { 11, 8, 21 }, m_CubeMesh, rockMat });
-		//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
-		//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
-		//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
+		m_GameObjects.push_back({ { 7, 5, 8 },		m_PlaneMesh,	m_MaterialLibrary.GetMaterial("Copper") });
+		m_GameObjects.push_back({ { 15, 6, 19 },	m_SphereMesh,	m_MaterialLibrary.GetMaterial("Granite") });
+		m_GameObjects.push_back({ { 12, 6.5f, 18 }, m_SphereMesh,	m_MaterialLibrary.GetMaterial("Worn Shiny Metal") });
+		m_GameObjects.push_back({ { 11, 8, 21 },	m_CubeMesh,		m_MaterialLibrary.GetMaterial("Gold") });
+		m_GameObjects.push_back({ { 9, 7, 15 },		m_CubeMesh,		m_MaterialLibrary.GetMaterial("Cement") });
 	}
 	
 	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Sand") });
@@ -150,7 +164,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.SetType(SceneLight::LightType::Directional);
 	light.SetYaw(XMConvertToRadians(166.0f));
 	light.SetPitch(XMConvertToRadians(-16.0f));
-	light.SetIntensity(4.3f);
+	light.SetIntensity(2.0f);
 	light.EnableShadows();
 
 	if (m_LoadOnOpen)
