@@ -74,6 +74,12 @@ void ShaderUtility::ConstructMaterialData(MaterialDataType* matData, const Mater
 		matData->normalMapIndex = -1;
 
 	matData->metallic = mat->GetMetalness();
+	if (mat->UseMetalnessMap())
+		matData->metalnessMapIndex = tex2DBuffer->AddResource(mat->GetMetalnessMap());
+	else
+		matData->metalnessMapIndex = -1;
+
+	matData->padding = { 0.0f, 0.0f, 0.0f };
 }
 
 
@@ -160,6 +166,7 @@ void ShaderUtility::ConstructMaterialBuffer(ID3D11DeviceContext* deviceContext, 
 		ConstructMaterialData(&bufferPtr->materials[i], mats[i], tex2DBuffer);
 
 	bufferPtr->materialCount = static_cast<int>(matCount);
+	bufferPtr->padding = { 0.0f, 0.0f, 0.0f };
 
 	deviceContext->Unmap(matBuffer, 0);
 }

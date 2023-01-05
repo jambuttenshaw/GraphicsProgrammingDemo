@@ -69,10 +69,16 @@ public:
 	{
 		XMFLOAT3 albedo;
 		int albedoMapIndex;
+
 		float roughness;
 		int roughnessMapIndex;
+
 		float metallic;
+		int metalnessMapIndex;
+
 		int normalMapIndex;
+
+		XMFLOAT3 padding;
 	};
 
 	struct VSLightBufferType

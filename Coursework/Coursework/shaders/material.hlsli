@@ -4,7 +4,8 @@
 float3 blendNormals(int normalMapIndexA, int normalMapIndexB, float t,
                         float3 n, float3 v, float2 uv, Texture2D tex2DBuffer[TEX_BUFFER_SIZE], SamplerState materialSampler)
 {
-    float3 mapA, mapB;
+    float3 mapA = n;
+    float3 mapB = n;
     if (normalMapIndexA > -1)
         mapA = SampleTexture2D(tex2DBuffer, normalMapIndexA, materialSampler, uv).rgb;
     if (normalMapIndexB > -1)
@@ -23,7 +24,7 @@ float3 blendNormals(int normalMapIndex, float3 nB, float t,
         float3 nA = normalMapToWorld(map, n, v, uv);
         return normalize(lerp(nA, nB, t));
     }
-    return nB;
+    return normalize(lerp(n, nB, t));
 }
 
 
@@ -63,7 +64,20 @@ MaterialData materialMix(const MaterialData matA, const MaterialData matB, float
     // mixing normals is more complicated than simply interpolating
     mixed.normalMapIndex = -1;
     
-    mixed.metallic = lerp(matA.metallic, matB.metallic, t);
+    // mix metallic
+    float metallicA, metallicB;
+    //if (matA.metalnessMapIndex > -1)
+    if (false)
+        metallicA = SampleTexture2D(tex2DBuffer, matA.metalnessMapIndex, materialSampler, uv).r;
+    else
+        metallicA = matA.metallic;
+    if (matB.metalnessMapIndex > -1)
+    //if (false)
+        metallicB = SampleTexture2D(tex2DBuffer, matB.metalnessMapIndex, materialSampler, uv).r;
+    else
+        metallicB = matB.metallic;
+    mixed.metallic = lerp(metallicA, metallicB, t);
+    mixed.metalnessMapIndex = -1;
     
     return mixed;
 }

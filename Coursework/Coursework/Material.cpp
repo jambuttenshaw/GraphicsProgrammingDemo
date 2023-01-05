@@ -12,6 +12,7 @@ Material::~Material()
 	if (m_AlbedoMap) m_AlbedoMap->Release();
 	if (m_RoughnessMap) m_RoughnessMap->Release();
 	if (m_NormalMap) m_NormalMap->Release();
+	if (m_MetalnessMap) m_MetalnessMap->Release();
 }
 
 void Material::SettingsGUI()
@@ -25,11 +26,14 @@ void Material::SettingsGUI()
 		ImGui::Checkbox("Use Roughness Map", &m_UseRoughnessMap);
 	if (!m_UseRoughnessMap || !m_RoughnessMap)
 		ImGui::SliderFloat("Roughness", &m_Roughness, 0.001f, 1.0f);
-	
+
 	if (m_NormalMap)
 		ImGui::Checkbox("Use Normal Map", &m_UseNormalMap);
 
-	ImGui::SliderFloat("Metalness", &m_Metalness, 0.0f, 1.0f);
+	if (m_MetalnessMap)
+		ImGui::Checkbox("Use Metalness Map", &m_UseMetalnessMap);
+	if (!m_UseMetalnessMap || !m_MetalnessMap)
+		ImGui::SliderFloat("Metalness", &m_Metalness, 0.0f, 1.0f);
 }
 
 void Material::LoadPBRFromDir(ID3D11Device* device, ID3D11DeviceContext* deviceContext, const std::wstring& dir)
@@ -37,6 +41,7 @@ void Material::LoadPBRFromDir(ID3D11Device* device, ID3D11DeviceContext* deviceC
 	std::wstring albedoPath = dir + L"/albedo.png";
 	std::wstring normalPath = dir + L"/normal.png";
 	std::wstring roughnessPath = dir + L"/roughness.png";
+	std::wstring metalnessPath = dir + L"/metalness.png";
 
 	if (DoesFileExist(albedoPath.c_str()))
 	{
@@ -61,6 +66,14 @@ void Material::LoadPBRFromDir(ID3D11Device* device, ID3D11DeviceContext* deviceC
 	}
 	else
 		m_UseRoughnessMap = false;
+
+	if (DoesFileExist(metalnessPath.c_str()))
+	{
+		m_UseMetalnessMap = true;
+		LoadTexture(device, deviceContext, metalnessPath.c_str(), &m_MetalnessMap);
+	}
+	else
+		m_UseMetalnessMap = false;
 }
 
 bool Material::DoesFileExist(const wchar_t* filename) const

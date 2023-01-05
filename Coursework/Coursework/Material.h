@@ -20,16 +20,16 @@ public:
 	// getters and setters
 	inline void SetAlbedo(const XMFLOAT3& albedo) { m_Albedo = albedo; }
 	inline const XMFLOAT3 GetAlbedo() const { return m_Albedo; }
-
 	inline bool UseAlbedoMap() const { return m_UseAlbedoMap && m_AlbedoMap; }
 	inline ID3D11ShaderResourceView* GetAlbedoMap() const { return m_AlbedoMap; }
 
+	inline bool UseMetalnessMap() const { return m_UseMetalnessMap && m_MetalnessMap; }
+	inline ID3D11ShaderResourceView* GetMetalnessMap() const { return m_MetalnessMap; }
 	inline void SetMetalness(float m) { m_Metalness = m; }
 	inline float GetMetalness() const { return m_Metalness; }
 
 	inline bool UseRoughnessMap() const { return m_UseRoughnessMap && m_RoughnessMap; }
 	inline ID3D11ShaderResourceView* GetRoughnessMap() const { return m_RoughnessMap; }
-
 	inline void SetRoughness(float r) { m_Roughness = r; }
 	inline float GetRoughness() const { return m_Roughness; }
 
@@ -55,4 +55,6 @@ private:
 	bool m_UseNormalMap = true;
 
 	float m_Metalness = 0.0f;
+	ID3D11ShaderResourceView* m_MetalnessMap = nullptr;
+	bool m_UseMetalnessMap = true;
 };

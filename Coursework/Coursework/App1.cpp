@@ -95,7 +95,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	m_CubeMesh = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_SphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
-	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 40);
+	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 16);
 	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
 	m_TerrainMesh = new TerrainMesh(renderer->getDevice(), 50.0f);
 
@@ -117,14 +117,16 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 
 	// create game objects
 	
-	//Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
-	//Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
-	//m_GameObjects.push_back({ { -20, 0, -20 }, m_PlaneMesh, rockMat });
-	//m_GameObjects.push_back({ { -3, 2, 3 }, m_SphereMesh, shinyMetalMat });
-	//m_GameObjects.push_back({ { -1, 4, 0 }, m_SphereMesh, rockMat });
-	//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
-	//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
-	//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
+	{
+		Material* rockMat = m_MaterialLibrary.GetMaterial("Rock");
+		Material* shinyMetalMat = m_MaterialLibrary.GetMaterial("Worn Shiny Metal");
+		m_GameObjects.push_back({ { 7, 5, 8 }, m_PlaneMesh, rockMat });
+		m_GameObjects.push_back({ { 15, 6, 19 }, m_SphereMesh, shinyMetalMat });
+		m_GameObjects.push_back({ { 11, 8, 21 }, m_CubeMesh, rockMat });
+		//m_GameObjects.push_back({ { 2, 3, 2 }, m_SphereMesh, shinyMetalMat });
+		//m_GameObjects.push_back({ { 4, 1, -2 }, m_CubeMesh, rockMat });
+		//m_GameObjects.push_back({ { 0, 1, 1 }, m_CubeMesh, shinyMetalMat });
+	}
 	
 	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Sand") });
 	GameObject& terrainGO = m_GameObjects.back();

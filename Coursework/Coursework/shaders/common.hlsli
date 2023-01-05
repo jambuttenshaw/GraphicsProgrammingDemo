@@ -28,8 +28,11 @@ struct MaterialData
     int roughnessMapIndex;
     
     float metallic;
+    int metalnessMapIndex;
     
     int normalMapIndex;
+    
+    float3 padding;
 };
 
 

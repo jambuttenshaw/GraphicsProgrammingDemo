@@ -283,9 +283,10 @@ float3 calculateLighting(
     
     float3 albedo = material.albedoMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.albedoMapIndex, anisotropicSampler, uv).rgb : material.albedoColor.rgb;
     float roughness = material.roughnessMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.roughnessMapIndex, anisotropicSampler, uv).r : material.roughnessValue;
+    float metalness = material.metalnessMapIndex > -1 ? SampleTexture2D(texture2DBuffer, material.metalnessMapIndex, anisotropicSampler, uv).r : material.metallic;
     
     float3 f0 = float3(0.04f, 0.04f, 0.04f);
-    f0 = lerp(f0, albedo, material.metallic);
+    f0 = lerp(f0, albedo, metalness);
     
     float3 lo = float3(0.0f, 0.0f, 0.0f);
 	
@@ -314,7 +315,7 @@ float3 calculateLighting(
         }
     
 		// evaluate shading equation
-        float3 brdf = ggx_brdf(v, l, n, albedo, f0, roughness, material.metallic) * el * saturate(dot(n, l));
+        float3 brdf = ggx_brdf(v, l, n, albedo, f0, roughness, metalness) * el * saturate(dot(n, l));
         
         float shadowFactor = 1.0f;
         if (light.shadowMapIndex > -1)
@@ -331,7 +332,7 @@ float3 calculateLighting(
     float3 ambient = float3(0.0f, 0.0f, 0.0f);
     if (lights.enableEnvironmentalLighting)
     {
-        ambient = calculateAmbientLighting( n, v, albedo, f0, roughness, material.metallic,
+        ambient = calculateAmbientLighting( n, v, albedo, f0, roughness, metalness,
                                             texture2DBuffer, textureCubeBuffer,
                                             lights.irradianceMapIndex, lights.prefilterMapIndex, lights.brdfIntegrationMapIndex,
                                             trilinearSampler, bilinearSampler);
