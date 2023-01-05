@@ -25,8 +25,14 @@ void FinalPassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, ID
 
 	data->enableTonemapping = m_EnableTonemapping;
 	data->avgLumFactor = 1.0f / (w * h);
-	data->lumWhite = m_LumWhite;
-	data->middleGrey = m_MiddleGrey;
+
+	data->hdrMax = m_HDRMax;
+	data->contrast = m_Contrast;
+	data->shoulder = m_Shoulder;
+	data->midIn = m_MidIn;
+	data->midOut = m_MidOut;
+	data->crosstalk = m_Crosstalk;
+	data->white = m_White;
 
 	data->enableBloom = m_EnableBloom;
 	data->bloomStrength = m_BloomStrength;
@@ -43,8 +49,17 @@ void FinalPassShader::setShaderParameters(ID3D11DeviceContext* deviceContext, ID
 void FinalPassShader::SettingsGUI()
 {
 	ImGui::Checkbox("Enable Tonemapping", &m_EnableTonemapping);
-	ImGui::DragFloat("Lum White", &m_LumWhite, 0.005f);
-	ImGui::DragFloat("Middle Grey", &m_MiddleGrey, 0.005f);
+
+	ImGui::DragFloat("HDR Max", &m_HDRMax, 0.01f);
+	ImGui::DragFloat("Contrast", &m_Contrast, 0.005f);
+	ImGui::DragFloat("Shoulder", &m_Shoulder, 0.001f);
+	ImGui::DragFloat("Mid In", &m_MidIn, 0.001f);
+	ImGui::DragFloat("Mid Out", &m_MidOut, 0.001f);
+	ImGui::DragFloat("Crosstalk", &m_Crosstalk, 0.005f);
+	ImGui::DragFloat("White", &m_White, 0.005f);
+
+	ImGui::Separator();
+
 	ImGui::Checkbox("Enable Bloom", &m_EnableBloom);
 	ImGui::DragFloat("Bloom Strength", &m_BloomStrength, 0.01f);
 }

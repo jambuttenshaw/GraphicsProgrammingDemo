@@ -11,14 +11,20 @@ cbuffer Params : register(b0)
 {
     int enableTonemapping;
     float avgLumFactor; // avgLum = lum[0] * avgLumFactor
-    float lumWhite;
-    float middleGrey;
-
+    
+    float hdrMax; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
+    float contrast; // Use as a baseline to tune the amount of contrast the tonemapper has.
+    float shoulder; // Likely don’t need to mess with this factor, unless matching existing tonemapper is not working well..
+    float midIn; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
+    float midOut; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
+    float crosstalk; // Amount of channel crosstalk
+    float white;
+    
 	// bloom
     int enableBloom;
     float bloomStrength;
 	
-    float2 padding;
+    float padding;
 }
 
 struct InputType
@@ -55,12 +61,6 @@ float ColTone(float x, float4 p)
 
 float3 TimothyTonemapper(float3 color)
 {
-    static float hdrMax = 16.0f; // How much HDR range before clipping. HDR modes likely need this pushed up to say 25.0.
-    static float contrast = 2.0f; // Use as a baseline to tune the amount of contrast the tonemapper has.
-    static float shoulder = 0.97f; // Likely don’t need to mess with this factor, unless matching existing tonemapper is not working well..
-    static float midIn = 0.26f; // most games will have a {0.0 to 1.0} range for LDR so midIn should be 0.18.
-    static float midOut = 0.1f; // Use for LDR. For HDR10 10:10:10:2 use maybe 0.18/25.0 to start. For scRGB, I forget what a good starting point is, need to re-calculate.
-
     float b = ColToneB(hdrMax, contrast, shoulder, midIn, midOut);
     float c = ColToneC(hdrMax, contrast, shoulder, midIn, midOut);
 
@@ -70,11 +70,8 @@ float3 TimothyTonemapper(float3 color)
     // then process ratio
 
     // probably want send these pre-computed (so send over saturation/crossSaturation as a constant)
-    float crosstalk = 4.0f; // controls amount of channel crosstalk
     float saturation = contrast; // full tonal range saturation control
     float crossSaturation = contrast * 16.0f; // crosstalk saturation
-
-    float white = 1.0f;
 
     // wrap crosstalk in transform
     ratio = pow(abs(ratio), saturation / crossSaturation);
@@ -105,12 +102,7 @@ float4 main(InputType input) : SV_TARGET
         // Tone mapping
         float fLum = lum[0] * avgLumFactor;
         color /= fLum;
-        
-	    /*
-        color.rgb *= middleGrey;
-        color.rgb *= (1.0f + color / lumWhite);
-        color.rgb /= (1.0f + color);
-        */
+
         color = TimothyTonemapper(color);
     }
 

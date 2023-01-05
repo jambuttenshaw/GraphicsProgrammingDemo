@@ -13,14 +13,20 @@ private:
 		// tone mapping
 		int enableTonemapping;
 		float avgLumFactor;
-		float lumWhite;
-		float middleGrey;
+
+		float hdrMax; 
+		float contrast;
+		float shoulder;
+		float midIn; 
+		float midOut;
+		float crosstalk;
+		float white;
 
 		// bloom
 		int enableBloom;
 		float bloomStrength;
 
-		XMFLOAT2 padding;
+		float padding;
 	};
 
 public:
@@ -42,8 +48,14 @@ private:
 	ID3D11SamplerState* m_TrilinearSampler = nullptr;
 
 	bool m_EnableTonemapping = true;
-	float m_LumWhite = 1.0f;
-	float m_MiddleGrey = 0.5f;
+
+	float m_HDRMax = 16.0f;
+	float m_Contrast = 2.0f;
+	float m_Shoulder = 0.97f;
+	float m_MidIn = 0.26f;
+	float m_MidOut = 0.1f;
+	float m_Crosstalk = 4.0f;
+	float m_White = 1.0f;
 
 	bool m_EnableBloom = true;
 	float m_BloomStrength = 1.0f;

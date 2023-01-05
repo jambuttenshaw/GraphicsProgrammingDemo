@@ -607,6 +607,7 @@ void App1::gui()
 			if (ImGui::TreeNode((void*)((intptr_t)index + 537), "%s %d", typeStr + 6, index))
 			{
 				go.SettingsGUI(&m_MaterialLibrary);
+				ImGui::Separator();
 				ImGui::TreePop();
 			}
 			index++;
