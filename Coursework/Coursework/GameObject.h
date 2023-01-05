@@ -63,14 +63,7 @@ struct GameObject
 	void SettingsGUI(const MaterialLibrary* materialLibrary)
 	{
 		ImGui::Text("Transform");
-
-		auto t = transform.GetTranslation();
-		if (ImGui::DragFloat3("Position", &t.x, 0.01f))
-			transform.SetTranslation(t);
-
-		auto s = transform.GetScale();
-		if (ImGui::DragFloat3("Scale", &s.x, 0.01f))
-			transform.SetScale(s);
+		transform.SettingsGUI();
 
 		ImGui::Separator();
 
