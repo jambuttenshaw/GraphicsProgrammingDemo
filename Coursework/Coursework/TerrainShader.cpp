@@ -280,6 +280,7 @@ void TerrainShader::Render(ID3D11DeviceContext* deviceContext, unsigned int inde
 
 void TerrainShader::GUI()
 {
+	ImGui::Text("Materials");
 	ImGui::DragFloat("UV Scale", &m_UVScale, 0.01f);
 	ImGui::SliderFloat("Flat Threshold", &m_FlatThreshold, 0.0f, m_CliffThreshold);
 	ImGui::SliderFloat("Cliff Threshold", &m_CliffThreshold, m_FlatThreshold, 1.0f);

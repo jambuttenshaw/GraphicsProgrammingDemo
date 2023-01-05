@@ -96,7 +96,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	
 	m_WaterShader = new WaterShader(renderer->getDevice(), m_GlobalLighting, textureMgr->getTexture(L"oceanNormalMapA"), textureMgr->getTexture(L"oceanNormalMapB"));
 	m_MeasureLuminenceShader = new MeasureLuminanceShader(renderer->getDevice(), screenWidth, screenHeight);
-	m_BloomShader = new BloomShader(renderer->getDevice(), screenWidth / 2, screenHeight / 2, 5);
+	m_BloomShader = new BloomShader(renderer->getDevice(), screenWidth / 2, screenHeight / 2, 7);
 	m_FinalPassShader = new FinalPassShader(renderer->getDevice());
 
 	m_SceneRenderTexture = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
@@ -128,27 +128,42 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_ShadowRasterDesc.AntialiasedLineEnable = false;
 	renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
 
-	//camera->setPosition(33.0f, 6.0f, -9.0f);
-	camera->setPosition(0.0f, 3.0f, -2.0f);
-	camera->setRotation(0.0f, 0.0f, 0.0f);
+	camera->setPosition(20.0f, 16.0f, -24.0f);
+	camera->setRotation(20.0f, -36.0f, 0.0f);
 
 	// create game objects
 	
 	{
-		m_GameObjects.push_back({ { 7, 5, 8 },		m_PlaneMesh,	m_MaterialLibrary.GetMaterial("Copper") });
-		m_GameObjects.push_back({ { 15, 6, 19 },	m_SphereMesh,	m_MaterialLibrary.GetMaterial("Granite") });
-		m_GameObjects.push_back({ { 12, 6.5f, 18 }, m_SphereMesh,	m_MaterialLibrary.GetMaterial("Worn Shiny Metal") });
-		m_GameObjects.push_back({ { 11, 8, 21 },	m_CubeMesh,		m_MaterialLibrary.GetMaterial("Gold") });
-		m_GameObjects.push_back({ { 9, 7, 15 },		m_CubeMesh,		m_MaterialLibrary.GetMaterial("Cement") });
+		m_GameObjects.push_back({ { 4.5f, 5, 9 },			m_PlaneMesh,	m_MaterialLibrary.GetMaterial("Cement") });
+		m_GameObjects.push_back({ { 15, 7, 15 },			m_SphereMesh,	m_MaterialLibrary.GetMaterial("Granite") });
+		m_GameObjects.back().transform.SetScale(1.5f);
+		m_GameObjects.push_back({ { 12, 6.5f, 18 },			m_SphereMesh,	m_MaterialLibrary.GetMaterial("Worn Shiny Metal") });
+		m_GameObjects.push_back({ { 9, 7, 15 },				m_SphereMesh,	m_MaterialLibrary.GetMaterial("Copper") });
+		m_GameObjects.push_back({ { -5.3f, 7.4f, 6.9f },	m_SphereMesh,	m_MaterialLibrary.GetMaterial("Gold") });
+		m_GameObjects.back().transform.SetScale(0.5f);
 	}
-	
-	m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Sand") });
-	GameObject& terrainGO = m_GameObjects.back();
-	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Grass"));
-	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Dirt"));
-	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Rock"));
-	terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Snow"));
-
+	{
+		m_GameObjects.push_back({ { -5.3f, 5, 9 }, m_CubeMesh, m_MaterialLibrary.GetMaterial("Granite") });
+		GameObject& cubeGO = m_GameObjects.back();
+		cubeGO.transform.SetScale({ 0.8f, 1.0f, 0.6f });
+		cubeGO.transform.SetPitch(XMConvertToRadians(17.0f));
+		cubeGO.transform.SetRoll(XMConvertToRadians(-14.0f));
+	}
+	{
+		m_GameObjects.push_back({ { 11, 8, 21 }, m_CubeMesh, m_MaterialLibrary.GetMaterial("Gold") });
+		GameObject& cubeGO = m_GameObjects.back();
+		cubeGO.transform.SetScale({ 2.0f, 1.2f, 0.8f });
+		cubeGO.transform.SetPitch(XMConvertToRadians(-24.0f));
+		cubeGO.transform.SetYaw(XMConvertToRadians(-24.0f));
+	}
+	{
+		m_GameObjects.push_back({ m_TerrainMesh, m_MaterialLibrary.GetMaterial("Sand") });
+		GameObject& terrainGO = m_GameObjects.back();
+		terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Grass"));
+		terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Dirt"));
+		terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Rock"));
+		terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Snow"));
+	}
 	// create lights
 	for (auto& light : m_Lights)
 	{
@@ -166,6 +181,28 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light.SetPitch(XMConvertToRadians(-16.0f));
 	light.SetIntensity(2.0f);
 	light.EnableShadows();
+
+	SceneLight& light2 = *(m_Lights[1]);
+	light2.SetEnbled(true);
+	light2.SetColour({ 1.0f, 1.0f, 1.0f });
+	light2.SetPosition({ 11.1f, 10.8f, 17.8f });
+	light2.SetType(SceneLight::LightType::Point);
+	light2.SetRange(20.75f);
+	light2.SetIntensity(2.0f);
+	light2.EnableShadows();
+
+	SceneLight& light3 = *(m_Lights[2]);
+	light3.SetEnbled(true);
+	light3.SetColour({ 0.54f, 0.94f, 0.88f });
+	light3.SetPosition({ -6.93f, 11.98f, 2.375f });
+	light3.SetType(SceneLight::LightType::Spot);
+	light3.SetRange(20.75f);
+	light3.SetIntensity(5.0f);
+	light3.SetYaw(XMConvertToRadians(17.0f));
+	light3.SetPitch(XMConvertToRadians(-42.0f));
+	light3.SetInnerAngle(XMConvertToRadians(14.0f));
+	light3.SetOuterAngle(XMConvertToRadians(21.0f));
+	light3.EnableShadows();
 
 	if (m_LoadOnOpen)
 	{
@@ -504,7 +541,8 @@ void App1::gui()
 			int selectedSkybox = m_SelectedSkybox;
 			ImGui::Text("Select Environment:");
 			ImGui::RadioButton("Sky", &selectedSkybox, 0); ImGui::SameLine();
-			ImGui::RadioButton("Trees", &selectedSkybox, 1);
+			ImGui::RadioButton("Trees", &selectedSkybox, 1); ImGui::SameLine();
+			ImGui::RadioButton("City", &selectedSkybox, 2);
 
 			if (selectedSkybox != m_SelectedSkybox)
 			{
@@ -523,6 +561,13 @@ void App1::gui()
 						"res/skybox2/px.png", "res/skybox2/nx.png",
 						"res/skybox2/py.png", "res/skybox2/ny.png",
 						"res/skybox2/pz.png", "res/skybox2/nz.png");
+				}
+				else if (m_SelectedSkybox == 2)
+				{
+					m_EnvironmentMap = new Cubemap(renderer->getDevice(),
+						"res/skybox3/px.png", "res/skybox3/nx.png",
+						"res/skybox3/py.png", "res/skybox3/ny.png",
+						"res/skybox3/pz.png", "res/skybox3/nz.png");
 				}
 				m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 				m_Skybox->SetCubemap(m_EnvironmentMap);
@@ -564,6 +609,33 @@ void App1::gui()
 	}
 	ImGui::Separator();
 
+	if (ImGui::CollapsingHeader("Game Objects"))
+	{
+		int index = 0;
+		for (auto& go : m_GameObjects)
+		{
+			const char* typeStr;
+			switch (go.meshType)
+			{
+			case GameObject::MeshType::Regular: typeStr = typeid(*go.mesh.regular).name(); break;
+			case GameObject::MeshType::Terrain: typeStr = typeid(*go.mesh.terrain).name(); break;
+			default: typeStr = "class Unknown"; break;
+			}
+			if (ImGui::TreeNode((void*)((intptr_t)index + 537), "%s %d", typeStr + 6, index))
+			{
+				go.SettingsGUI(&m_MaterialLibrary);
+				ImGui::Separator();
+				if (ImGui::Button("Move to Camera"))
+					go.transform.SetTranslation(camera->getPosition());
+				ImGui::Separator();
+
+				ImGui::TreePop();
+			}
+			index++;
+		}
+	}
+	ImGui::Separator();
+
 	if (ImGui::CollapsingHeader("Materials"))
 	{
 		m_MaterialLibrary.MaterialSettingsGUI();
@@ -588,29 +660,6 @@ void App1::gui()
 		{
 			m_FinalPassShader->SettingsGUI();
 			ImGui::TreePop();
-		}
-	}
-	ImGui::Separator();
-
-	if (ImGui::CollapsingHeader("Game Objects"))
-	{
-		int index = 0;
-		for (auto& go : m_GameObjects)
-		{
-			const char* typeStr;
-			switch (go.meshType)
-			{
-			case GameObject::MeshType::Regular: typeStr = typeid(*go.mesh.regular).name(); break;
-			case GameObject::MeshType::Terrain: typeStr = typeid(*go.mesh.terrain).name(); break;
-			default: typeStr = "class Unknown"; break;
-			}
-			if (ImGui::TreeNode((void*)((intptr_t)index + 537), "%s %d", typeStr + 6, index))
-			{
-				go.SettingsGUI(&m_MaterialLibrary);
-				ImGui::Separator();
-				ImGui::TreePop();
-			}
-			index++;
 		}
 	}
 	ImGui::Separator();
