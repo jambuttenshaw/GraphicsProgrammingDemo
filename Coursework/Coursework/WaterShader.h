@@ -44,7 +44,7 @@ private:
 		float time;
 		float waveSpeed;
 		float waveAngle;
-		float padding;
+		float specularBrightness;
 	};
 
 public:
@@ -79,6 +79,8 @@ private:
 
 	float m_WaveSpeed = 0.1f;
 	float m_WaveAngle = 0.0f;
+
+	float m_SpecularBrightness = 0.6f;
 
 	ID3D11ShaderResourceView* m_NormalMapA = nullptr;
 	ID3D11ShaderResourceView* m_NormalMapB = nullptr;

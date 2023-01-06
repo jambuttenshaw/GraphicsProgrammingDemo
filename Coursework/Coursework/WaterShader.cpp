@@ -93,6 +93,8 @@ void WaterShader::setShaderParameters(ID3D11DeviceContext* deviceContext, const 
 		dataPtr->waveSpeed = m_WaveSpeed;
 		dataPtr->waveAngle = m_WaveAngle;
 
+		dataPtr->specularBrightness = m_SpecularBrightness;
+
 		deviceContext->Unmap(m_WaterBuffer, 0);
 	}
 	ShaderUtility::ConstructPSLightBuffer(deviceContext, m_PSLightBuffer, lights, lightCount, m_GlobalLighting, &tex2DBuffer, &texCubeBuffer);
@@ -119,4 +121,5 @@ void WaterShader::SettingsGUI()
 	ImGui::DragFloat("Normal Map Scale", &m_NormalMapScale, 0.1f);
 	ImGui::DragFloat("Wave Speed", &m_WaveSpeed, 0.001f);
 	ImGui::SliderAngle("Wave Angle", &m_WaveAngle, 0.0f, 360.0f);
+	ImGui::DragFloat("Specular Brightness", &m_SpecularBrightness, 0.005f);
 }
