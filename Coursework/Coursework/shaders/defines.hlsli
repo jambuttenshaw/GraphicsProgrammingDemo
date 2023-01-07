@@ -1,4 +1,4 @@
-#define TEX_BUFFER_SIZE 32
+#define TEX_BUFFER_SIZE 24
 
 #define MAX_LIGHTS 4
 #define MAX_MATERIALS 8

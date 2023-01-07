@@ -3,7 +3,7 @@
 
 // textures
 Texture2D texture2DBuffer[TEX_BUFFER_SIZE] : register(t0);
-TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t32);
+TextureCube textureCubeBuffer[TEX_BUFFER_SIZE] : register(t24);
 
 SamplerState bilinearSampler : register(s0);
 SamplerState trilinearSampler : register(s1);

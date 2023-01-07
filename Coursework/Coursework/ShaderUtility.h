@@ -16,7 +16,7 @@ class GlobalLighting;
 
 #define MAX_LIGHTS 4
 #define MAX_MATERIALS 8
-#define RESOURCE_BUFFER_SIZE 32
+#define RESOURCE_BUFFER_SIZE 24
 
 class ResourceBuffer
 {
