@@ -19,7 +19,9 @@ float2 IntegrateBRDF(float NdotV, float roughness)
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         float2 Xi = Hammersley(i, SAMPLE_COUNT);
+        // generate a half vector
         float3 H = ImportanceSampleGGX(Xi, N, roughness);
+        // calculate light vector
         float3 L = normalize(2.0f * dot(V, H) * H - V);
 
         float NdotL = saturate(L.z);
@@ -28,6 +30,7 @@ float2 IntegrateBRDF(float NdotV, float roughness)
 
         if (NdotL > 0.0f)
         {
+            // calculate linear and constant coefficients
             float G = smith_geometry_ibl(N, V, L, roughness);
             float G_Vis = (G * VdotH) / (NdotH * NdotV);
             float Fc = pow(1.0f - VdotH, 5.0f);

@@ -19,8 +19,10 @@ public:
 
 	void SendData(ID3D11DeviceContext* deviceContext);
 
+	// reconstruct the mesh with an edge length of size
 	void BuildMesh(ID3D11Device* device, float size);
 
+	// getters
 	inline ID3D11UnorderedAccessView* GetHeightmapUAV() const { return m_HeightmapUAV; }
 	inline ID3D11ShaderResourceView*  GetHeightmapSRV() const { return m_HeightmapSRV; }
 	inline unsigned int GetHeightmapResolution() const { return m_HeightmapResolution; }
@@ -30,6 +32,7 @@ public:
 
 	inline float GetSize() const { return m_Size; }
 
+	// preprocessing the heightmap
 	void PreprocessHeightmap(ID3D11DeviceContext* deviceContext);
 	inline ID3D11ShaderResourceView* GetPreprocessSRV() const { return m_PreprocessSRV; }
 
@@ -38,6 +41,7 @@ private:
 	void CreatePreprocessTexture(ID3D11Device* device);
 
 private:
+	// hard-coded heightmap resolution, but could be changed to any multiple of 16
 	const unsigned int m_HeightmapResolution = 1024;
 
 	const unsigned int m_Resolution = m_HeightmapResolution / 16; // number of cells along one axis of the terrain mesh

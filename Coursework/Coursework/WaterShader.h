@@ -14,15 +14,19 @@ using namespace DirectX;
 class WaterShader : public BaseFullScreenShader
 {
 private:
+	// used to calculate view directions in VS
 	struct CameraBufferType
 	{
 		XMMATRIX projection;
 		XMMATRIX invView;
 	};
 
+	// properties that control the look of the water
 	struct WaterBufferType
 	{
-		XMMATRIX projection;
+		// the projection matrix of the scene is used to calculate linear depth
+		// to calculate linear depth
+		XMMATRIX projection; 
 
 		XMFLOAT4 specularColour;
 		XMFLOAT4 transmittanceColour;

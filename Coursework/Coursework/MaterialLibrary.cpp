@@ -55,6 +55,7 @@ void MaterialLibrary::MaterialSelectGUI(Material** mat) const
 	// get an array of all material names
 	const char** matNames = new const char*[m_Materials.size()];
 
+	// find the index of the current material name
 	const std::string& currentMatName = GetName(*mat);
 
 	int i = 0, currentIndex = -1;
@@ -68,6 +69,7 @@ void MaterialLibrary::MaterialSelectGUI(Material** mat) const
 
 	if (ImGui::Combo("Select Material", &currentIndex, matNames, static_cast<int>(m_Materials.size())))
 	{
+		// if a new material was selected, modify the material pointer
 		std::string name(matNames[currentIndex]);
 		*mat = GetMaterial(name);
 	}
@@ -77,6 +79,8 @@ void MaterialLibrary::MaterialSelectGUI(Material** mat) const
 
 void MaterialLibrary::MaterialSelectGUI(std::vector<Material*>& mats) const
 {
+	// for an object that has many materials
+
 	const char** matNames = new const char* [m_Materials.size()];
 
 	for (int i = 0; i < mats.size(); i++)

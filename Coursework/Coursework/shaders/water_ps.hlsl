@@ -59,9 +59,8 @@ float4 main(InputType input) : SV_TARGET
 {
     float4 colour = LoadTexture2D(texture2DBuffer, rtColourMapIndex, input.position.xy);
     
+    // check if this fragment intersects the AABB defining the ocean
     float2 hitInfo = intersectAABB(cameraPos, input.viewVector, oceanBoundsMin, oceanBoundsMax);
-    // the units of these distances are length(input.viewVector)
-    // for some reason normalizing the view vector messes lots of stuff up?
     float distToOcean = hitInfo.x;
     float distThroughOcean = hitInfo.y;
     
@@ -70,6 +69,9 @@ float4 main(InputType input) : SV_TARGET
 
     if (distToOcean < distThroughOcean && distThroughOcean > 0 && distToOcean < depthToScene)
     {
+        // this pixel intersects with the water AABB
+        
+        // calculate the depth through the water
         float depthThroughWater = min(depthToScene - distToOcean, distThroughOcean);
         
         // normal mapping
@@ -80,12 +82,16 @@ float4 main(InputType input) : SV_TARGET
         float2 uv = ((intersectionPoint - oceanBoundsMin) / (oceanBoundsMax - oceanBoundsMin)).xz;
         uv.y = 1 - uv.y;
         
-        // this is not ideal
+        // this is not ideal,
+        // but specular reflections will only ever be seen on the top of the water
+        // water cannot be rotated
         const float3 normalW = float3(0, 1, 0);
         
+        // calculate uv's
         float2 uvScale = uv * normalMapScale;
         float2 uvOffsetA = waveSpeed * time * float2(cos(waveAngle), sin(waveAngle));
         float2 uvOffsetB = waveSpeed * time * float2(cos(waveAngle + 0.5f * PI), sin(waveAngle + 0.5f * PI));
+        // sample normal maps
         float3 normalMapASample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
                                                     uvScale + uvOffsetA).rgb;
         float3 normalMapBSample = SampleTexture2D(texture2DBuffer, normalMapAIndex, normalMapSampler,
@@ -94,6 +100,8 @@ float4 main(InputType input) : SV_TARGET
         
         // convert normals to world space
         float3 bumpedNormal = normalMapToWorld(normalMapASample, normalW, input.viewVector, input.tex);
+        // normalMapToWorld relies on ddx/ddy, which rely on values from neighbouring pixels
+        // in the case of water, neighbouring pixels may not reach this stage in the shader and thus ddx/ddy will return nan
         if (isnan(length(bumpedNormal)))
             bumpedNormal = normalW;
         else
@@ -142,6 +150,7 @@ float4 main(InputType input) : SV_TARGET
             specular += brdf_specular;
         }
         
+        // add environmental specular lighting
         if (lightBuffer.enableEnvironmentalLighting)
         {
             specular += calculateAmbientSpecular(n, v, specularColour.rgb, 0.0f,
@@ -150,6 +159,7 @@ float4 main(InputType input) : SV_TARGET
                                                        trilinearSampler, bilinearSampler);
         }
         
+        // dont add specular lighitng when underwater, cause it looks weird
         float3 waterColour = specular * (distToOcean > 0) * specularBrightness + T * colour.rgb;
         colour = float4(waterColour, 1.0f);
     }

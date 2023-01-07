@@ -31,11 +31,14 @@ XMFLOAT3 Cubemap::s_FaceBitangents[6] = {
 
 Cubemap::Cubemap(ID3D11Device* device, unsigned int size, bool readOnly, unsigned int mipLevels, DXGI_FORMAT format, DXGI_FORMAT srvFormat, UINT bindFlags)
 {
+	// this constructor creates an empty cubemap that will be written to on the gpu
+
 	m_ReadOnly = readOnly;
 	m_HasMips = mipLevels != 1;
 	m_TextureFormat = format;
 	m_SRVFormat = srvFormat;
 
+	// create texture
 	D3D11_TEXTURE2D_DESC texDesc;
 	texDesc.Width = size;
 	texDesc.Height = size;
@@ -49,6 +52,7 @@ Cubemap::Cubemap(ID3D11Device* device, unsigned int size, bool readOnly, unsigne
 	texDesc.CPUAccessFlags = 0;
 	texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
+	// create srv
 	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 	srvDesc.Format = m_SRVFormat;
 	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
@@ -61,6 +65,7 @@ Cubemap::Cubemap(ID3D11Device* device, unsigned int size, bool readOnly, unsigne
 	hr = device->CreateShaderResourceView(m_CubemapTexture, &srvDesc, &m_SRV);
 	assert(hr == S_OK);
 
+	// create a uav for each face (and mips if they are desired)
 	if (!m_ReadOnly)
 	{
 		if (m_HasMips)
@@ -71,17 +76,20 @@ Cubemap::Cubemap(ID3D11Device* device, unsigned int size, bool readOnly, unsigne
 			CreateUAVs(device);
 	}
 
+	// create an srv for each face
 	CreateFaceSRVs(device);
 }
 
 Cubemap::Cubemap(ID3D11Device* device, const char* right, const char* left, const char* top, const char* bottom, const char* front, const char* back)
 {
+	// this constructor loads a cubemap from 6 files
 	const char* faces[6] = { right, left, top, bottom, front, back };
 	Load(device, faces);
 }
 
 Cubemap::Cubemap(ID3D11Device* device, const char* faces[6])
 {
+	// this constructor loads a cubemap from 6 files
 	Load(device, faces);
 }
 
@@ -115,6 +123,7 @@ ID3D11UnorderedAccessView* Cubemap::GetUAV(int face, int mip) const
 
 void Cubemap::Load(ID3D11Device* device, const char* faces[6])
 {
+	// load image data from files
 	unsigned char* faceData[6];
 	int width, height, channels;
 
@@ -139,6 +148,7 @@ void Cubemap::Load(ID3D11Device* device, const char* faces[6])
 
 	if (success)
 	{
+		// create texture
 		D3D11_TEXTURE2D_DESC texDesc;
 		texDesc.Width = width;
 		texDesc.Height = height;
@@ -151,13 +161,8 @@ void Cubemap::Load(ID3D11Device* device, const char* faces[6])
 		texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 		texDesc.CPUAccessFlags = 0;
 		texDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
-
-		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-		srvDesc.Format = m_SRVFormat;
-		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
-		srvDesc.TextureCube.MipLevels = texDesc.MipLevels;
-		srvDesc.TextureCube.MostDetailedMip = 0;
-
+		
+		// setup data to initialise texture with
 		D3D11_SUBRESOURCE_DATA pData[6];
 		for (int i = 0; i < 6; i++)
 		{
@@ -170,9 +175,17 @@ void Cubemap::Load(ID3D11Device* device, const char* faces[6])
 		HRESULT hr = device->CreateTexture2D(&texDesc, &pData[0], &m_CubemapTexture);
 		assert(hr == S_OK);
 
+		// create srv for the cubemap
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		srvDesc.Format = m_SRVFormat;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
+		srvDesc.TextureCube.MipLevels = texDesc.MipLevels;
+		srvDesc.TextureCube.MostDetailedMip = 0;
+
 		hr = device->CreateShaderResourceView(m_CubemapTexture, &srvDesc, &m_SRV);
 		assert(hr == S_OK);
 
+		// create srv for each face
 		CreateFaceSRVs(device);
 
 		// free loaded image data

@@ -41,6 +41,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	textureMgr->loadTexture(L"oceanNormalMapA", L"res/waterNormals1.png");
 	textureMgr->loadTexture(L"oceanNormalMapB", L"res/waterNormals2.png");
 
+	// Create materials
 	{
 		Material* mat = m_MaterialLibrary.CreateMaterial("Grass");
 		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/grass");
@@ -85,8 +86,10 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 		mat->LoadPBRFromDir(renderer->getDevice(), renderer->getDeviceContext(), L"res/pbr/granite");
 	}
 
+	// Create global lighting object
 	m_GlobalLighting = new GlobalLighting(renderer->getDevice());
 
+	// Create shaders
 	m_LightShader = new LightShader(renderer->getDevice(), hwnd, m_GlobalLighting);
 	m_TerrainShader = new TerrainShader(renderer->getDevice(), m_GlobalLighting);
 	m_TextureShader = new TextureShader(renderer->getDevice(), hwnd);
@@ -99,23 +102,28 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_BloomShader = new BloomShader(renderer->getDevice(), screenWidth / 2, screenHeight / 2, 7);
 	m_FinalPassShader = new FinalPassShader(renderer->getDevice());
 
+	// Create render textures
 	m_SceneRenderTexture = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 	m_WaterRenderTexture = new RenderTarget(renderer->getDevice(), screenWidth, screenHeight);
 
+	// Create environment map
 	m_EnvironmentMap = new Cubemap(renderer->getDevice(), 
 		"res/skybox/right.png", "res/skybox/left.png", 
 		"res/skybox/top.png", "res/skybox/bottom.png",
 		"res/skybox/front.png", "res/skybox/back.png");
 
+	// process the environment map
 	m_GlobalLighting->SetAndProcessEnvironmentMap(renderer->getDeviceContext(), m_EnvironmentMap);
 	m_Skybox = new Skybox(renderer->getDevice(), m_EnvironmentMap);
 
+	// Create geometry
 	m_CubeMesh = new CubeMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_SphereMesh = new SphereMesh(renderer->getDevice(), renderer->getDeviceContext());
 	m_PlaneMesh = new PlaneMesh(renderer->getDevice(), renderer->getDeviceContext(), 16);
 	m_ShadowMapMesh = new OrthoMesh(renderer->getDevice(), renderer->getDeviceContext(), 300, 300, (screenWidth / 2) - 150, (screenHeight / 2) - 150);
 	m_TerrainMesh = new TerrainMesh(renderer->getDevice(), 50.0f);
 
+	// Create the rasterizer state for depth passes
 	m_ShadowRasterDesc.FillMode = D3D11_FILL_SOLID;
 	m_ShadowRasterDesc.CullMode = D3D11_CULL_BACK;
 	m_ShadowRasterDesc.FrontCounterClockwise = true;
@@ -128,11 +136,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	m_ShadowRasterDesc.AntialiasedLineEnable = false;
 	renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
 
+	// Setup camera
 	camera->setPosition(20.0f, 16.0f, -24.0f);
 	camera->setRotation(20.0f, -36.0f, 0.0f);
 
 	// create game objects
-	
 	{
 		m_GameObjects.push_back({ { 4.5f, 5, 9 },			m_PlaneMesh,	m_MaterialLibrary.GetMaterial("Cement") });
 		m_GameObjects.push_back({ { 15, 7, 15 },			m_SphereMesh,	m_MaterialLibrary.GetMaterial("Granite") });
@@ -164,6 +172,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 		terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Rock"));
 		terrainGO.AddMaterial(m_MaterialLibrary.GetMaterial("Snow"));
 	}
+
 	// create lights
 	for (auto& light : m_Lights)
 	{
@@ -204,6 +213,7 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 	light3.SetOuterAngle(XMConvertToRadians(21.0f));
 	light3.EnableShadows();
 
+	// Load the settings used to generate the heightmap
 	if (m_LoadOnOpen)
 	{
 		loadSettings(std::string(m_SaveFilePath));
@@ -215,8 +225,11 @@ void App1::init(HINSTANCE hinstance, HWND hwnd, int screenWidth, int screenHeigh
 App1::~App1()
 {
 	// probably not the best place to put this...
+	// but it won't really be used anyway
 	if (m_SaveOnExit) saveSettings(std::string(m_SaveFilePath));
 
+
+	// Clean up resources
 
 	if (m_LightShader) delete m_LightShader;
 	if (m_TerrainShader) delete m_TerrainShader;
@@ -303,6 +316,7 @@ bool App1::render()
 	}
 	else
 	{
+		// if no post processing will be performed, render directly to back buffer
 		renderer->beginScene(m_ClearColour.x, m_ClearColour.y, m_ClearColour.z, m_ClearColour.w);
 		renderer->setBackBufferRenderTarget();
 	}
@@ -316,16 +330,27 @@ bool App1::render()
 	renderer->setZBuffer(false);
 	if (m_EnablePostProcessing && !wireframeToggle)
 	{
+		RenderTarget* outputRT = nullptr;
+
 		// water is a post-processing effect and rendered afterwards
-		waterPass();
-		RenderTarget* outputRT = m_WaterRenderTexture;
+		if (m_EnableWater)
+		{
+			waterPass();
+			outputRT = m_WaterRenderTexture;
+		}
+		else
+			outputRT = m_SceneRenderTexture;
 
 		// output to backbuffer for final pass
 		renderer->setBackBufferRenderTarget();
 
-		m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), outputRT->GetColourSRV(), outputRT->GetWidth(), outputRT->GetHeight());
-		m_BloomShader->Run(renderer->getDeviceContext(), outputRT->GetColourSRV());
+		// Perform image processing on the scene prior to the final pass
+		if (m_FinalPassShader->TonemappingEnabled())
+			m_MeasureLuminenceShader->Run(renderer->getDeviceContext(), outputRT->GetColourSRV(), outputRT->GetWidth(), outputRT->GetHeight());
+		if (m_FinalPassShader->BloomEnabled())
+			m_BloomShader->Run(renderer->getDeviceContext(), outputRT->GetColourSRV());
 
+		// Final pass, render the post processing effects
 		m_FinalPassShader->setShaderParameters(renderer->getDeviceContext(), outputRT->GetColourSRV(), outputRT->GetDepthSRV(), m_MeasureLuminenceShader->GetResult(), outputRT->GetWidth(), outputRT->GetHeight(), m_BloomShader->GetSRV());
 		m_FinalPassShader->Render(renderer->getDeviceContext());
 	}
@@ -334,6 +359,8 @@ bool App1::render()
 	if (m_ShowShadowMap && m_Lights[m_SelectedShadowMap]->IsShadowsEnabled())
 	{
 		m_ShadowMapMesh->sendData(renderer->getDeviceContext());
+
+		// Get the selected shadow map
 		ID3D11ShaderResourceView* shadowmapSRV = nullptr;
 		if (m_Lights[m_SelectedShadowMap]->GetType() == SceneLight::LightType::Point)
 			shadowmapSRV = m_Lights[m_SelectedShadowMap]->GetShadowCubemap()->GetSRV(m_SelectedShadowCubemapFace);
@@ -377,6 +404,8 @@ void App1::depthPass(SceneLight* light)
 	// get world view projection matrices
 	XMMATRIX worldMatrix = renderer->getWorldMatrix();
 
+	// Get the light view matrices
+	// directional and spotlights will have 1, point lights will have 6
 	XMMATRIX lightViewMatrices[6];
 	int matrixCount = 0;
 	if (light->GetType() == SceneLight::LightType::Point)
@@ -392,8 +421,10 @@ void App1::depthPass(SceneLight* light)
 	}
 	XMMATRIX lightProjectionMatrix = light->GetProjectionMatrix();
 
+	// render the scene from each view that the light requires
 	for (int m = 0; m < matrixCount; m++)
 	{
+		// bind the depth shader view
 		if (light->GetType() == SceneLight::LightType::Point)
 			light->GetShadowCubemap()->BindDSV(renderer->getDeviceContext(), m);
 		else
@@ -431,7 +462,7 @@ void App1::worldPass()
 	XMMATRIX viewMatrix = camera->getViewMatrix();
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
-
+	// render each object with a lit shader
 	for (auto& go : m_GameObjects)
 	{
 		XMMATRIX w = worldMatrix * go.transform.GetMatrix();
@@ -468,20 +499,23 @@ void App1::worldPass()
 
 void App1::waterPass()
 {
-	// Get the world, view, projection, and ortho matrices from the camera and Direct3D objects.
-	XMMATRIX worldMatrix = renderer->getWorldMatrix();
+	// Get the view, projection, and ortho matrices from the camera and Direct3D objects.
 	XMMATRIX viewMatrix = camera->getViewMatrix();
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
 
+	// prepare render target
 	m_WaterRenderTexture->Clear(renderer->getDeviceContext(), m_ClearColour);
 	m_WaterRenderTexture->Set(renderer->getDeviceContext());
 
+	// render water
 	m_WaterShader->setShaderParameters(renderer->getDeviceContext(), viewMatrix, projectionMatrix, m_SceneRenderTexture, m_Lights.data(), m_Lights.size(), camera, m_Time);
 	m_WaterShader->Render(renderer->getDeviceContext());
 }
 
 void App1::renderLightDebugSpheres()
 {
+	// render a sphere at each of the enabled  lights positions
+
 	XMMATRIX worldMatrix = renderer->getWorldMatrix() * XMMatrixScaling(0.1f, 0.1f, 0.1f);
 	XMMATRIX viewMatrix = camera->getViewMatrix();
 	XMMATRIX projectionMatrix = renderer->getProjectionMatrix();
@@ -573,15 +607,17 @@ void App1::gui()
 				m_Skybox->SetCubemap(m_EnvironmentMap);
 			}
 
+			ImGui::Separator();
+			m_GlobalLighting->SettingsGUI();
+			ImGui::Separator();
+
 			int bias = m_ShadowRasterDesc.DepthBias;
-			if (ImGui::DragInt("Bias", &bias, 1000))
+			if (ImGui::DragInt("Shadow Bias", &bias, 1000))
 			{
 				m_ShadowRasterDesc.DepthBias = bias;
 				m_ShadowRasterizerState->Release();
 				renderer->getDevice()->CreateRasterizerState(&m_ShadowRasterDesc, &m_ShadowRasterizerState);
 			}
-
-			m_GlobalLighting->SettingsGUI();
 			ImGui::TreePop();
 		}
 
@@ -590,6 +626,7 @@ void App1::gui()
 		int index = 0;
 		for (auto& light : m_Lights)
 		{
+			// 14 is a random number chosen not to collide with any other TreeNode calls
 			if (ImGui::TreeNode((void*)((intptr_t)index + 14), "Light %d", index))
 			{
 				ImGui::Separator();
@@ -612,8 +649,11 @@ void App1::gui()
 	if (ImGui::CollapsingHeader("Game Objects"))
 	{
 		int index = 0;
+		std::unordered_map<std::string, int> typeCounts;
+
 		for (auto& go : m_GameObjects)
 		{
+			// get a string representing the type of the object
 			const char* typeStr;
 			switch (go.meshType)
 			{
@@ -621,7 +661,10 @@ void App1::gui()
 			case GameObject::MeshType::Terrain: typeStr = typeid(*go.mesh.terrain).name(); break;
 			default: typeStr = "class Unknown"; break;
 			}
-			if (ImGui::TreeNode((void*)((intptr_t)index + 537), "%s %d", typeStr + 6, index))
+			typeCounts[std::string(typeStr)]++;
+
+			// 537 is a random number chosen not to collide with any other TreeNode calls
+			if (ImGui::TreeNode((void*)((intptr_t)index + 537), "%s %d", typeStr + 6, typeCounts[std::string(typeStr)]))
 			{
 				go.SettingsGUI(&m_MaterialLibrary);
 				ImGui::Separator();
@@ -648,6 +691,7 @@ void App1::gui()
 
 		if (ImGui::TreeNode("Water"))
 		{
+			ImGui::Checkbox("Enable", &m_EnableWater);
 			m_WaterShader->SettingsGUI();
 			ImGui::TreePop();
 		}

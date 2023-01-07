@@ -35,7 +35,7 @@ struct InputType
 };
 
 
-
+// Timothy Lottes tonemapping function
 float ColToneB(float hdrMax, float contrast, float shoulder, float midIn, float midOut)
 {
     return
@@ -98,7 +98,6 @@ float4 main(InputType input) : SV_TARGET
 	
     if (enableTonemapping)
     {
-        
         // Tone mapping
         float fLum = lum[0] * avgLumFactor;
         color /= fLum;

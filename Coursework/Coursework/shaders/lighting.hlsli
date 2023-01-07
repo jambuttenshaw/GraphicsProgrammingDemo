@@ -19,6 +19,9 @@ float blinn_phong_ndf(float3 n, float3 h, float m)
 
 float ggx_ndf(float3 n, float3 h, float a)
 {
+    // definition of the GGX normal distribution function
+    // a = roughness
+    
 	float a2 = a * a;
 	float NdotH = saturate(dot(n, h));
 	float NdotH2 = NdotH * NdotH;
@@ -32,15 +35,17 @@ float ggx_ndf(float3 n, float3 h, float a)
 // FRESNEL
 float3 shlick_fresnel_reflectance(float3 f0, float3 v, float3 h)
 {
+    // shlick approximation of the fresnel equations
 	return f0 + (1.0f - f0) * pow(1.0f - saturate(dot(h, v)), 5.0f);
 }
 
 float3 shlick_fresnel_roughness_reflectance(float3 f0, float3 v, float3 h, float roughness)
 {
+    // shlick approximation of the fresnel equations, with an input roughness parameter
     return f0 + (max((1.0f - roughness).xxx, f0) - f0) * pow(1.0f - saturate(dot(h, v)), 5.0f);
 }
 
-// GEOMETRY FUNCTIONS
+// GEOMETRY/VISIBILITY FUNCTIONS
 float schlichggx_geometry(float NdotV, float k)
 {
     return NdotV / (NdotV * (1.0f - k) + k);
@@ -174,6 +179,7 @@ float calculateShadowFactor(Texture2D texBuffer[TEX_BUFFER_SIZE], int shadowMapI
     
     float distFromLight = lightViewPos.z / lightViewPos.w;
     
+    // PCF
     // perform 3x3 box blur
     
     const float2 offsets[9] =

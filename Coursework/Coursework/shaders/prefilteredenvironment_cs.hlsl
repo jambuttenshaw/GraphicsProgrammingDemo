@@ -33,8 +33,7 @@ void main(uint3 DTid : SV_DispatchThreadID)
     float3 worldPos = faceNormal + uv.x * faceTangent + uv.y * faceBitangent;
     
     float3 N = normalize(worldPos);
-    float3 R = N;
-    float3 V = R;
+    float3 V = N;
 
     const uint SAMPLE_COUNT = 1024u;
     float totalWeight = 0.0f;
@@ -42,12 +41,15 @@ void main(uint3 DTid : SV_DispatchThreadID)
     for (uint i = 0u; i < SAMPLE_COUNT; ++i)
     {
         float2 Xi = Hammersley(i, SAMPLE_COUNT);
+        // generate a half vector
         float3 H = ImportanceSampleGGX(Xi, N, roughness);
+        // calculate light vector
         float3 L = normalize(2.0f * dot(V, H) * H - V);
 
         float NdotL = max(dot(N, L), 0.0f);
         if (NdotL > 0.0f)
         {
+            // sample environement map
             prefilteredColor += environmentMap.SampleLevel(environmentSampler, L, 0.0f).rgb * NdotL;
             totalWeight += NdotL;
         }

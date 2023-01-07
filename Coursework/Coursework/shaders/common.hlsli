@@ -104,31 +104,4 @@ matrix GetPointLightViewMatrix(int i, float3 toFrag, PointLightMatrices mats)
     }
 }
 
-/*
-matrix BuildPointLightViewMatrix(float3 lightPos, float3 fragPos)
-{
-    float3 toFrag = normalize(fragPos - lightPos);
-    float3 absL = abs(toFrag);
-    float maxComponent = max(absL.x, max(absL.y, absL.z));
-    
-    
-    float4 row0 = float4((maxComponent == absL.y) | (maxComponent == absL.z), 0.0f, (maxComponent == absL.x), 0.0f);
-    float4 row1 = float4(0.0f, (maxComponent == absL.x) | (maxComponent == absL.z), (maxComponent == absL.y), 0.0f);
-    float4 row2 = float4(-(maxComponent == absL.x), -(maxComponent == absL.y), (maxComponent == absL.z), 0.0f);
-    float4 row3 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    
-    //float4 row0 = float4(-(maxComponent == absL.y) * sign(toFrag.y) || (maxComponent == absL.z) * sign(toFrag.z), 0.0f, (maxComponent == absL.x) * sign(toFrag.x), 0.0f);
-    //float4 row1 = float4(0.0f, (maxComponent == absL.x) || (maxComponent == absL.z), (maxComponent == absL.y) * sign(toFrag.y), 0.0f);
-    //float4 row2 = float4(-(maxComponent == absL.x) * sign(toFrag.x), (maxComponent == absL.y), (maxComponent == absL.z) * sign(toFrag.z), 0.0f);
-    //float4 row3 = float4(0.0f, 0.0f, 0.0f, 1.0f);
-    
-    row3.x = -dot(lightPos, row0.xyz);
-    row3.y = -dot(lightPos, row1.xyz);
-    row3.z = -dot(lightPos, row2.xyz);
-    
-    matrix mat = float4x4(row0, row1, row2, row3);
-    return mat;
-}
-*/
-
 #include "texturefuncs.hlsli"

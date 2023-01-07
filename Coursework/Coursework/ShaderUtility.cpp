@@ -103,7 +103,7 @@ void ShaderUtility::ConstructVSLightBuffer(ID3D11DeviceContext* deviceContext, I
 
 			XMMATRIX viewMats[6];
 			lights[i]->GetPointLightViewMatrices(viewMats);
-
+			// all light view matrices must be transposed for use on the gpu
 			bufferPtr->pointLightMatrices.right[index] = XMMatrixTranspose(viewMats[0]);
 			bufferPtr->pointLightMatrices.left[index] = XMMatrixTranspose(viewMats[1]);
 			bufferPtr->pointLightMatrices.up[index] = XMMatrixTranspose(viewMats[2]);

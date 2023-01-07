@@ -4,11 +4,6 @@ RWTexture2D<float4> output : register(u0);
 
 SamplerState samplerState : register(s0);
 
-cbuffer CSBuffer : register(b0)
-{
-    float4 params;
-}
-
 [numthreads(8, 8, 1)]
 void main( uint3 DTid : SV_DispatchThreadID )
 {

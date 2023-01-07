@@ -1,6 +1,10 @@
 #include "defines.hlsli"
 
 // Texture helpers
+// This allows the resource buffer system to work
+// When a array of Texture2D objects is declared, the array MUST be indiced by a literal
+// so doing tex2dBuffer[textureIndex].Sample(...) would not work
+// however, using switch statements the desired functionalty can be achieved
 
 float4 SampleTexture2D(Texture2D texBuffer[TEX_BUFFER_SIZE], int i, SamplerState s, float2 uv)
 {

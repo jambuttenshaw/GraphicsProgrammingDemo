@@ -13,11 +13,13 @@ class Material;
 class SceneLight;
 class GlobalLighting;
 
-
+// constants defining array sizes
 #define MAX_LIGHTS 4
 #define MAX_MATERIALS 8
 #define RESOURCE_BUFFER_SIZE 24
 
+// a resource buffer is used to dynamically map textures to registers in shaders
+// the AddResource method gives an index through which the resource can be accessed in the shader
 class ResourceBuffer
 {
 public:
@@ -50,6 +52,10 @@ class ShaderUtility
 {
 public:
 	// constant buffer type definitions
+	// 
+	// THESE MUST MATCH THOSE DEFINED IN common.hlsli!!!!!!!!!!!
+	//
+
 	struct LightDataType
 	{
 		XMFLOAT4 irradiance;
@@ -121,17 +127,22 @@ public:
 	ShaderUtility() = delete;
 	~ShaderUtility() = delete;
 
+	// create a constant buffer of given size
 	static void CreateBuffer(ID3D11Device* device, UINT byteWidth, ID3D11Buffer** ppBuffer);
 
+	// populate a LightDataType object
 	static void ConstructLightData(LightDataType* lightData, const SceneLight* light, ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer);
+	// populate a MaterialDataType object
 	static void ConstructMaterialData(MaterialDataType* matData, const Material* mat, ResourceBuffer* tex2DBuffer);
 
+	// populate lighting constant buffers
 	static void ConstructVSLightBuffer(ID3D11DeviceContext* deviceContext, ID3D11Buffer* lightBuffer,
 		SceneLight** lights, size_t lightCount, Camera* camera);
 	static void ConstructPSLightBuffer(ID3D11DeviceContext* deviceContext, ID3D11Buffer* lightBuffer,
 		SceneLight** lights, size_t lightCount, GlobalLighting* globalLighting,
 		ResourceBuffer* tex2DBuffer, ResourceBuffer* texCubeBuffer);
 
+	// populate material constant buffers
 	static void ConstructMaterialBuffer(ID3D11DeviceContext* deviceContext, ID3D11Buffer* matBuffer,
 		Material* const* mats, size_t matCount,
 		ResourceBuffer* tex2DBuffer);

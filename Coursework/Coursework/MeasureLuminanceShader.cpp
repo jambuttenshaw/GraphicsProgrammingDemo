@@ -25,6 +25,8 @@ MeasureLuminanceShader::MeasureLuminanceShader(ID3D11Device* device, unsigned in
 	hr = device->CreateBuffer(&bufferDesc, nullptr, &m_CSBuffer);
 	assert(hr == S_OK);
 
+	// create 2 structured buffers used for parallel reduction algorithm
+	// these will act as ping-pong buffers
 	ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 	bufferDesc.ByteWidth = static_cast<int>(ceilf(backBufferW / 8.0f) * ceilf(backBufferH / 8.0f)) * sizeof(float);
 	bufferDesc.Usage = D3D11_USAGE_DEFAULT;
@@ -37,6 +39,8 @@ MeasureLuminanceShader::MeasureLuminanceShader(ID3D11Device* device, unsigned in
 	assert(hr == S_OK);
 	hr = device->CreateBuffer(&bufferDesc, nullptr, &m_ReductionBuffer1);
 	assert(hr == S_OK);
+
+	// create uav and srv for each buffer
 
 	D3D11_UNORDERED_ACCESS_VIEW_DESC uavDesc;
 	uavDesc.Format = DXGI_FORMAT_UNKNOWN;
@@ -65,6 +69,7 @@ MeasureLuminanceShader::MeasureLuminanceShader(ID3D11Device* device, unsigned in
 
 MeasureLuminanceShader::~MeasureLuminanceShader()
 {
+	// release resources
 	m_ReduceTo1DShader->Release();
 	m_ReduceToSingleShader->Release();
 	m_CSBuffer->Release();
@@ -88,7 +93,7 @@ void MeasureLuminanceShader::Run(ID3D11DeviceContext* deviceContext, ID3D11Shade
 	// first CS pass is to reduce the 2D texture into a 1D buffer
 	RunCS(deviceContext, m_ReduceTo1DShader, &input, &m_ReductionUAV0, XMUINT2{ inputW, inputH }, XMUINT2{ dimx, dimy });
 
-	// subsequent passes reduce the buffer to a single average luminance value
+	// subsequent passes reduce the buffer to a single summed luminance value
 
 	unsigned int dim = dimx * dimy;
 	// the number of thread groups used in the last reduction that still need reduced
@@ -148,10 +153,12 @@ void MeasureLuminanceShader::RunCS(	ID3D11DeviceContext* deviceContext, ID3D11Co
 									ID3D11ShaderResourceView** input, ID3D11UnorderedAccessView** output,
 									XMUINT2 inputDims, XMUINT2 groupCount)
 {
+	// set shader and srv/uav
 	deviceContext->CSSetShader(cs, nullptr, 0);
 	deviceContext->CSSetShaderResources(0, 1, input);
 	deviceContext->CSSetUnorderedAccessViews(0, 1, output, nullptr);
 
+	// setup params constant buffer
 	D3D11_MAPPED_SUBRESOURCE mappedResource;
 	deviceContext->Map(m_CSBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 	CSBufferType* dataPtr = (CSBufferType*)mappedResource.pData;
@@ -160,8 +167,11 @@ void MeasureLuminanceShader::RunCS(	ID3D11DeviceContext* deviceContext, ID3D11Co
 	deviceContext->Unmap(m_CSBuffer, 0);
 	deviceContext->CSSetConstantBuffers(0, 1, &m_CSBuffer);
 
+	// dispatch
 	deviceContext->Dispatch(groupCount.x, groupCount.y, 1);
 
+	// unbind resources
+	// (to prevent attempting to bind same resource as input and output simutaneously)
 	ID3D11Buffer* nullCB = nullptr;
 	ID3D11ShaderResourceView* nullSRV = nullptr;
 	ID3D11UnorderedAccessView* nullUAV = nullptr;

@@ -8,8 +8,7 @@ SamplerState samplerState : register(s0);
 cbuffer CSBuffer : register(b0)
 {
     float threshold;
-    float smoothing;
-    float2 padding;
+    float3 padding;
 }
 
 
@@ -29,9 +28,10 @@ void main( uint3 DTid : SV_DispatchThreadID )
     float lum = dot(s, LUM_VECTOR);
     
     // perform brightpass filter
-    float filteredLum = smoothstep(threshold - smoothing, threshold + smoothing, lum);
+    float filteredLum = step(threshold, lum);
     
     // store in output texture
+    //                                          (avoid division by 0)
     float3 outColor = s.rgb * (filteredLum / (lum + 0.0001f));
     output[DTid.xy] = float4(outColor, 1.0f);
 }

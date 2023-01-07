@@ -26,6 +26,7 @@ BloomShader::BloomShader(ID3D11Device* device, unsigned int width, unsigned int 
 		ID3D11Texture2D* tex1 = nullptr;
 		ID3D11Texture2D* tex2 = nullptr;
 
+		// texture dimensions reduce by half for each level
 		unsigned int currentWidth  = static_cast<unsigned int>( m_Width * powf(0.5f, static_cast<float>(level)));
 		unsigned int currentHeight = static_cast<unsigned int>(m_Height * powf(0.5f, static_cast<float>(level)));
 
@@ -70,6 +71,7 @@ BloomShader::BloomShader(ID3D11Device* device, unsigned int width, unsigned int 
 
 		m_Levels.push_back(bloomLevel);
 
+		// stop creating new levels if the texture size is too small
 		if (currentWidth <= 1 || currentHeight <= 1)
 		{
 			m_LevelCount = level;

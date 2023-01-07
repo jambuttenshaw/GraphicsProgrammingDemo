@@ -63,6 +63,7 @@ void TerrainMesh::BuildMesh(ID3D11Device* device, float size)
 
 	float fResolution = static_cast<float>(m_Resolution);
 
+	// construct vertex data
 	for (unsigned int x = 0; x < m_Resolution + 1; x++)
 	{
 		for (unsigned int z = 0; z < m_Resolution + 1; z++)

@@ -35,6 +35,8 @@ public:
 	BaseHeightmapFilter(ID3D11Device* device, const wchar_t* cs)
 		: m_Device(device)
 	{
+		assert(sizeof(SettingsType) % 16 == 0);
+
 		// load compute shader from file
 		ID3D10Blob* computeShaderBuffer;
 

@@ -38,6 +38,9 @@ public:
 
 	void SettingsGUI();
 
+	inline bool BloomEnabled() const { return m_EnableBloom; }
+	inline bool TonemappingEnabled() const { return m_EnableTonemapping; }
+
 protected:
 
 	virtual void CreateShaderResources() override;

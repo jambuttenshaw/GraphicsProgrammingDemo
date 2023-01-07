@@ -19,6 +19,7 @@
 
 #include <array>
 
+// forward declarations
 class IHeightmapFilter;
 
 class LightShader;
@@ -60,13 +61,13 @@ protected:
 
 	void renderLightDebugSpheres();
 
+	// gui helpers
 	void terrainSettingsMenu();
 	bool addTerrainFilterMenu();
 
+	// terrain generation
 	void applyFilterStack();
-
 	IHeightmapFilter* createFilterFromIndex(int index);
-
 	void saveSettings(const std::string& file);
 	void loadSettings(const std::string& file);
 
@@ -107,14 +108,16 @@ private:
 	// game objects
 	std::vector<GameObject> m_GameObjects;
 
+	// lighting
 	std::array<SceneLight*, 4> m_Lights;
-
 	bool m_LightDebugSpheres = true;
 
+	// materials
+	MaterialLibrary m_MaterialLibrary;
+
+	// shadows
 	D3D11_RASTERIZER_DESC m_ShadowRasterDesc;
 	ID3D11RasterizerState* m_ShadowRasterizerState = nullptr;
-
-	MaterialLibrary m_MaterialLibrary;
 
 	bool m_ShowShadowMap = false;
 	int m_SelectedShadowMap = 0;
@@ -123,14 +126,15 @@ private:
 
 	// post processing
 	bool m_EnablePostProcessing = true;
+	bool m_EnableWater = true;
 
+	// terrain generation
 	std::vector<IHeightmapFilter*> m_HeightmapFilters;
 	int m_SelectedHeightmapFilter = -1;
 	std::array<const char*, 4> m_AllFilterNames = {
 		"Simple Noise", "Ridge Noise", "Warped Simple Noise", "Terrain Noise"
 	};
 	bool m_TerrainSettingsOpen = false;
-
 	char m_SaveFilePath[128];
 	bool m_LoadOnOpen = true;
 	bool m_SaveOnExit = false;

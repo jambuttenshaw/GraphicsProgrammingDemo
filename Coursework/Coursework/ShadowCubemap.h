@@ -14,6 +14,7 @@ public:
 
 protected:
 	D3D11_VIEWPORT m_Viewport;
+	// a shadow cubemap additionally has a DSV per face
 	ID3D11DepthStencilView* m_DSVs[6] = { nullptr, nullptr, nullptr, nullptr, nullptr, nullptr };
 
 };

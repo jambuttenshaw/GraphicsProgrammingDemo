@@ -116,6 +116,7 @@ void GlobalLighting::CreateIrradianceMap(ID3D11DeviceContext* deviceContext)
 
 	for (int face = 0; face < 6; face++)
 	{
+		// render irradiance map for this face of the cubemap
 		D3D11_MAPPED_SUBRESOURCE mappedResource;
 		deviceContext->Map(m_IrradianceMapShaderBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource);
 		IrradianceMapBufferType* data = (IrradianceMapBufferType*)mappedResource.pData;

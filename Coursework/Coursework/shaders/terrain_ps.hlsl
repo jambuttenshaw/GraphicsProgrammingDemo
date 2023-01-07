@@ -59,17 +59,19 @@ float3 calculateNormalTangentSpace(float2 pos)
     const float2 gTexelCellSpace = float2(1.0f, 1.0f) / heightmapDims;
 	
 	// calculate normal from displacement map
+    
+    // sample the 4 adjacent texels
     float2 leftTex = pos - float2(gTexelCellSpace.x, 0.0f);
     float2 rightTex = pos + float2(gTexelCellSpace.x, 0.0f);
     float2 topTex = pos - float2(0.0f, gTexelCellSpace.y);
     float2 bottomTex = pos + float2(0.0f, gTexelCellSpace.y);
 	
-    
     float leftY      = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, leftTex, 0).r;
     float rightY     = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, rightTex, 0).r;
     float topY       = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, topTex, 0).r;
     float bottomY    = SampleTexture2DLOD(texture2DBuffer, heightmapIndex, heightmapSampler, bottomTex, 0).r;
 	
+    // calculate tangent and bitangent to calculate normal
     float3 tangent = normalize(float3(2.0f * gWorldCellSpace.x, 0.0f, rightY - leftY));
     float3 bitangent = normalize(float3(0.0f, 2.0f * gWorldCellSpace.y, bottomY - topY));
     return normalize(cross(tangent, bitangent));
@@ -82,6 +84,7 @@ float4 main(InputType input) : SV_TARGET
     
     float2 uv = input.tex * uvScale;
     float3 v = -normalize(input.viewDir);
+    // get normal in world space
     float3 n = tangentSpaceToWorldSpace(tangentSpaceNormal, input.normal, float3(1.0f, 0.0f, 0.0f));
     
     // steepness:
@@ -98,6 +101,7 @@ float4 main(InputType input) : SV_TARGET
             ((1.0f - smoothstep(minMaxSnowSteepness.x - s1, minMaxSnowSteepness.x + s1, steepness)) +
             smoothstep(minMaxSnowSteepness.y - s1, minMaxSnowSteepness.y + s1, steepness));
     
+    // perform blending
     MaterialData groundMaterial = materialMix(
             materialBuffer.materials[1],
             materialBuffer.materials[2],
@@ -140,7 +144,6 @@ float4 main(InputType input) : SV_TARGET
             1.0f - snowMix, n, v,
             uv, texture2DBuffer, anisotropicSampler);
 
-    // unsure why this is needed, but this fixes the normals
     materialNormal.z = -materialNormal.z;
     
     // lighting

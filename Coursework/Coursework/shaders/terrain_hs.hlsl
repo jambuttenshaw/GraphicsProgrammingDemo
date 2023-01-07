@@ -45,6 +45,7 @@ float3 ComputePatchMidpoint(float3 cp0, float3 cp1, float3 cp2, float3 cp3)
 
 float ComputeScaledDistance(float3 from, float3 to)
 {
+    // calculates the distance to a point and scales it between 0 and 1
     float d = distance(from, to);
     return smoothstep(minMaxDistance.x, minMaxDistance.y, d);
 }
@@ -54,11 +55,14 @@ float ComputePatchLOD(float3 midpoint)
     float2 uv = midpoint.xz / size;
     uv += float2(0.5f, 0.5f);
     
+    // the distance to the camera and the height deviation affect the LOD of this patch
+    
     float heightDeviation = preprocessedHeightmap.SampleLevel(pointSampler, uv, 0.0f).a;
     float scaledHeightDeviation = smoothstep(minMaxHeightDeviation.x, minMaxHeightDeviation.y, heightDeviation);
     
     float d = ComputeScaledDistance(cameraPos, midpoint);
     
+    // calculate the LOD between 0 and 1
     float lod01 = saturate(scaledHeightDeviation + distanceLODBlending * (1.0f - d));
     return lerp(minMaxLOD.x, minMaxLOD.y, lod01);
 }
@@ -87,6 +91,7 @@ HSConstantOutput PatchConstantFunction(InputPatch<VSOutputType, 12> ip, uint pat
 		ComputePatchMidpoint(ip[0].position, ip[2].position, ip[10].position, ip[11].position)
     };
 
+    // calculate the LOD of this patch and its neighbours
     float lod[] =
     {
         ComputePatchLOD(midPoints[0]),
@@ -96,9 +101,13 @@ HSConstantOutput PatchConstantFunction(InputPatch<VSOutputType, 12> ip, uint pat
         ComputePatchLOD(midPoints[4])
     };
 
+    // assign tessellation factors
+    // the inside tess factors will match this patch LOD
     output.insideTessFactor[0] = lod[0];
     output.insideTessFactor[1] = lod[0];
 
+    // blend down to match neighbouring patches
+    // assume neighbouring patches will blend down to match this one
     output.edgeTessFactor[0] = min(lod[0], lod[4]);
     output.edgeTessFactor[1] = min(lod[0], lod[3]);
     output.edgeTessFactor[2] = min(lod[0], lod[2]);

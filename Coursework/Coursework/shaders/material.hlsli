@@ -1,6 +1,10 @@
 #include "lighting.hlsli"
 
 
+// these functions perform a linear interpolation of the normals
+// this is not the best way to interpolate normal data
+// but is good enough for the purposes of this project
+
 float3 blendNormals(int normalMapIndexA, int normalMapIndexB, float t,
                         float3 n, float3 v, float2 uv, Texture2D tex2DBuffer[TEX_BUFFER_SIZE], SamplerState materialSampler)
 {
@@ -72,7 +76,6 @@ MaterialData materialMix(const MaterialData matA, const MaterialData matB, float
     else
         metallicA = matA.metallic;
     if (matB.metalnessMapIndex > -1)
-    //if (false)
         metallicB = SampleTexture2D(tex2DBuffer, matB.metalnessMapIndex, materialSampler, uv).r;
     else
         metallicB = matB.metallic;

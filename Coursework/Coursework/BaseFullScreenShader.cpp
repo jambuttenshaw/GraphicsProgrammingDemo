@@ -28,6 +28,7 @@ void BaseFullScreenShader::Render(ID3D11DeviceContext* deviceContext)
 
 	// no input layout or buffers are used
 	// geometry is generated in the vertex shader
+	// a screen-filling quad is generated from a triangle strip
 	deviceContext->IASetInputLayout(nullptr);
 	deviceContext->IASetVertexBuffers(0, 0, nullptr, nullptr, nullptr);
 	deviceContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
@@ -35,6 +36,7 @@ void BaseFullScreenShader::Render(ID3D11DeviceContext* deviceContext)
 	deviceContext->VSSetShader(m_VertexShader, nullptr, 0);
 	deviceContext->PSSetShader(m_PixelShader, nullptr, 0);
 
+	// 4 indices are drawn, and these indices are used to construct the geometry in the vertex shader
 	deviceContext->Draw(4, 0);
 
 	deviceContext->VSSetShader(nullptr, nullptr, 0);

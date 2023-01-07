@@ -3,7 +3,9 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
-
+/*
+A base class for any pixel shader that needs to be ran for every pixel on the display
+*/
 class BaseFullScreenShader
 {
 public:

@@ -43,6 +43,8 @@ private:
 
 	struct BloomLevel
 	{
+		// a single bloom level contains 2 render textures
+		// 2-pass gaussian blur requires to have 2 render textures (one for vertical, another for horiztonal)
 		ID3D11ShaderResourceView* srv1 = nullptr;
 		ID3D11ShaderResourceView* srv2 = nullptr;
 		ID3D11UnorderedAccessView* uav1 = nullptr;
@@ -59,6 +61,7 @@ private:
 	std::vector<BloomLevel> m_Levels;
 	int m_LevelCount = -1;
 
+	// holds parameters for the compute shader
 	ID3D11Buffer* m_CSBuffer = nullptr;
 
 	ID3D11SamplerState* m_TrilinearSampler = nullptr;

@@ -50,6 +50,7 @@ DSOutput main(HSConstantOutput input, float2 domainUV : SV_DomainLocation, const
 {
 	DSOutput output;
     
+    // calculate properties of this vertex in the domain
     output.worldPosition = lerp(lerp(patch[0].position, patch[1].position, domainUV.x),
                                 lerp(patch[2].position, patch[3].position, domainUV.x),
                                 domainUV.y);
