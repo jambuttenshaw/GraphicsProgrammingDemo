@@ -1,4 +1,4 @@
-#Graphics Programming Coursework
+# Graphics Programming Coursework
 
 Implements a variety of graphics programming techniques, including:
 - Physically based materials and rendering
