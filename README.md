@@ -9,7 +9,7 @@ Implements a variety of graphics programming techniques, including:
 
 ## Screenshots
 
-[image](Images/Image1.png)
-[image](Images/Image2.png)
-[image](Images/Image3.png)
-[image](Images/Image4.png)
+![image](https://github.com/jambuttenshaw/GraphicsProgrammingDemo/blob/master/Images/Image1.png?raw=true)
+![image](https://github.com/jambuttenshaw/GraphicsProgrammingDemo/blob/master/Images/Image2.png?raw=true)
+![image](https://github.com/jambuttenshaw/GraphicsProgrammingDemo/blob/master/Images/Image3.png?raw=true)
+![image](https://github.com/jambuttenshaw/GraphicsProgrammingDemo/blob/master/Images/Image4.png?raw=true)
